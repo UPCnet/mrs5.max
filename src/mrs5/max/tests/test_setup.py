@@ -1,0 +1,51 @@
+# -*- coding: utf-8 -*-
+"""Setup tests for this package."""
+from plone import api
+from mrs5.max.testing import MRS5_MAX_INTEGRATION_TESTING  # noqa
+
+import unittest
+
+
+class TestSetup(unittest.TestCase):
+    """Test that mrs5.max is properly installed."""
+
+    layer = MRS5_MAX_INTEGRATION_TESTING
+
+    def setUp(self):
+        """Custom shared utility setup for tests."""
+        self.portal = self.layer['portal']
+        self.installer = api.portal.get_tool('portal_quickinstaller')
+
+    def test_product_installed(self):
+        """Test if mrs5.max is installed."""
+        self.assertTrue(self.installer.isProductInstalled(
+            'mrs5.max'))
+
+    def test_browserlayer(self):
+        """Test that IMrs5MaxLayer is registered."""
+        from mrs5.max.interfaces import (
+            IMrs5MaxLayer)
+        from plone.browserlayer import utils
+        self.assertIn(IMrs5MaxLayer, utils.registered_layers())
+
+
+class TestUninstall(unittest.TestCase):
+
+    layer = MRS5_MAX_INTEGRATION_TESTING
+
+    def setUp(self):
+        self.portal = self.layer['portal']
+        self.installer = api.portal.get_tool('portal_quickinstaller')
+        self.installer.uninstallProducts(['mrs5.max'])
+
+    def test_product_uninstalled(self):
+        """Test if mrs5.max is cleanly uninstalled."""
+        self.assertFalse(self.installer.isProductInstalled(
+            'mrs5.max'))
+
+    def test_browserlayer_removed(self):
+        """Test that IMrs5MaxLayer is removed."""
+        from mrs5.max.interfaces import \
+            IMrs5MaxLayer
+        from plone.browserlayer import utils
+        self.assertNotIn(IMrs5MaxLayer, utils.registered_layers())

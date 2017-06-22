@@ -1,0 +1,21 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="mrs5.max">
+
+  <!-- Set overrides folder for Just-a-Bunch-Of-Templates product -->
+  <include package="z3c.jbot" file="meta.zcml" />
+  <browser:jbot
+      directory="overrides"
+      layer="mrs5.max.interfaces.IMrs5MaxLayer"
+      />
+
+  <!-- Publish static files -->
+  <plone:static
+      name="mrs5.max"
+      type="plone"
+      directory="static"
+      />
+
+</configure>

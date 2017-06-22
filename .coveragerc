@@ -1,0 +1,6 @@
+[report]
+include =
+    src/mrs5/*
+omit =
+    */test*
+    */upgrades/*
