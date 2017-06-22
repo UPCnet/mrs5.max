@@ -15,7 +15,7 @@ long_description = '\n\n'.join([
 setup(
     name='mrs5.max',
     version='1.0a1',
-    description="MAX UI adaptation and integration for Plone 5",
+    description="MAX UI integration for Plone 5 and related portlets and views.",
     long_description=long_description,
     # Get more from https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -27,7 +27,7 @@ setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
     ],
-    keywords='Python Plone',
+    keywords='Python Plone max maxui',
     author='Plone Team',
     author_email='plone.team@upcnet.es',
     url='https://pypi.python.org/pypi/mrs5.max',
@@ -42,6 +42,12 @@ setup(
         'Products.GenericSetup>=1.8.2',
         'setuptools',
         'z3c.jbot',
+        'requests',
+        'pas.plugins.preauth',
+        'plone.app.z3cform',
+        'plone.directives.form',
+        'max5.client',
+        'hub5.client'
     ],
     extras_require={
         'test': [

@@ -1,21 +1,30 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
     xmlns:browser="http://namespaces.zope.org/browser"
-    xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="mrs5.max">
 
-  <!-- Set overrides folder for Just-a-Bunch-Of-Templates product -->
-  <include package="z3c.jbot" file="meta.zcml" />
-  <browser:jbot
-      directory="overrides"
-      layer="mrs5.max.interfaces.IMrs5MaxLayer"
+    <browser:page
+      name="avatar"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".avatar.getAvatar"
+      permission="genweb.authenticated"
       />
 
-  <!-- Publish static files -->
-  <plone:static
-      name="mrs5.max"
-      type="plone"
-      directory="static"
-      />
+    <browser:page
+        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+        name="max_variables.js"
+        class=".variables.MAXJSVariables"
+        permission="zope.Public"
+        />
+
+    <!-- Control panel -->
+    <browser:page
+        name="maxui-settings"
+        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+        class=".controlpanel.MAXUISettingsControlPanel"
+        permission="cmf.ManagePortal"
+        />
 
 </configure>

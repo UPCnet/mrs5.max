@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<portlets>
+
+ <portlet
+   addview="mrs5.max.widget"
+   title="MAX UI Portlet"
+   description="MAX UI portlet to host the activitystream widget"
+   />
+
+</portlets>

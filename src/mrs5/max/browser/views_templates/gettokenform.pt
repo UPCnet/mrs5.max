@@ -1,0 +1,20 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      i18n:domain="plone">
+
+      <div id="content-core">
+        <form action="." method="post"
+              tal:attributes="action view/action; enctype view/enctype">
+          <metal:use use-macro="context/@@ploneform-macros/fields" />
+          <div class="modal-footer">
+            <tal:buttons repeat="action view/actions/values|nothing">
+              <input type="submit" tal:replace="structure action/render" />
+            </tal:buttons>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+          </div>
+        </form>
+      </div>
+
+</html>

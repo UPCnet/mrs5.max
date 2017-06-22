@@ -1,0 +1,8 @@
+{
+    "branch": "develop", 
+    "css_location": "static/max.ui.css", 
+    "fonts_location": "static", 
+    "fonts_url": "++maxui++static", 
+    "github_url": "https://github.com/UPCnet/max.ui.js", 
+    "js_location": "static/max.ui.min.js"
+}

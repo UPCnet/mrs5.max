@@ -1,0 +1,60 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      lang="en"
+      metal:use-macro="here/prefs_main_template/macros/master"
+      i18n:domain="plone">
+
+<body>
+<div id="content" metal:fill-slot="prefs_configlet_content">
+
+    <div metal:use-macro="context/global_statusmessage/macros/portal_message">
+      Portal status message
+    </div>
+
+    <a href=""
+       id="setup-link"
+       tal:attributes="href string:$portal_url/plone_control_panel"
+       i18n:translate="">
+        Site Setup
+    </a> &rsaquo;
+
+    <h1 class="documentFirstHeading" tal:content="view/label">View Title</h1>
+
+    <div id="content-core">
+      <div class="row-fluid">
+        <div class="span12">
+          <section class="lead warning clearfix"
+                   tal:attributes="class string:lead ${view/restricted_token_class} clearfix">
+            <p><strong>Restricted user token</strong></p>
+
+            <p>This is the restricted user token that the app will use to access
+            the restricted API in order to perform special actions in the MAX
+            server (e.g. create an user in the platform)</p>
+
+            <button class="btn pull-right" data-user="restricted" data-toggle="modal" data-target="#getRestrictedTokenModal" href="getRestrictedToken">Retrieve token</button>
+          </section>
+        </div>
+      </div>
+
+      <!-- Modal token Restricted -->
+      <div id="getRestrictedTokenModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="getTokenModal" aria-hidden="true">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h3 id="myModalLabel">Get Token</h3>
+        </div>
+        <div class="modal-body">
+          <p>One fine body…</p>
+        </div>
+      </div>
+
+      <div class="row-fluid">
+        <div class="span12">
+            <span tal:replace="structure view/contents" />
+        </div>
+      </div>
+    </div>
+</div>
+</body>
+</html>

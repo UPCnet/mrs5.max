@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<componentregistry>
+  <utilities>
+    <utility
+      interface="plone.app.users.schema.IUserSchemaProvider"
+      factory="mrs5.max.userdataschema.UserDataSchemaProvider"
+    />
+  </utilities>
+</componentregistry>

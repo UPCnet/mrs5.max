@@ -1,0 +1,17 @@
+# Gettext Message File for GenWeb.
+# Victor Fernandez de Alba (UPCnet)
+msgid ""
+msgstr ""
+"Project-Id-Version: GenWebUPC\n"
+"POT-Creation-Date: 2013-07-17 11:11+0000\n"
+"PO-Revision-Date: 2010-06-04 11:35+0100\n"
+"Last-Translator: Roberto Diaz <roberto.diaz@upcnet.es>\n"
+"Language-Team: Plone Team@UPCnet <>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+"Language-Code: en\n"
+"Language-Name: English\n"
+"Preferred-Encodings: utf-8 latin1\n"
+"Domain: mrsmax\n"
