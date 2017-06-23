@@ -3,10 +3,10 @@
     i18n_domain="mrs5.max">
 
   <!-- Enhanced user properties adapter -->
-  <adapter
+ <!--  <adapter
     provides=".userdataschema.IEnhancedUserDataSchema"
     for="Products.CMFCore.interfaces.ISiteRoot"
     factory=".userdataschema.EnhancedUserDataPanelAdapter"
-    />
+    /> -->
 
 </configure>

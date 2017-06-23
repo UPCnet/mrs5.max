@@ -9,7 +9,7 @@
       name="avatar"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"
       class=".avatar.getAvatar"
-      permission="genweb.authenticated"
+      permission="base.authenticated"
       />
 
     <browser:page
