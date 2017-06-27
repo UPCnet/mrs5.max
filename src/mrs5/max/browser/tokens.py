@@ -106,7 +106,7 @@ class getRestrictedTokenForm(form.SchemaForm):
 
 class resetMyOauthToken(grok.View):
     grok.name('resetToken')
-    grok.require('genweb.authenticated')
+    grok.require('base.authenticated')
     grok.context(ISiteRoot)
 
     def render(self):

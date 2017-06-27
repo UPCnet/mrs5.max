@@ -12,7 +12,7 @@ import json
 class MAXUserSearch(grok.View):
     grok.context(Interface)
     grok.name('max.ajaxusersearch')
-    grok.require('genweb.authenticated')
+    grok.require('base.authenticated')
 
     def render(self):
         self.request.response.setHeader("Content-type", "application/json")
@@ -38,7 +38,7 @@ class MAXUserSearch(grok.View):
 class GetMaxHash(grok.View):
     grok.context(Interface)
     grok.name('max.hash')
-    grok.require('genweb.authenticated')
+    grok.require('base.authenticated')
 
     def render(self):
         url = self.context.absolute_url()
