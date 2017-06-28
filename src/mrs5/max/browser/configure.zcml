@@ -5,13 +5,13 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="mrs5.max">
 
-    <browser:page
+<!--     <browser:page
       name="avatar"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"
       class=".avatar.getAvatar"
       permission="base.authenticated"
       />
-
+ -->
     <browser:page
         for="Products.CMFPlone.interfaces.IPloneSiteRoot"
         name="max_variables.js"
