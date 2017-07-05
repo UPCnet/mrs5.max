@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<layers>
-  <layer
-      name="mrs5.max"
-      interface="mrs5.max.interfaces.IMrs5MaxLayer"
-      />
-</layers>

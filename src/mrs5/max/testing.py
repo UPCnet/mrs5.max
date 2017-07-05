@@ -7,18 +7,23 @@ from plone.app.testing import IntegrationTesting
 from plone.app.testing import PloneSandboxLayer
 from plone.testing import z2
 
-import mrs5.max
+from plone.app.testing import PLONE_FIXTURE
+
+from zope.configuration import xmlconfig
 
 
 class Mrs5MaxLayer(PloneSandboxLayer):
 
-    defaultBases = (PLONE_APP_CONTENTTYPES_FIXTURE,)
+    defaultBases = (PLONE_FIXTURE,)
 
     def setUpZope(self, app, configurationContext):
-        # Load any other ZCML that is required for your tests.
-        # The z3c.autoinclude feature is disabled in the Plone fixture base
-        # layer.
-        self.loadZCML(package=mrs5.max)
+         # Load ZCML
+        import mrs5.max
+        xmlconfig.file(
+            'configure.zcml',
+            mrs5.max,
+            context=configurationContext
+        )
 
     def setUpPloneSite(self, portal):
         applyProfile(portal, 'mrs5.max:default')
