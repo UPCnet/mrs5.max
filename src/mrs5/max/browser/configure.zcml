@@ -6,13 +6,14 @@
     xmlns:grok="http://namespaces.zope.org/grok"
     i18n_domain="mrs5.max">
 
-<!--     <browser:page
+<!--     permission="base.authenticated" -->
+    <browser:page
       name="avatar"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"
       class=".avatar.getAvatar"
-      permission="base.authenticated"
+      permission="zope.Public"
       />
- -->
+
     <browser:page
         for="Products.CMFPlone.interfaces.IPloneSiteRoot"
         name="max_variables.js"
