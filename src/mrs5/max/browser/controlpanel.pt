@@ -33,19 +33,13 @@
             the restricted API in order to perform special actions in the MAX
             server (e.g. create an user in the platform)</p>
 
-            <button class="btn pull-right" data-user="restricted" data-toggle="modal" data-target="#getRestrictedTokenModal" href="getRestrictedToken">Retrieve token</button>
-          </section>
-        </div>
-      </div>
+            <a class="pat-plone-modal pull-right"
+               data-user="restricted" data-pat-plone-modal="width: 400"
+               tal:attributes="href string:${portal_url}/getRestrictedToken">
+               <button class="context">Retrieve token</button>
+            </a>
 
-      <!-- Modal token Restricted -->
-      <div id="getRestrictedTokenModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="getTokenModal" aria-hidden="true">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h3 id="myModalLabel">Get Token</h3>
-        </div>
-        <div class="modal-body">
-          <p>One fine body…</p>
+          </section>
         </div>
       </div>
 

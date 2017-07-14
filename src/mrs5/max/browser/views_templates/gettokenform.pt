@@ -4,17 +4,25 @@
       xmlns:i18n="http://xml.zope.org/namespaces/i18n"
       i18n:domain="plone">
 
-      <div id="content-core">
-        <form action="." method="post"
-              tal:attributes="action view/action; enctype view/enctype">
-          <metal:use use-macro="context/@@ploneform-macros/fields" />
-          <div class="modal-footer">
-            <tal:buttons repeat="action view/actions/values|nothing">
-              <input type="submit" tal:replace="structure action/render" />
-            </tal:buttons>
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+
+      <div id="content">
+
+        <div id="content-core">
+          <div class="modal-header">
+            <h3 id="myModalLabel">Get Token</h3>
           </div>
-        </form>
-      </div>
+          <form action="." method="post"
+                tal:attributes="action view/action; enctype view/enctype">
+            <metal:use use-macro="context/@@ploneform-macros/fields" />
+            <div class="modal-footer">
+              <tal:buttons repeat="action view/actions/values|nothing">
+                <input type="submit" tal:replace="structure action/render" />
+              </tal:buttons>
+              <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            </div>
+          </form>
+        </div>
+
+    </div>
 
 </html>

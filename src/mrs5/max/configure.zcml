@@ -12,6 +12,7 @@
   <i18n:registerTranslations directory="locales" />
 
   <includeDependencies package="." />
+  <grok:grok package="." />
 
   <include package=".browser" />
   <include package=".portlets" />
