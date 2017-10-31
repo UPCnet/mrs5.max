@@ -1,4 +1,11 @@
 <?xml version="1.0"?>
 <registry>
  <records interface="mrs5.max.browser.controlpanel.IMAXUISettings" />
+ <records prefix="plone.bundles/maxui-static-max-ui-css" interface='Products.CMFPlone.interfaces.IBundleRegistry'>
+     <value key="resources"> </value>
+     <value key="enabled">True</value>
+     <value key="compile">False</value>
+     <value key="csscompilation">++maxui++static/max.ui.css</value>
+     <value key="last_compilation">2017-10-03 00:00:00</value>
+ </records>
 </registry>
