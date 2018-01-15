@@ -7,4 +7,10 @@
    description="MAX UI portlet to host the activitystream widget"
    />
 
+  <portlet
+    addview="mrs.max.chat.widget"
+    title="Chat: MAX UI Portlet"
+    description="MAX UI portlet to host the activitystream widget"
+    />
+
 </portlets>

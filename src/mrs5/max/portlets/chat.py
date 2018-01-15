@@ -1,7 +1,5 @@
-from zope import schema
-from zope.component.hooks import getSite
-from zope.formlib import form
 from zope.interface import implements
+from zope.component.hooks import getSite
 
 from plone.app.portlets.portlets import base
 from plone.memoize.view import memoize_contextless
@@ -9,23 +7,14 @@ from plone.portlets.interfaces import IPortletDataProvider
 
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
-from base5.core import GenwebMessageFactory as _
 
-
-class IMaxUIPortlet(IPortletDataProvider):
+class IChatPortlet(IPortletDataProvider):
     """A portlet
 
     It inherits from IPortletDataProvider because for this portlet, the
     data that is being rendered and the portlet assignment itself are the
     same.
     """
-
-    displayChat = schema.Bool(
-        title=_(u'Display chat'),
-        required=True,
-        default=True
-    )
-
 
 
 class Assignment(base.Assignment):
@@ -35,17 +24,17 @@ class Assignment(base.Assignment):
     with columns.
     """
 
-    implements(IMaxUIPortlet)
+    implements(IChatPortlet)
 
-    def __init__(self, displayChat=True):
-        self.displayChat = displayChat
+    def __init__(self):
+        pass
 
     @property
     def title(self):
         """This property is used to give the title of the portlet in the
         "manage portlets" screen.
         """
-        return "Max UI Portlet"
+        return "Chat Portlet"
 
 
 class Renderer(base.Renderer):
@@ -56,7 +45,7 @@ class Renderer(base.Renderer):
     of this class. Other methods can be added and referenced in the template.
     """
 
-    render = ViewPageTemplateFile('maxui.pt')
+    render = ViewPageTemplateFile('chat.pt')
 
     @memoize_contextless
     def portal_url(self):
@@ -66,17 +55,9 @@ class Renderer(base.Renderer):
     def portal(self):
         return getSite()
 
-    def isDisplayedChat(self):
-        return self.data.displayChat
 
 class AddForm(base.NullAddForm):
     """Portlet add form.
     """
     def create(self):
         return Assignment()
-
-class EditForm(base.EditForm):
-    """Portlet edit form.
-    """
-
-    form_fields = form.Fields(IMaxUIPortlet)
