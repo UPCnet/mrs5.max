@@ -9,7 +9,7 @@ from plone.portlets.interfaces import IPortletDataProvider
 
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
-from base5.core import GenwebMessageFactory as _
+from mrs5.max import MRSMAXMessageFactory as _
 
 
 class IMaxUIPortlet(IPortletDataProvider):
@@ -25,7 +25,6 @@ class IMaxUIPortlet(IPortletDataProvider):
         required=True,
         default=True
     )
-
 
 
 class Assignment(base.Assignment):
@@ -69,11 +68,13 @@ class Renderer(base.Renderer):
     def isDisplayedChat(self):
         return self.data.displayChat
 
+
 class AddForm(base.NullAddForm):
     """Portlet add form.
     """
     def create(self):
         return Assignment()
+
 
 class EditForm(base.EditForm):
     """Portlet edit form.
