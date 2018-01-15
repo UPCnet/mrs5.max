@@ -1,6 +1,6 @@
 <div id="maxui-widget-container"
      tal:attributes="data-showConversations view/isDisplayedChat">
-s</div>
+</div>
 <script type="text/javascript"
         tal:attributes="src string:${view/portal_url}/max_variables.js">
 </script>
