@@ -32,7 +32,7 @@
             $( "#maxui-timeline" ).remove();
             $( "#maxui-show-conversations" ).remove();
             $( "#maxui-widget-container" ).css( "display", "block" );
-          }, 2000);
+          }, 750);
         });
       </script>
     </metal:main>
