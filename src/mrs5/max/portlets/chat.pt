@@ -1,11 +1,3 @@
 <iframe class="maxui-widget-chat" name="chat" scrolling="no"
-        tal:attributes="src string:${view/portal_url}/maxui_chat"
-        onload="resizeIframe( this )">
+        tal:attributes="src string:${view/portal_url}/maxui_chat">
 </iframe>
-<script type="text/javascript">
-  function resizeIframe( iframe ) {
-    setTimeout( function () {
-      iframe.height = iframe.contentWindow.document.body.scrollHeight + "px";
-    }, 4000 );
-  }
-</script>
