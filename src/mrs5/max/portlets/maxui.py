@@ -66,7 +66,9 @@ class Renderer(base.Renderer):
         return getSite()
 
     def isDisplayedChat(self):
-        return self.data.displayChat
+        if hasattr(self.data, 'displayChat'):
+            return self.data.displayChat
+        return True
 
 
 class AddForm(base.NullAddForm):
