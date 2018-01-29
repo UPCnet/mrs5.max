@@ -18,12 +18,10 @@
       <script type="text/javascript"
               tal:attributes="src string:${view/portal_url}/max_variables.js">
       </script>
-      <script type="text/javascript" src="++maxui++static/maxui.loader.js"></script>
+      <script type="text/javascript" src="++maxui++static/maxui.loader.chat.js"></script>
       <script type="text/javascript">
         $( document ).ready( function() {
-          $( "#maxui-widget-container" ).css( "display", "none" );
           setTimeout( function(){
-            $( "#maxui-show-conversations" ).trigger("click");
             $( "#maxui-search" ).remove();
             $( "#maxui-search-toggle" ).remove();
             $( "#maxui-show-timeline" ).remove();
@@ -31,8 +29,7 @@
             $( "#maxui-news-activities" ).remove();
             $( "#maxui-timeline" ).remove();
             $( "#maxui-show-conversations" ).remove();
-            $( "#maxui-widget-container" ).css( "display", "block" );
-          }, 750);
+          }, 1000);
         });
       </script>
     </metal:main>
