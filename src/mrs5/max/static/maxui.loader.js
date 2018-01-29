@@ -24,7 +24,7 @@ window._MAXUI.onReady = function() {
                 'hidePostboxOnTimeline': _MAXUI.hidePostboxOnTimeline,
                 'literals': _MAXUI.literals,
                 'showSubscriptionList': _MAXUI.showSubscriptionList,
-                'disableConversations': $( "#maxui-widget-container" ).attr( "data-showConversations" ) === "False"
+                'disableConversations': $( "#view_conversations" ).attr( "data-showConversations" ) === "False"
                };
 
     var intervalID = setInterval(function(event) {

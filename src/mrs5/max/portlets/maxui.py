@@ -71,15 +71,20 @@ class Renderer(base.Renderer):
         return True
 
 
-class AddForm(base.NullAddForm):
+class AddForm(base.AddForm):
     """Portlet add form.
     """
-    def create(self):
-        return Assignment()
+    schema = IMaxUIPortlet
+    label = _(u"Add Max UI Portlet")
+    description = _(u"This portlet displays Max UI.")
+
+    def create(self, data):
+        return Assignment(displayChat=data.get('displayChat', True))
 
 
 class EditForm(base.EditForm):
     """Portlet edit form.
     """
-
-    form_fields = form.Fields(IMaxUIPortlet)
+    schema = IMaxUIPortlet
+    label = _(u"Edit Max UI Portlet")
+    description = _(u"This portlet displays Max UI.")
