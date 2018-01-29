@@ -21,6 +21,20 @@
         permission="zope.Public"
         />
 
+    <browser:page
+        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+        name="max_variables_chat.js"
+        class=".variables.MAXJSVariablesChat"
+        permission="zope.Public"
+        />
+
+<!--     <browser:page
+        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+        name="max_variables_activity.js"
+        class=".variables.MAXJSVariablesActivity"
+        permission="zope.Public"
+        />
+ -->
     <!-- Control panel -->
     <browser:page
         name="maxui-settings"

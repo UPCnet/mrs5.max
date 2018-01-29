@@ -27,6 +27,20 @@
       factory=".traversal.MAXUITraverser"
       />
 
+  <adapter
+      name="maxuiactivity"
+      for="* zope.publisher.interfaces.IRequest"
+      provides="zope.traversing.interfaces.ITraversable"
+      factory=".traversal.MAXUIActivityTraverser"
+      />
+
+  <adapter
+      name="maxuichat"
+      for="* zope.publisher.interfaces.IRequest"
+      provides="zope.traversing.interfaces.ITraversable"
+      factory=".traversal.MAXUIChatTraverser"
+      />
+
   <plone:static
       directory="static"
       type="maxui"
