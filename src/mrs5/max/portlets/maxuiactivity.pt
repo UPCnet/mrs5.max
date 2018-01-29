@@ -1,0 +1,7 @@
+<div id="maxuiactivity-widget-container"></div>
+<script type="text/javascript"
+        tal:attributes="src string:${view/portal_url}/max_variables.js">
+</script>
+<script type="text/javascript" src="++maxui++static/maxui.loaderactivity.js"></script>
+<script type="text/javascript" src="++maxui++static/maxuiactivity.js">
+</script>

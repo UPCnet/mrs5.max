@@ -1,0 +1,7 @@
+<div id="maxuichat-widget-container"></div>
+<script type="text/javascript"
+        tal:attributes="src string:${view/portal_url}/max_variables_chat.js">
+</script>
+<script type="text/javascript" src="++maxui++static/maxui.loaderchat.js"></script>
+<script type="text/javascript" src="++maxui++static/maxuichat.js">
+</script>
