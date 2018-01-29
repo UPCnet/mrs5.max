@@ -8050,7 +8050,7 @@ max.templates = function() {
                 <div class="maxui-actions">\
                     <a href="" class="maxui-action maxui-commentaction maxui-icon- {{#replies}}maxui-has-comments{{/replies}}"><strong>{{replies.length}}</strong> {{literals.toggle_comments}}</a>\
                     <a href="" class="maxui-action maxui-favorites {{#favorited}}maxui-favorited{{/favorited}} maxui-icon-">{{literals.favorite}}</a>\
-                    <a href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-">{{literals.like}}</a>\
+                    <a href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-"><strong>{{likes}}</strong> {{literals.like}}</a>\
                     {{#canFlagActivity}}\
                     <a href="" class="maxui-action maxui-flag {{#flagged}}maxui-flagged{{/flagged}} maxui-icon-">{{literals.flag_activity_icon}}</a>\
                     {{/canFlagActivity}}\
@@ -8069,17 +8069,17 @@ max.templates = function() {
                 </div>\
             </div>\
         \
-            <div class="maxui-comments" style="display: none">\
+            {{#canViewComments}}<div class="maxui-comments" style="display: none">\
                 <div class="maxui-commentsbox">\
                     {{#replies}}\
                         {{> comment}}\
                     {{/replies}}\
                 </div>\
-                <div class="maxui-newcommentbox">\
+                {{#canWriteComment}}<div class="maxui-newcommentbox">\
                         <textarea class="maxui-empty maxui-text-input" id="maxui-commentBox" data-literal="{{literals.new_comment_text}}">{{literals.new_comment_text}}</textarea>\
                         <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{literals.new_comment_post}}"/>\
-                </div>\
-            </div>\
+                </div>{{/canWriteComment}}\
+            </div>{{/canViewComments}}\
         \
             <div class="maxui-clear"></div>\
         </div>\
@@ -9832,7 +9832,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '4.1.18';
+        maxui.version = '4.1.222';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -9847,7 +9847,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             'disableConversations': false,
             'conversationsSection': 'conversations',
             'currentConversationSection': 'conversations',
-            'activitySortOrder': 'activities',
+            'activitySortOrder': 'comments',
             'activitySortView': 'recent',
             'maximumConversations': 20,
             'contextTagsFilter': [],
@@ -9973,6 +9973,25 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         }
         // Make settings available to utils package
         maxui.utils.setSettings(maxui.settings);
+        /**
+         *
+         *
+         **/
+        jq.fn.hidePostbox = function() {
+            var maxui = this;
+            if (maxui.settings.activitySource === 'timeline') {
+                if (maxui.settings.subscriptionsWrite.length > 0) {
+                    return maxui.settings.hidePostboxOnTimeline;
+                }
+            }
+            for (var i in maxui.settings.subscriptionsWrite) {
+                var hash = maxui.settings.subscriptionsWrite[i].hash;
+                if (hash === maxui.settings.readContext) {
+                    return maxui.settings.hidePostboxOnTimeline;
+                }
+            }
+            return true;
+        };
         // Get user data and start ui rendering when completed
         this.maxClient.getUserData(maxui.settings.username, function(data) {
             //Determine if user can write in writeContexts
@@ -10002,6 +10021,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
             maxui.settings.subscriptionsWrite = subscriptionsWrite;
             maxui.settings.subscriptions = userSubscriptions;
+            if (maxui.settings.activitySource === 'timeline' && subscriptionsWrite.length > 0) {
+                maxui.settings.writeContexts.push(subscriptionsWrite[0].hash);
+            }
             // Start messaging only if conversations enabled
             if (!maxui.settings.disableConversations) {
                 maxui.messaging.start();
@@ -10030,7 +10052,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 orderViewLikes: showLikesOrder ? 'active' : '',
                 orderViewFlagged: showFlaggedOrder ? 'active' : '',
                 messagesStyle: 'width:{0}px;left:{0}px;'.format(containerWidth),
-                hidePostbox: maxui.settings.hidePostboxOnTimeline
+                hidePostbox: maxui.hidePostbox()
             };
             var mainui = maxui.templates.mainUI.render(params);
             maxui.html(mainui);
@@ -10048,7 +10070,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 maxui.bindEvents();
                 maxui.toggleSection('conversations');
                 maxui.renderPostbox();
-                textarea_literal = maxui.settings.literals.new_conversation_text;
+                var textarea_literal = maxui.settings.literals.new_conversation_text;
                 jq('#maxui-newactivity-box textarea').val(textarea_literal).attr('data-literal', textarea_literal);
             } else if (maxui.settings.UISection === 'timeline') {
                 var sort_orders_by_view = {
@@ -10256,14 +10278,17 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var $activity = jq(this).closest('.maxui-activity');
             var activityid = $activity.attr('id');
             var liked = $likes.hasClass('maxui-liked');
+            var $likes_count = $likes.children('strong');
             if (liked) {
                 maxui.maxClient.unlikeActivity(activityid, function(event) {
                     $likes.toggleClass('maxui-liked', false);
                 });
+                $likes_count.text(parseInt($likes_count.text(), 10) - 1);
             } else {
                 maxui.maxClient.likeActivity(activityid, function(event) {
                     $likes.toggleClass('maxui-liked', true);
                 });
+                $likes_count.text(parseInt($likes_count.text(), 10) + 1);
             }
         });
         //Toggle flagged status via delegating the click to the activities container
@@ -11107,6 +11132,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (maxui.settings.hidePostboxOnTimeline) {
                 $postbox.hide();
             }
+            if (maxui.hidePostbox()) {
+                $postbox.hide();
+            }
         }
     };
     /**
@@ -11155,8 +11183,14 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      **/
     jq.fn.loadMoreActivities = function() {
         var maxui = this;
+        var lastActivity = jq('.maxui-activity:last').attr('id');
+        if (jq('#maxui-activity-sort .maxui-sort-action.maxui-most-recent').hasClass('active')) {
+            if (jq("#" + lastActivity + " .maxui-comment").length > 0) {
+                lastActivity = jq("#" + lastActivity + " .maxui-comment:last").attr('id');
+            }
+        }
         var filter = {
-            before: jq('.maxui-activity:last').attr('id')
+            before: lastActivity
         };
         maxui.printActivities(filter);
     };
@@ -11212,6 +11246,20 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var callback = arguments[2];
             callback();
         }
+    };
+    /**
+     *
+     *
+     **/
+    jq.fn.canCommentActivity = function(url) {
+        var maxui = this;
+        for (var i in maxui.settings.subscriptionsWrite) {
+            var hash = maxui.settings.subscriptionsWrite[i].hash;
+            if (hash === url) {
+                return true;
+            }
+        }
+        return false;
     };
     /**
      *    Renders the N activities passed in items on the timeline slot. This function is
@@ -11279,6 +11327,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             _.defaults(activity.object, {
                 filename: activity.id
             });
+            var canCommentActivity = maxui.settings.canwrite;
+            if (activity.contexts) {
+                canCommentActivity = maxui.canCommentActivity(activity.contexts[0].url);
+            }
             var params = {
                 id: activity.id,
                 actor: activity.actor,
@@ -11302,7 +11354,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 canFlagActivity: maxui.settings.canflag,
                 via: generator,
                 fileDownload: activity.object.objectType === 'file',
-                filename: activity.object.filename
+                filename: activity.object.filename,
+                canViewComments: canCommentActivity || activity.replies.length > 0,
+                canWriteComment: canCommentActivity
             };
             // Render the activities template and append it at the end of the rendered activities
             // partials is used to render each comment found in the activities
