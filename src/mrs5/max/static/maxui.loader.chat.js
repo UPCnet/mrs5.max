@@ -17,14 +17,15 @@ window._MAXUI.onReady = function() {
                 'maxServerURLAlias' : _MAXUI.max_server_alias,
                 'avatarURLpattern' : _MAXUI.avatar_url,
                 'readContext' : _MAXUI.contexts,
-                'activitySource': _MAXUI.activitySource,
+                'activitySource': 'conversations',
                 'domain': _MAXUI.domain,
                 'activitySortOrder': 'comments',
                 'activitySortView': _MAXUI.activitySortView,
-                'hidePostboxOnTimeline': _MAXUI.hidePostboxOnTimeline,
+                'hidePostboxOnTimeline': true,
                 'literals': _MAXUI.literals,
-                'showSubscriptionList': _MAXUI.showSubscriptionList,
-                'disableConversations': $( "#view_conversations" ).attr( "data-showConversations" ) === "False"
+                'UISection': 'conversations',
+                'disableTimeline': true,
+                'showSubscriptionList': false,
                };
 
     var intervalID = setInterval(function(event) {

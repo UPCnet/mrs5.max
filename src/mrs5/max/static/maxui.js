@@ -10047,6 +10047,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (maxui.settings.UISection === 'conversations') {
                 maxui.bindEvents();
                 maxui.toggleSection('conversations');
+                maxui.renderPostbox();
+                textarea_literal = maxui.settings.literals.new_conversation_text;
+                jq('#maxui-newactivity-box textarea').val(textarea_literal).attr('data-literal', textarea_literal);
             } else if (maxui.settings.UISection === 'timeline') {
                 var sort_orders_by_view = {
                     recent: maxui.settings.activitySortOrder,

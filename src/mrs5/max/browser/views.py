@@ -3,6 +3,10 @@ from plone import api
 from hashlib import sha1
 from zope.interface import Interface
 from zope.component import getUtility
+from zope.component.hooks import getSite
+from plone.memoize.view import memoize_contextless
+from Products.CMFPlone.interfaces import IPloneSiteRoot
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
 from mrs5.max.utilities import IMAXClient
 
@@ -43,3 +47,19 @@ class GetMaxHash(grok.View):
     def render(self):
         url = self.context.absolute_url()
         return sha1(url).hexdigest()
+
+
+class MAXUIChat(grok.View):
+    """ Delete users from the plone & max & communities """
+    grok.name('maxui_chat')
+    grok.context(IPloneSiteRoot)
+
+    render = ViewPageTemplateFile('views_templates/maxui_chat.pt')
+
+    @memoize_contextless
+    def portal_url(self):
+        return self.portal().absolute_url()
+
+    @memoize_contextless
+    def portal(self):
+        return getSite()

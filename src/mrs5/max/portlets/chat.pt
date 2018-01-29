@@ -1,0 +1,3 @@
+<iframe class="maxui-widget-chat" name="chat" scrolling="no"
+        tal:attributes="src string:${view/portal_url}/maxui_chat">
+</iframe>
