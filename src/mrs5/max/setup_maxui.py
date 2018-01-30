@@ -9,8 +9,8 @@ import json
 ORIGINAL_MAXUI_FONT_URL = 'font'
 DEFAULT_MAXUI_FONTS_URL = './maxui/font'
 DEFAULT_MAXUI_FONTS_FOLDER = './maxui/font'
-DEFAULT_MAXUI_GITHUB_URL = 'https://github.com/UPCnet/max.ui.js'
-DEFAULT_MAXUI_BRANCH = 'develop'
+DEFAULT_MAXUI_GITHUB_URL = 'https://github.com/UPCnet/max.ui5.js'
+DEFAULT_MAXUI_BRANCH = 'master'
 DEFAULT_MAXUI_JS = './maxui.min.js'
 DEFAULT_MAXUI_CSS = './maxui.css'
 

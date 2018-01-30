@@ -8001,11 +8001,13 @@ var max = max || {};
 
 /*jshint multistr: true */
 /**
- * @fileoverview Provides hogan compiled templates
- *               ready to render.
- */
+* @fileoverview Provides hogan compiled templates
+*               ready to render.
+*/
 'use strict';
+
 var max = max || {};
+
 max.templates = function() {
     var templates = {
         activity: Hogan.compile('\
@@ -8050,7 +8052,7 @@ max.templates = function() {
                 <div class="maxui-actions">\
                     <a href="" class="maxui-action maxui-commentaction maxui-icon- {{#replies}}maxui-has-comments{{/replies}}"><strong>{{replies.length}}</strong> {{literals.toggle_comments}}</a>\
                     <a href="" class="maxui-action maxui-favorites {{#favorited}}maxui-favorited{{/favorited}} maxui-icon-">{{literals.favorite}}</a>\
-                    <a href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-"><strong>{{likes}}</strong> {{literals.like}}</a>\
+                    <a href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-">{{literals.like}}</a>\
                     {{#canFlagActivity}}\
                     <a href="" class="maxui-action maxui-flag {{#flagged}}maxui-flagged{{/flagged}} maxui-icon-">{{literals.flag_activity_icon}}</a>\
                     {{/canFlagActivity}}\
@@ -8069,17 +8071,17 @@ max.templates = function() {
                 </div>\
             </div>\
         \
-            {{#canViewComments}}<div class="maxui-comments" style="display: none">\
+            <div class="maxui-comments" style="display: none">\
                 <div class="maxui-commentsbox">\
                     {{#replies}}\
                         {{> comment}}\
                     {{/replies}}\
                 </div>\
-                {{#canWriteComment}}<div class="maxui-newcommentbox">\
+                <div class="maxui-newcommentbox">\
                         <textarea class="maxui-empty maxui-text-input" id="maxui-commentBox" data-literal="{{literals.new_comment_text}}">{{literals.new_comment_text}}</textarea>\
                         <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{literals.new_comment_post}}"/>\
-                </div>{{/canWriteComment}}\
-            </div>{{/canViewComments}}\
+                </div>\
+            </div>\
         \
             <div class="maxui-clear"></div>\
         </div>\
@@ -8195,13 +8197,13 @@ max.templates = function() {
         {{/filters}}\
             '),
         mainUI: Hogan.compile('\
-<div id="maxui-container">\
+<div id="maxui-container" class="{{showMaxUIClass}}">\
         {{#username}}\
          <div id="maxui-mainpanel">\
            <div id="maxui-conversations" style="height:0px; {{showConversations}}">\
                <div id="maxui-common-header">\
                   <div id="maxui-conversations-header" class="maxui-togglebar">\
-                      <h3 class="maxui-title">{{literals.conversations}}</h3></a>\
+                      <h2 class="maxui-title">{{literals.conversations}}</h3></a>\
                   </div>\
                   <div id="maxui-back-conversations" class="maxui-togglebar">\
                       <a class="maxui-icon-" href="#"> {{literals.conversations_list}}\
@@ -9832,7 +9834,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '4.1.222';
+        maxui.version = '5.0.1';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -10044,6 +10046,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var params = {
                 username: maxui.settings.username,
                 literals: maxui.settings.literals,
+                showMaxUIClass: showCT ? 'maxui-chat' : 'maxui-activity',
                 showConversations: showCT ? 'display:block;' : 'display:none;',
                 showConversationsToggle: toggleCT ? 'display:block;' : 'display:none;',
                 showTimeline: showTL ? 'display:block;' : 'display:none;',
