@@ -10,7 +10,7 @@ from Products.CMFCore.utils import getToolByName
 from Products.CMFCore.interfaces import ISiteRoot
 from Products.statusmessages.interfaces import IStatusMessage
 
-from mrs5.max import MRSMAXMessageFactory as _
+from mrs5.max import _
 from mrs5.max.utilities import set_user_oauth_token, IMAXClient
 
 grok.templatedir('views_templates')

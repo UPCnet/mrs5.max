@@ -4,7 +4,7 @@
       xmlns:i18n="http://xml.zope.org/namespaces/i18n"
       lang="en"
       metal:use-macro="context/clean_template/macros/master"
-      i18n:domain="ulearn">
+      i18n:domain="mrs5.max">
 
   <head>
     <metal:block fill-slot="top_slot"

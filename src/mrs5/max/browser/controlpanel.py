@@ -14,7 +14,7 @@ from plone.app.registry.browser import controlpanel
 from plone.registry.interfaces import IRegistry
 
 from max5.client.rest import MaxClient
-from mrs5.max import MRSMAXMessageFactory as _
+from mrs5.max import _
 
 from plone.directives import form
 

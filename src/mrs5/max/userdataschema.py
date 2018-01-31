@@ -12,7 +12,7 @@ from zope.component.hooks import getSite
 from plone.app.users.browser.schemaeditor import getFromBaseSchema
 from Products.CMFPlone.interfaces import IPloneSiteRoot
 
-from mrs5.max import MRSMAXMessageFactory as _
+from mrs5.max import _
 
 
 class IEnhancedUserDataSchema(IRegisterSchema):

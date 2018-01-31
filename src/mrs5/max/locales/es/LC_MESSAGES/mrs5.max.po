@@ -1,179 +1,178 @@
-# --- PLEASE EDIT THE LINES BELOW CORRECTLY ---
-# SOME DESCRIPTIVE TITLE.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Gettext Message File for GenWeb.
+# Victor Fernandez de Alba (UPCnet)
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: GenWebUPC\n"
 "POT-Creation-Date: 2018-01-31 13:39+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2013-07-09 11:35+0100\n"
+"Last-Translator: Corina Riba <corina.riba@upcnet.es>\n"
+"Language-Team: Plone Team@UPCnet <plone.team@upcnet.es>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0\n"
-"Language-Code: en\n"
-"Language-Name: English\n"
+"Language-Code: es\n"
+"Language-Name: Spanish\n"
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: mrs5.max\n"
 
 #: ../portlets/maxui.py:78
 msgid "Add Max UI Portlet"
-msgstr ""
+msgstr "Añadir portlet MAX UI"
 
 #: ../browser/controlpanel.py:140
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelar"
 
 #: ../browser/controlpanel.py:136
 msgid "Changes saved"
-msgstr ""
+msgstr "Cambios guardados"
 
 #: ../portlets/maxui.py:24
 msgid "Display chat"
-msgstr ""
+msgstr "Mostrar Chat"
 
 #: ../portlets/maxui.py:89
 msgid "Edit Max UI Portlet"
-msgstr ""
+msgstr "Editar portlet MAX UI"
 
 #: ../browser/controlpanel.py:142
 msgid "Edit cancelled"
-msgstr ""
+msgstr "Edición cancelada"
 
 #: ../browser/tokens.py:40
 msgid "Get a valid token"
-msgstr ""
+msgstr "Obtener un token válido"
 
 #: ../browser/tokens.py:51
 msgid "Get token"
-msgstr ""
+msgstr "Obtener token"
 
 #: ../browser/tokens.py:41
 msgid "Give the credentials of a valid account."
-msgstr ""
+msgstr "Dar las credenciales de una cuenta válida."
 
 #: ../configure.zcml:51
 msgid "Installs the mrs5.max add-on."
-msgstr ""
+msgstr "Instalar el complemento mrs5.max."
 
 #: ../browser/controlpanel.py:99
 msgid "MAX UI settings"
-msgstr ""
+msgstr "Configuración del MAX UI"
 
 #: ../browser/tokens.py:26
 msgid "Password"
-msgstr ""
+msgstr "Contraseña"
 
 #: ../browser/controlpanel.py:111
 msgid "Save"
-msgstr ""
+msgstr "Guardar"
 
 #: ../browser/tokens.py:27
 msgid "The provided username account password."
-msgstr ""
+msgstr "La contraseña de la cuenta de usuario proporcionada."
 
 #: ../browser/tokens.py:22
 msgid "The username."
-msgstr ""
+msgstr "El usuario."
 
 #: ../portlets/maxui.py:79
 msgid "This portlet displays Max UI."
-msgstr ""
+msgstr "Este portlet muestra el MAX UI."
 
 #: ../configure.zcml:60
 msgid "Uninstalls the mrs5.max add-on."
-msgstr ""
+msgstr "Desinstalar el complemento mrs5.max."
 
 #. Default: "Please, specify the HUB domain for this site."
 #: ../browser/controlpanel.py:87
 msgid "help_domain"
-msgstr ""
+msgstr "Especificar el dominio HUB de este sitio."
 
 #. Default: "Please, specify the uLearnHub server for this site."
 #: ../browser/controlpanel.py:79
 msgid "help_hub_server"
-msgstr ""
+msgstr "Especificar el servidor uLearnHub para este lugar."
 
 #. Default: "Please, specify the MAX restricted user token."
 #: ../browser/controlpanel.py:72
 msgid "help_max_restricted_token"
-msgstr ""
+msgstr "Especificar el token de usuario restringido del MAX."
 
 #. Default: "Please, specify the MAX restricted username."
 #: ../browser/controlpanel.py:63
 msgid "help_max_restricted_username"
-msgstr ""
+msgstr "Especificar el usuario restringido del MAX."
 
 #. Default: "Please, specify the MAX Server URL."
 #: ../browser/controlpanel.py:46
 msgid "help_max_server"
-msgstr ""
+msgstr "Especifique el URL del servidor MAX."
 
 #. Default: "Please, specify the MAX Server URL Alias."
 #: ../browser/controlpanel.py:54
 msgid "help_max_server_alias"
-msgstr ""
+msgstr "Especifique el alias del alias del servidor MAX."
 
 #. Default: "Settings related to MAX, including OAuth server endpoint and grant method."
 #: ../browser/controlpanel.py:100
 msgid "help_maxui_settings_editform"
-msgstr ""
+msgstr "Configuración relacionada con el MAX, incluyendo el extremo del servidor OAuth y el método de subvención."
 
 #. Default: "Please, specify the URI for the oAuth server."
 #: ../browser/controlpanel.py:38
 msgid "help_oauth_server"
-msgstr ""
+msgstr "Especificar el URI del servidor OAuth."
 
 #. Default: "Fill in your Twitter username."
 #: ../userdataschema.py:35
 msgid "help_twitter"
-msgstr ""
+msgstr "Llene con su nombre de usuario de Twitter."
 
 #. Default: "MAX domain"
 #: ../browser/controlpanel.py:86
 msgid "label_domain"
-msgstr ""
+msgstr "Dominio del MAX"
 
 #. Default: "uLearnHub server"
 #: ../browser/controlpanel.py:78
 msgid "label_hub_server"
-msgstr ""
+msgstr "Server del uLearnHub"
 
 #. Default: "MAX restricted user token"
 #: ../browser/controlpanel.py:71
 msgid "label_max_restricted_token"
-msgstr ""
+msgstr "Token de usuario restringido del MAX"
 
 #. Default: "MAX restricted username"
 #: ../browser/controlpanel.py:62
 msgid "label_max_restricted_username"
-msgstr ""
+msgstr "Nombre de usuario restringido del MAX"
 
 #. Default: "MAX Server URL"
 #: ../browser/controlpanel.py:45
 msgid "label_max_server"
-msgstr ""
+msgstr "URL del servidor del MAX"
 
 #. Default: "MAX Server URL Alias (Fallback when no CORS available)"
 #: ../browser/controlpanel.py:53
 msgid "label_max_server_alias"
-msgstr ""
+msgstr "Alias ​​de la URL del servidor del MAX (reposición cuando no hay CORS disponibles)"
 
 #. Default: "OAuth token endpoint"
 #: ../browser/controlpanel.py:37
 msgid "label_oauth_server"
-msgstr ""
+msgstr "Endpoint del token OAuth"
 
 #. Default: "Twitter username"
 #: ../userdataschema.py:34
 msgid "label_twitter"
-msgstr ""
+msgstr "Usuario de Twitter"
 
 #: ../configure.zcml:51
 msgid "mrs5.max"
-msgstr ""
+msgstr "mrs5.max"
 
 #: ../configure.zcml:60
 msgid "mrs5.max (uninstall)"
-msgstr ""
+msgstr "mrs5.max (desinstalación)"
