@@ -13,4 +13,16 @@
     description="MAX UI portlet to host the activitystream widget"
     />
 
+  <portlet
+   addview="mrs5.maxchat.widget"
+   title="MAX UI Chat Portlet"
+   description="MAX UI portlet to host the chat widget"
+   />
+
+  <portlet
+   addview="mrs5.maxactivity.widget"
+   title="MAX UI Activity Portlet"
+   description="MAX UI portlet to host the activity widget"
+   />
+
 </portlets>

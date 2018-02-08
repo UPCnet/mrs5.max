@@ -25,4 +25,22 @@
      addview=".chat.AddForm"
      />
 
+    <plone:portlet
+     name="mrs5.maxchat.widget"
+     interface=".maxuichat.IMaxUIChatPortlet"
+     assignment=".maxuichat.Assignment"
+     view_permission="zope2.View"
+     renderer=".maxuichat.Renderer"
+     addview=".maxuichat.AddForm"
+     />
+
+    <plone:portlet
+     name="mrs5.maxactivity.widget"
+     interface=".maxuiactivity.IMaxUIActivityPortlet"
+     assignment=".maxuiactivity.Assignment"
+     view_permission="zope2.View"
+     renderer=".maxuiactivity.Renderer"
+     addview=".maxuiactivity.AddForm"
+     />
+
 </configure>

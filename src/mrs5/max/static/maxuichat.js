@@ -6846,6 +6846,130 @@ var max = max || {};
 var max = max || {};
 (function(jq) {
     var views = function() {
+        /** MaxScrollbar
+         *
+         *
+         */
+        function MaxScrollbar(options) {
+            var self = this;
+            self.maxui = options.maxui;
+            self.width = options.width;
+            self.handle = options.handle;
+            self.dragging = false;
+            self.scrollbar_selector = options.scrollbar;
+            self.$bar = jq(self.scrollbar_selector);
+            self.$dragger = self.$bar.find('.maxui-dragger');
+            self.target_selector = options.target;
+            self.$target = jq(self.target_selector);
+            self.bind();
+        }
+        MaxScrollbar.prototype.bind = function() {
+            var self = this;
+            self.$target.on('mousewheel', function(event, delta, deltaX, deltaY) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (self.enabled()) {
+                    var movable_height = self.$target.height() - self.maxtop - self.handle.height;
+                    var actual_margin = parseInt(self.$target.css('margin-top'), 10);
+                    var new_margin = actual_margin + (deltaY * 1 * 10);
+                    if (new_margin > 0) {
+                        new_margin = 0;
+                    }
+                    if (new_margin < (movable_height * -1)) {
+                        new_margin = movable_height * -1;
+                    }
+                    self.$target.css({
+                        'margin-top': new_margin
+                    });
+                    new_margin = new_margin * -1;
+                    var relative_pos = (new_margin * 100) / movable_height;
+                    self.setDraggerPosition(relative_pos);
+                }
+            });
+            jq(document).on('mousemove', function(event) {
+                if (self.dragging) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    // drag only if target content is taller than scrollbar
+                    if (self.enabled()) {
+                        // Calculate dragger position, constrained to actual limits
+                        var margintop = event.clientY - self.$bar.offset().top;
+                        if (margintop < 0) {
+                            margintop = 0;
+                        }
+                        if (margintop >= self.maxtop) {
+                            margintop = self.maxtop;
+                        }
+                        // Calculate dragger position relative to 100 and move content
+                        var relative_position = (margintop * 100) / self.maxtop;
+                        self.setContentPosition(relative_position);
+                    }
+                }
+            });
+            jq(document.body).on('mousedown', '.maxui-dragger', function(event) {
+                event.stopPropagation();
+                event.preventDefault();
+                self.dragging = true;
+            });
+            jq(document).on('mouseup', function(event) {
+                self.dragging = false;
+            });
+        };
+        MaxScrollbar.prototype.setHeight = function(height) {
+            var self = this;
+            var wrapper_top = jq('#maxui-conversations .maxui-wrapper').offset().top - self.maxui.offset().top - 1;
+            self.$bar.css({
+                'height': height,
+                'top': wrapper_top
+            });
+            self.maxtop = height - self.handle.height - 2;
+        };
+        MaxScrollbar.prototype.setTarget = function(selector) {
+            var self = this;
+            self.$target = jq(selector);
+        };
+        MaxScrollbar.prototype.setDraggerPosition = function(relative_pos) {
+            var self = this;
+            var margintop = (self.maxtop * relative_pos) / 100;
+            self.$dragger.css({
+                'margin-top': margintop
+            });
+        };
+        MaxScrollbar.prototype.setContentPosition = function(relative_pos) {
+            var self = this;
+            if (self.enabled()) {
+                var movable_height = self.$target.height() - self.maxtop - self.handle.height;
+                var margintop = (movable_height * relative_pos) / 100;
+                self.$target.css({
+                    'margin-top': margintop * -1
+                });
+                self.setDraggerPosition(relative_pos);
+            } else {
+                self.$target.css({
+                    'margin-top': ''
+                });
+                self.setDraggerPosition(0);
+            }
+        };
+        MaxScrollbar.prototype.enabled = function() {
+            var self = this;
+            return self.$target.height() > self.maxtop;
+        };
+        return {
+            MaxScrollbar: MaxScrollbar
+        };
+    };
+    max.views = max.views || {};
+    jq.extend(max.views, views());
+})(jQuery);
+
+
+;
+
+'use strict';
+var max = max || {};
+(function(jq) {
+    var views = function() {
         /** MaxChatInfo
          *
          *
@@ -7143,130 +7267,6 @@ var max = max || {};
 var max = max || {};
 (function(jq) {
     var views = function() {
-        /** MaxScrollbar
-         *
-         *
-         */
-        function MaxScrollbar(options) {
-            var self = this;
-            self.maxui = options.maxui;
-            self.width = options.width;
-            self.handle = options.handle;
-            self.dragging = false;
-            self.scrollbar_selector = options.scrollbar;
-            self.$bar = jq(self.scrollbar_selector);
-            self.$dragger = self.$bar.find('.maxui-dragger');
-            self.target_selector = options.target;
-            self.$target = jq(self.target_selector);
-            self.bind();
-        }
-        MaxScrollbar.prototype.bind = function() {
-            var self = this;
-            self.$target.on('mousewheel', function(event, delta, deltaX, deltaY) {
-                event.preventDefault();
-                event.stopPropagation();
-                if (self.enabled()) {
-                    var movable_height = self.$target.height() - self.maxtop - self.handle.height;
-                    var actual_margin = parseInt(self.$target.css('margin-top'), 10);
-                    var new_margin = actual_margin + (deltaY * 1 * 10);
-                    if (new_margin > 0) {
-                        new_margin = 0;
-                    }
-                    if (new_margin < (movable_height * -1)) {
-                        new_margin = movable_height * -1;
-                    }
-                    self.$target.css({
-                        'margin-top': new_margin
-                    });
-                    new_margin = new_margin * -1;
-                    var relative_pos = (new_margin * 100) / movable_height;
-                    self.setDraggerPosition(relative_pos);
-                }
-            });
-            jq(document).on('mousemove', function(event) {
-                if (self.dragging) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    // drag only if target content is taller than scrollbar
-                    if (self.enabled()) {
-                        // Calculate dragger position, constrained to actual limits
-                        var margintop = event.clientY - self.$bar.offset().top;
-                        if (margintop < 0) {
-                            margintop = 0;
-                        }
-                        if (margintop >= self.maxtop) {
-                            margintop = self.maxtop;
-                        }
-                        // Calculate dragger position relative to 100 and move content
-                        var relative_position = (margintop * 100) / self.maxtop;
-                        self.setContentPosition(relative_position);
-                    }
-                }
-            });
-            jq(document.body).on('mousedown', '.maxui-dragger', function(event) {
-                event.stopPropagation();
-                event.preventDefault();
-                self.dragging = true;
-            });
-            jq(document).on('mouseup', function(event) {
-                self.dragging = false;
-            });
-        };
-        MaxScrollbar.prototype.setHeight = function(height) {
-            var self = this;
-            var wrapper_top = jq('#maxui-conversations .maxui-wrapper').offset().top - self.maxui.offset().top - 1;
-            self.$bar.css({
-                'height': height,
-                'top': wrapper_top
-            });
-            self.maxtop = height - self.handle.height - 2;
-        };
-        MaxScrollbar.prototype.setTarget = function(selector) {
-            var self = this;
-            self.$target = jq(selector);
-        };
-        MaxScrollbar.prototype.setDraggerPosition = function(relative_pos) {
-            var self = this;
-            var margintop = (self.maxtop * relative_pos) / 100;
-            self.$dragger.css({
-                'margin-top': margintop
-            });
-        };
-        MaxScrollbar.prototype.setContentPosition = function(relative_pos) {
-            var self = this;
-            if (self.enabled()) {
-                var movable_height = self.$target.height() - self.maxtop - self.handle.height;
-                var margintop = (movable_height * relative_pos) / 100;
-                self.$target.css({
-                    'margin-top': margintop * -1
-                });
-                self.setDraggerPosition(relative_pos);
-            } else {
-                self.$target.css({
-                    'margin-top': ''
-                });
-                self.setDraggerPosition(0);
-            }
-        };
-        MaxScrollbar.prototype.enabled = function() {
-            var self = this;
-            return self.$target.height() > self.maxtop;
-        };
-        return {
-            MaxScrollbar: MaxScrollbar
-        };
-    };
-    max.views = max.views || {};
-    jq.extend(max.views, views());
-})(jQuery);
-
-
-;
-
-'use strict';
-var max = max || {};
-(function(jq) {
-    var views = function() {
         /** MaxConversationsList
          *
          *
@@ -7437,8 +7437,8 @@ var max = max || {};
                 showConversationsToggle: toggleCT ? 'display:block;' : 'display:none;',
                 showSubscriptionList: false
             };
-            var postbox = self.maxui.templates.postBox.render(params);
-            var $postbox = jq('#maxui-newactivity');
+            var postbox = self.maxui.templates.postBoxChat.render(params);
+            var $postbox = jq('#maxuichat-widget-container #maxui-newactivity-chat');
             if (overwrite_postbox) {
                 $postbox.html(postbox);
             }
@@ -7475,7 +7475,7 @@ var max = max || {};
                 // Render the conversations template and append it at the end of the rendered covnersations
                 html += self.maxui.templates.conversation.render(conv_params);
             }
-            jq('#maxui-conversations-list').html(html);
+            jq('#maxuichat-widget-container #maxui-conversations-list').html(html);
         };
         /** MaxConversationMessages
          *
@@ -7702,15 +7702,15 @@ var max = max || {};
                         images_to_render.push(message);
                     }
                 }
-                jq('#maxui-messages #maxui-message-list').html(messages);
+                jq('#maxuichat-widget-container #maxui-messages #maxui-message-list').html(messages);
                 _.each(images_to_render, function(message, index, list) {
                     self.maxui.maxClient.getMessageImage('/messages/{0}/image/thumb'.format(message.uuid), function(encoded_image_data) {
                         var imagetag = '<img class="maxui-embedded" alt="" src="data:image/png;base64,{0}" />'.format(encoded_image_data);
-                        jq('.maxui-message#{0} .maxui-body'.format(message.uuid)).after(imagetag);
+                        jq('#maxuichat-widget-container .maxui-message#{0} .maxui-body'.format(message.uuid)).after(imagetag);
                         self.mainview.scrollbar.setContentPosition(100);
                     });
                 });
-                var $moremessages = jq('#maxui-messages #maxui-more-messages');
+                var $moremessages = jq('#maxuichat-widget-container #maxui-messages #maxui-more-messages');
                 if (self.remaining === "1") {
                     $moremessages.show();
                 } else {
@@ -7722,7 +7722,7 @@ var max = max || {};
             var self = this;
             self.mainview.loadWrappers();
             // PLEASE CLEAN THIS SHIT
-            var $button = jq('#maxui-newactivity').find('input.maxui-button');
+            var $button = jq('#maxuichat-widget-container #maxui-newactivity-chat').find('input.maxui-button');
             $button.removeAttr('disabled');
             $button.attr('class', 'maxui-button');
             self.mainview.$newmessagebox.find('textarea').attr('class', 'maxui-text-input');
@@ -7783,7 +7783,7 @@ var max = max || {};
         function MaxConversations(maxui, options) {
             var self = this;
             self.logtag = 'CONVERSATIONS';
-            self.el = '#maxui-conversations';
+            self.el = '#maxuichat-widget-container #maxui-conversations';
             self.$el = jq(self.el);
             self.maxui = maxui;
             self.height = 320;
@@ -7816,39 +7816,39 @@ var max = max || {};
         };
         MaxConversations.prototype.loadWrappers = function() {
             var self = this;
-            self.$conversations = jq('#maxui-conversations');
-            self.$conversations_list = jq('#maxui-conversations-list');
+            self.$conversations = jq('#maxuichat-widget-container #maxui-conversations');
+            self.$conversations_list = jq('#maxuichat-widget-container #maxui-conversations-list');
             self.$conversations_wrapper = self.$conversations.find('.maxui-wrapper');
-            self.$messages = jq('#maxui-messages');
-            self.$message_list = jq('#maxui-message-list');
-            self.$postbox = jq('#maxui-newactivity-box textarea');
+            self.$messages = jq('#maxuichat-widget-container #maxui-messages');
+            self.$message_list = jq('#maxuichat-widget-container #maxui-message-list');
+            self.$postbox = jq('#maxuichat-widget-container #maxui-newactivity-box textarea');
             self.$common_header = self.$conversations.find('#maxui-common-header');
-            self.$addpeople = jq('#maxui-add-people-box');
-            self.$newparticipants = jq('#maxui-new-participants');
-            self.$newmessagebox = jq('#maxui-newactivity');
+            self.$addpeople = jq('#maxuichat-widget-container #maxui-add-people-box');
+            self.$newparticipants = jq('#maxuichat-widget-container #maxui-new-participants');
+            self.$newmessagebox = jq('#maxuichat-widget-container #maxui-newactivity-chat');
         };
         MaxConversations.prototype.render = function() {
             var self = this;
             self.loadScrollbar();
-            self.bindEvents();
+            self.bindEventsChat();
         };
-        MaxConversations.prototype.bindEvents = function() {
+        MaxConversations.prototype.bindEventsChat = function() {
             var self = this;
             // Show overlay with conversation info
-            jq('#maxui-conversation-info').click(function(event) {
+            jq('#maxuichat-widget-container #maxui-conversation-info').click(function(event) {
                 event.preventDefault();
                 event.stopPropagation();
                 self.maxui.overlay.show(self.conversationSettings);
             });
             //Assign going back to conversations list
-            jq('#maxui-back-conversations').on('click', function(event) {
+            jq('#maxuichat-widget-container #maxui-back-conversations').on('click', function(event) {
                 event.preventDefault();
                 event.stopPropagation();
                 window.status = '';
                 self.listview.show();
             });
             //Assign activation of messages section by delegating the clicl of a conversation arrow to the conversations container
-            jq('#maxui-conversations').on('click', '.maxui-conversation', function(event) {
+            jq('#maxuichat-widget-container #maxui-conversations').on('click', '.maxui-conversation', function(event) {
                 event.preventDefault();
                 event.stopPropagation();
                 window.status = '';
@@ -7856,7 +7856,7 @@ var max = max || {};
                 self.messagesview.show(conversation_hash);
             });
             /// Load older activities
-            jq('#maxui-conversations').on('click', '#maxui-more-messages .maxui-button', function(event) {
+            jq('#maxuichat-widget-container #maxui-conversations').on('click', '#maxui-more-messages .maxui-button', function(event) {
                 event.preventDefault();
                 event.stopPropagation();
                 window.status = '';
@@ -7877,8 +7877,8 @@ var max = max || {};
                 object: 'message'
             };
             var sent = self.maxui.messaging.send(message, '{0}.messages'.format(self.active));
-            jq('#maxui-newactivity textarea').val('');
-            jq('#maxui-newactivity .maxui-button').attr('disabled', 'disabled');
+            jq('#maxuichat-widget-container #maxui-newactivity-chat textarea').val('');
+            jq('#maxuichat-widget-container #maxui-newactivity-chat .maxui-button').attr('disabled', 'disabled');
             sent.ack = false;
             sent.destination = self.active;
             self.messagesview.append(sent);
@@ -7921,16 +7921,16 @@ var max = max || {};
                 self.messagesview.show(chash);
                 self.hideNameChat();
                 self.$newparticipants[0].people = [];
-                self.maxui.reloadPersons();
+                self.maxui.reloadPersonsChat();
             });
         };
         MaxConversations.prototype.hideNameChat = function() {
-            jq('#maxui-add-people-box #maxui-new-displayName input').val('');
-            jq('#maxui-add-people-box #maxui-new-displayName').hide();
+            jq('#maxuichat-widget-container #maxui-add-people-box #maxui-new-displayName input').val('');
+            jq('#maxuichat-widget-container #maxui-add-people-box #maxui-new-displayName').hide();
         };
         MaxConversations.prototype.updateUnreadConversations = function(data) {
             var self = this;
-            var $showconversations = jq('#maxui-show-conversations .maxui-unread-conversations');
+            var $showconversations = jq('#maxuichat-widget-container #maxui-show-conversations .maxui-unread-conversations');
             var conversations_with_unread_messages = _.filter(self.listview.conversations, function(conversation) {
                 if (conversation.unread_messages > 0) {
                     return conversation;
@@ -8015,113 +8015,6 @@ var max = max || {};
 
 max.templates = function() {
     var templates = {
-        activity: Hogan.compile('\
-<div class="maxui-activity {{#flagged}}maxui-flagged{{/flagged}}" id="{{id}}" userid="{{actor.id}}" username="{{actor.username}}">\
-            <div class="maxui-activity-content">\
-                <div class="maxui-topright">\
-                    {{^showLikesCount}}<span class="maxui-publisheddate">{{date}}</span>{{/showLikesCount}}\
-                    {{#showLikesCount}}<span class="maxui-likescount"><strong>{{likes}}</strong><i class="maxui-icon-thumbs-up"></i></span>{{/showLikesCount}}\
-                </div>\
-                <div class="maxui-actor">\
-                      <a href="#"><span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
-                          <span class="maxui-displayname">{{actor.displayName}}</span></a>\
-                  <span class="maxui-username">{{actor.username}}&nbsp;</span>\
-                </div>\
-                <div class="maxui-activity-message">\
-                    {{#fileDownload}}\
-                    <form action="/activities/{{id}}/file/download" method="POST">\
-                        <input type="hidden" name="X-Oauth-Token" value="{{auth.token}}">\
-                        <input type="hidden" name="X-Oauth-Username" value="{{auth.username}}">\
-                        <input type="hidden" name="X-Oauth-Scope" value="widgetcli">\
-                        <input type="hidden" name="X-HTTP-Method-Override" value="GET">\
-                        <span class="maxui-icon-download"></span><input type="submit" class="maxui-download" name="submit" value="{{filename}}">\
-                    </form>\
-                    {{/fileDownload}}\
-                    <p class="maxui-body">{{&text}}</p>\
-        \
-                </div>\
-            </div>\
-            <div class="maxui-footer">\
-                {{#publishedIn}}\
-                <div class="maxui-origin maxui-icon-">\
-                       {{literals.context_published_in}}\
-                       <a href="{{publishedIn.url}}">{{publishedIn.displayName}}</a>\
-                       {{#via}}\
-                           {{literals.generator_via}}\
-                           <span class="maxui-via">\
-                           {{via}}\
-                           </span>\
-                       {{/via}}\
-                </div>\
-                {{/publishedIn}}\
-                <div class="maxui-actions">\
-                    <a href="" class="maxui-action maxui-commentaction maxui-icon- {{#replies}}maxui-has-comments{{/replies}}"><strong>{{replies.length}}</strong> {{literals.toggle_comments}}</a>\
-                    <a href="" class="maxui-action maxui-favorites {{#favorited}}maxui-favorited{{/favorited}} maxui-icon-">{{literals.favorite}}</a>\
-                    <a href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-"><strong>{{likes}}</strong> {{literals.like}}</a>\
-                    {{#canFlagActivity}}\
-                    <a href="" class="maxui-action maxui-flag {{#flagged}}maxui-flagged{{/flagged}} maxui-icon-">{{literals.flag_activity_icon}}</a>\
-                    {{/canFlagActivity}}\
-                    {{#canDeleteActivity}}\
-                    <a href="" class="maxui-action maxui-delete maxui-icon-">{{literals.delete_activity_icon}}</a>\
-                    <div class="maxui-popover left">\
-                        <div class="maxui-arrow"></div>\
-                            <h3 class="maxui-popover-title">{{literals.delete_activity_confirmation}}</h3>\
-                            <div class="maxui-popover-content">\
-                              <input type="button" class="maxui-button-delete" value="{{literals.delete_activity_delete}}">\
-                              <input type="button" class="maxui-button-cancel" value="{{literals.delete_activity_cancel}}">\
-                            </div>\
-                    </div>\
-                    {{/canDeleteActivity}}\
-        \
-                </div>\
-            </div>\
-        \
-            {{#canViewComments}}\
-            <div class="maxui-comments" style="display: none">\
-                <div class="maxui-commentsbox">\
-                    {{#replies}}\
-                        {{> comment}}\
-                    {{/replies}}\
-                </div>\
-                {{#canWriteComment}}\
-                <div class="maxui-newcommentbox">\
-                        <textarea class="maxui-empty maxui-text-input" id="maxui-commentBox" data-literal="{{literals.new_comment_text}}">{{literals.new_comment_text}}</textarea>\
-                        <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{literals.new_comment_post}}"/>\
-                </div>\
-                {{/canWriteComment}}\
-            </div>\
-            {{/canViewComments}}\
-        \
-            <div class="maxui-clear"></div>\
-        </div>\
-            '),
-        comment: Hogan.compile('\
-<div class="maxui-comment" id="{{id}}" userid="{{actor.id}}" displayname="{{actor.username}}">\
-            <div class="maxui-activity-content">\
-               <span class="maxui-publisheddate">{{date}}</span>\
-               <div class="maxui-actor">\
-                   <a href="#">\
-                       <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
-                       <span class="maxui-displayname">{{actor.displayName}}</span></a>\
-                     <span class="maxui-username">{{actor.username}}</span>\
-               </div>\
-               <div>\
-                   <p class="maxui-body">{{&text}}</p>\
-                   {{#canDeleteComment}}\
-                   <span class="maxui-delete-comment maxui-icon-"></span>\
-                   <div class="maxui-popover left">\
-                        <div class="maxui-arrow"></div>\
-                            <h3 class="maxui-popover-title">{{literals.delete_activity_confirmation}}</h3>\
-                            <div class="maxui-popover-content">\
-                              <input type="button" class="maxui-button-delete" value="{{literals.delete_activity_delete}}">\
-                              <input type="button" class="maxui-button-cancel" value="{{literals.delete_activity_cancel}}">\
-                            </div>\
-                   </div>\
-                   {{/canDeleteComment}}\
-               </div>\
-            </div>\
-        </div>\
-            '),
         conversation: Hogan.compile('\
 <div class="maxui-conversation" id="{{id}}" data-displayname="{{displayName}}">\
             <div class="maxui-activity-content">\
@@ -8198,6 +8091,51 @@ max.templates = function() {
           </div>\
         </div>\
             '),
+        participant: Hogan.compile('\
+  <li class="maxui-participant {{#owner}}maxui-owner{{/owner}}" data-username="{{username}}" style="{{style}}">\
+              <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
+              <span class="maxui-displayname">{{displayName}}\
+                  <i class="maxui-conversation-user-action maxui-icon-trash" {{^owner}}title="Click to kick {{displayName}} out of this conversation"{{/owner}} style="display:none;"></i>\
+                  <i class="maxui-conversation-user-action maxui-icon-crown{{^owner}}-plus{{/owner}}" {{^owner}}title="Click to make {{displayName}} the owner of this conversation"{{/owner}} style="display:none;"></i>\
+                  <div class="maxui-conversation-transfer-to maxui-conversation-confirmation">\
+                      <i class="maxui-icon-cancel-circled"></i>\
+                      <i class="maxui-icon-ok-circled"></i>\
+                  </div>\
+                  <div class="maxui-conversation-kick-user maxui-conversation-confirmation">\
+                      <i class="maxui-icon-cancel-circled"></i>\
+                      <i class="maxui-icon-ok-circled"></i>\
+                  </div>\
+                  <div class="maxui-conversation-add-user maxui-conversation-confirmation">\
+                      <i class="maxui-icon-cancel-circled"></i>\
+                      <i class="maxui-icon-ok-circled"></i>\
+                  </div>\
+              </span>\
+              <span class="maxui-username">{{username}}</span>\
+          </li>\
+            '),
+        participants: Hogan.compile('\
+{{#persons}}\
+        <div class="maxui-filter maxui-participant" type="participant" username="{{username}}"><span>{{prepend}}{{displayName}}<a class="maxui-close" href=""><i class="maxui-icon-cancel-circled" alt="tanca"/></a></span></div>\
+        {{/persons}}\
+            '),
+        postBoxChat: Hogan.compile('\
+      <span class="maxui-avatar maxui-big">\
+                  <img src="{{avatar}}">\
+              </span>\
+              <div id="maxui-newactivity-box">\
+                   <div class="maxui-wrapper">\
+                       <textarea class="maxui-empty maxui-text-input" data-literal="{{textLiteral}}">{{textLiteral}}</textarea>\
+                       <div class="maxui-error-box"></div>\
+                   </div>\
+        \
+                   <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{buttonLiteral}}">\
+              </div>\
+            '),
+        predictive: Hogan.compile('\
+<li data-username="{{username}}" data-displayname="{{displayName}}" class="{{cssclass}}">\
+        <img src="{{avatarURL}}"/><span>{{displayName}}</span>\
+        </li>\
+            '),
         filters: Hogan.compile('\
 {{#filters}}\
             {{#visible}}\
@@ -8205,7 +8143,30 @@ max.templates = function() {
             {{/visible}}\
         {{/filters}}\
             '),
-        mainUI: Hogan.compile('\
+        message: Hogan.compile('\
+<div class="maxui-message maxui-user-{{#othersMessage}}not{{/othersMessage}}me" id="{{id}}">\
+            <div class="maxui-activity-content">\
+                <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
+                <div class="maxui-balloon">\
+                    {{#fileDownload}}\
+                    <form action="/messages/{{id}}/file/download" method="POST">\
+                        <input type="hidden" name="X-Oauth-Token" value="{{auth.token}}">\
+                        <input type="hidden" name="X-Oauth-Username" value="{{auth.username}}">\
+                        <input type="hidden" name="X-Oauth-Scope" value="widgetcli">\
+                        <input type="hidden" name="X-HTTP-Method-Override" value="GET">\
+                        <span class="maxui-icon-download"></span><input type="submit" class="maxui-download" name="submit" value="File download">\
+                    </form>\
+                    {{/fileDownload}}\
+                    {{#showDisplayName}}<span class="maxui-displayname">{{displayName}}</span>{{/showDisplayName}}\
+                    <p class="maxui-body">{{&text}}</p>\
+                    <span class="maxui-publisheddate">{{date}}</span>\
+                    <i class="maxui-icon-check{{#ack}} maxui-ack{{/ack}}"></i>\
+                </div>\
+            </div>\
+            <div class="maxui-clear"></div>\
+        </div>\
+            '),
+        mainUIChat: Hogan.compile('\
 <div id="maxui-container" class="{{showMaxUIClass}}">\
         {{#username}}\
          <div id="maxui-mainpanel">\
@@ -8216,7 +8177,7 @@ max.templates = function() {
                   </div>\
                   <div id="maxui-back-conversations" class="maxui-togglebar">\
                       <a class="maxui-icon-" href="#"> {{literals.conversations_list}}\
-                      <h3 class="maxui-title">displayName</h3></a>\
+                      <h2 class="maxui-title">displayName</h3></a>\
                       <i id="maxui-conversation-info" class="maxui-icon-cog"/>\
                   </div>\
                </div>\
@@ -8255,55 +8216,8 @@ max.templates = function() {
                 </div>\
             </div>\
         \
-           <div id="maxui-newactivity" {{#hidePostbox}}style="display:none;"{{/hidePostbox}}>\
-           </div>\
-        \
-           <div id="maxui-search" class="folded">\
-               <a id="maxui-search-toggle" class="maxui-disabled maxui-icon-" href="#" alt="obre-tanca"></a>\
-               <a href="#" id="maxui-favorites-filter" title="{{literals.favorites_filter_hint}}"><i class="maxui-icon-star"/></a>\
-               <div id="maxui-search-box">\
-                  <input id="maxui-search-text" type="search" data-literal="{{literals.search_text}}" class="maxui-empty maxui-text-input" value="{{literals.search_text}}" />\
-               </div>\
-               <div id="maxui-search-filters"></div>\
-           </div>\
-        \
-           <div id="maxui-show-timeline" class="maxui-togglebar maxui-icon-" style="{{showTimelineToggle}}"><a href="#">{{literals.activity}}</a></div>\
-        \
-              <div id="maxui-activity-sort">\
-                <a class="maxui-sort-action maxui-most-recent {{orderViewRecent}}" href="#">{{literals.recent_activity}}</a>\
-                /\
-                <a class="maxui-sort-action maxui-most-valued {{orderViewLikes}}" href="#">{{literals.valued_activity}}</a>\
-                /\
-                <a class="maxui-sort-action maxui-flagged {{orderViewFlagged}}" href="#">{{literals.flagged_activity}}</a>\
-              </div>\
-              <div id="maxui-news-activities" hidden>\
-                  <input type="button" class="maxui-button" value="Carrega noves entrades">\
-              </div>\
-           <div id="maxui-timeline" style="{{showTimeline}}">\
-              <div class="maxui-wrapper">\
-                  <div id="maxui-preload" class="maxui-activities" style="height:0px;overflow:hidden">\
-                      <div class="maxui-wrapper">\
-                      </div>\
-                  </div>\
-                  <div id="maxui-activities" class="maxui-activities">\
-                  </div>\
-                  <div id="maxui-more-activities">\
-                      <input type="button" class="maxui-button" value="{{literals.load_more}}">\
-                  </div>\
-              </div>\
-           </div>\
-           <div id="maxui-overlay-background" class="maxui-overlay">\
-           </div>\
-           <div id="maxui-overlay-wrapper" class="maxui-overlay">\
-               <div id="maxui-overlay-panel">\
-                   <div id="maxui-overlay-header">\
-                        <h3 id="maxui-overlay-title">I\'m a overlay</h3>\
-                        <i class="maxui-close maxui-icon-cancel"/>\
-                   </div>\
-                   <div id="maxui-overlay-content">\
-                   </div>\
-               </div>\
-           </div>\
+            <div id="maxui-newactivity-chat" {{#hidePostbox}}style="display:none;"{{/hidePostbox}}>\
+            </div>\
           </div>\
          </div>\
         {{/username}}\
@@ -8311,81 +8225,6 @@ max.templates = function() {
           No s\'ha definit cap usuari\
         {{/username}}\
         </div>\
-            '),
-        message: Hogan.compile('\
-<div class="maxui-message maxui-user-{{#othersMessage}}not{{/othersMessage}}me" id="{{id}}">\
-            <div class="maxui-activity-content">\
-                <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
-                <div class="maxui-balloon">\
-                    {{#fileDownload}}\
-                    <form action="/messages/{{id}}/file/download" method="POST">\
-                        <input type="hidden" name="X-Oauth-Token" value="{{auth.token}}">\
-                        <input type="hidden" name="X-Oauth-Username" value="{{auth.username}}">\
-                        <input type="hidden" name="X-Oauth-Scope" value="widgetcli">\
-                        <input type="hidden" name="X-HTTP-Method-Override" value="GET">\
-                        <span class="maxui-icon-download"></span><input type="submit" class="maxui-download" name="submit" value="File download">\
-                    </form>\
-                    {{/fileDownload}}\
-                    {{#showDisplayName}}<span class="maxui-displayname">{{displayName}}</span>{{/showDisplayName}}\
-                    <p class="maxui-body">{{&text}}</p>\
-                    <span class="maxui-publisheddate">{{date}}</span>\
-                    <i class="maxui-icon-check{{#ack}} maxui-ack{{/ack}}"></i>\
-                </div>\
-            </div>\
-            <div class="maxui-clear"></div>\
-        </div>\
-            '),
-        participant: Hogan.compile('\
-  <li class="maxui-participant {{#owner}}maxui-owner{{/owner}}" data-username="{{username}}" style="{{style}}">\
-              <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
-              <span class="maxui-displayname">{{displayName}}\
-                  <i class="maxui-conversation-user-action maxui-icon-trash" {{^owner}}title="Click to kick {{displayName}} out of this conversation"{{/owner}} style="display:none;"></i>\
-                  <i class="maxui-conversation-user-action maxui-icon-crown{{^owner}}-plus{{/owner}}" {{^owner}}title="Click to make {{displayName}} the owner of this conversation"{{/owner}} style="display:none;"></i>\
-                  <div class="maxui-conversation-transfer-to maxui-conversation-confirmation">\
-                      <i class="maxui-icon-cancel-circled"></i>\
-                      <i class="maxui-icon-ok-circled"></i>\
-                  </div>\
-                  <div class="maxui-conversation-kick-user maxui-conversation-confirmation">\
-                      <i class="maxui-icon-cancel-circled"></i>\
-                      <i class="maxui-icon-ok-circled"></i>\
-                  </div>\
-                  <div class="maxui-conversation-add-user maxui-conversation-confirmation">\
-                      <i class="maxui-icon-cancel-circled"></i>\
-                      <i class="maxui-icon-ok-circled"></i>\
-                  </div>\
-              </span>\
-              <span class="maxui-username">{{username}}</span>\
-          </li>\
-            '),
-        participants: Hogan.compile('\
-{{#persons}}\
-        <div class="maxui-filter maxui-participant" type="participant" username="{{username}}"><span>{{prepend}}{{displayName}}<a class="maxui-close" href=""><i class="maxui-icon-cancel-circled" alt="tanca"/></a></span></div>\
-        {{/persons}}\
-            '),
-        postBox: Hogan.compile('\
-      <span class="maxui-avatar maxui-big">\
-                  <img src="{{avatar}}">\
-              </span>\
-              <div id="maxui-newactivity-box">\
-                   <div class="maxui-wrapper">\
-                       <textarea class="maxui-empty maxui-text-input" data-literal="{{textLiteral}}">{{textLiteral}}</textarea>\
-                       <div class="maxui-error-box"></div>\
-                   </div>\
-        \
-                    {{#showSubscriptionList}}\
-                    <select id="maxui-subscriptions">\
-                      {{#subscriptionList}}\
-                        <option value="{{hash}}">{{displayname}}</option>\
-                      {{/subscriptionList}}\
-                    </select>\
-                    {{/showSubscriptionList}}\
-                   <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{buttonLiteral}}">\
-              </div>\
-            '),
-        predictive: Hogan.compile('\
-<li data-username="{{username}}" data-displayname="{{displayName}}" class="{{cssclass}}">\
-        <img src="{{avatarURL}}"/><span>{{displayName}}</span>\
-        </li>\
             ')
     };
     return templates;
@@ -9840,10 +9679,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    MaxUI plugin definition
      *    @param {Object} options    Object containing overrides for default values
      **/
-    jq.fn.maxUI = function(options) {
+    jq.fn.maxUIChat = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.1';
+        maxui.version = '4.1.21';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -9853,9 +9692,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             'writeContexts': [],
             'activitySource': 'timeline',
             'enableAlerts': false,
-            'UISection': 'timeline',
-            'disableTimeline': false,
-            'disableConversations': true,
+            'UISection': 'conversations',
+            'disableTimeline': true,
+            'disableConversations': false,
             'conversationsSection': 'conversations',
             'currentConversationSection': 'conversations',
             'activitySortOrder': 'comments',
@@ -9867,7 +9706,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             'sectionHorizontalPadding': 20,
             'widgetBorder': 2,
             'loglevel': 'info',
-            'hidePostboxOnTimeline': false,
+            'hidePostboxChatOnTimeline': false,
             'maxTalkURL': "",
             'generator': "",
             'domain': "",
@@ -9988,17 +9827,17 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
          *
          *
          **/
-        jq.fn.hidePostbox = function() {
+        jq.fn.hidePostboxChat = function() {
             var maxui = this;
             if (maxui.settings.activitySource === 'timeline') {
                 if (maxui.settings.subscriptionsWrite.length > 0) {
-                    return maxui.settings.hidePostboxOnTimeline;
+                    return maxui.settings.hidePostboxChatOnTimeline;
                 }
             }
             for (var i in maxui.settings.subscriptionsWrite) {
                 var hash = maxui.settings.subscriptionsWrite[i].hash;
                 if (hash === maxui.settings.readContext) {
-                    return maxui.settings.hidePostboxOnTimeline;
+                    return maxui.settings.hidePostboxChatOnTimeline;
                 }
             }
             return true;
@@ -10064,9 +9903,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 orderViewLikes: showLikesOrder ? 'active' : '',
                 orderViewFlagged: showFlaggedOrder ? 'active' : '',
                 messagesStyle: 'width:{0}px;left:{0}px;'.format(containerWidth),
-                hidePostbox: maxui.hidePostbox()
+                hidePostboxChat: maxui.hidePostboxChat()
             };
-            var mainui = maxui.templates.mainUI.render(params);
+            var mainui = maxui.templates.mainUIChat.render(params);
             maxui.html(mainui);
             maxui.overlay = new max.views.MaxOverlay(maxui);
             // Define widths
@@ -10079,80 +9918,80 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 maxui.conversations.listview.load(data.talkingIn);
             }
             if (maxui.settings.UISection === 'conversations') {
-                maxui.bindEvents();
-                maxui.toggleSection('conversations');
-                maxui.renderPostbox();
+                maxui.bindEventsChat();
+                maxui.toggleSectionChat('conversations');
+                maxui.renderPostboxChat();
                 var textarea_literal = maxui.settings.literals.new_conversation_text;
-                jq('#maxui-newactivity-box textarea').val(textarea_literal).attr('data-literal', textarea_literal);
+                jq('#maxuichat-widget-container #maxui-newactivity-box textarea').val(textarea_literal).attr('data-literal', textarea_literal);
             } else if (maxui.settings.UISection === 'timeline') {
                 var sort_orders_by_view = {
                     recent: maxui.settings.activitySortOrder,
                     likes: 'likes',
                     flagged: 'flagged'
                 };
-                maxui.printActivities({
+                maxui.printActivitiesChat({
                     sortBy: sort_orders_by_view[maxui.settings.activitySortView]
                 }, function(event) {
-                    maxui.bindEvents();
+                    maxui.bindEventsChat();
                 });
             }
         });
         // allow jq chaining
         return maxui;
     };
-    jq.fn.bindEvents = function() {
+    jq.fn.bindEventsChat = function() {
         var maxui = this;
         //Assign click to loadmore
-        jq('#maxui-more-activities .maxui-button').click(function(event) {
+        jq('#maxuichat-widget-container #maxui-more-activities .maxui-button').click(function(event) {
             event.preventDefault();
-            if (jq('#maxui-search').hasClass('folded')) {
-                maxui.loadMoreActivities();
+            if (jq('#maxuichat-widget-container #maxui-search').hasClass('folded')) {
+                maxui.loadMoreActivitiesChat();
             } else {
                 var last_result_id = jq('.maxui-activity:last').attr('id');
-                maxui.reloadFilters(last_result_id);
+                maxui.reloadFiltersChat(last_result_id);
             }
         });
         //PG Assign click to load news activities
-        jq('#maxui-news-activities .maxui-button').click(function(event) {
-            maxui.loadNewsActivities();
+        jq('#maxuichat-widget-container #maxui-news-activities .maxui-button').click(function(event) {
+            maxui.loadNewsActivitiesChat();
         });
         //Assign click to toggle search filters if any search filter defined
-        jq('#maxui-search-toggle').click(function(event) {
+        jq('#maxuichat-widget-container #maxui-search-toggle').click(function(event) {
             event.preventDefault();
             if (!jq(this).hasClass('maxui-disabled')) {
-                jq('#maxui-search').toggleClass('folded');
-                if (jq('#maxui-search').hasClass('folded')) {
-                    maxui.printActivities({});
+                jq('#maxuichat-widget-container #maxui-search').toggleClass('folded');
+                if (jq('#maxuichat-widget-container #maxui-search').hasClass('folded')) {
+                    maxui.printActivitiesChat({});
                 } else {
-                    maxui.reloadFilters();
+                    maxui.reloadFiltersChat();
                 }
             }
         });
         //Assign Commentbox toggling via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-commentaction', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-commentaction', function(event) {
             event.preventDefault();
             window.status = '';
             jq(this).closest('.maxui-activity').find('.maxui-comments').toggle(200);
         });
         //Assign Username and avatar clicking via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-actor', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-actor', function(event) {
             event.preventDefault();
             var actor = jq(this).find('.maxui-username').text();
-            maxui.addFilter({
+            maxui.addFilterChat({
                 type: 'actor',
                 value: actor
             });
-            jq('#maxui-search').toggleClass('folded', false);
+            jq('#maxuichat-widget-container #maxui-search').toggleClass('folded', false);
         });
         //Assign Username and avatar clicking via delegating the click to the activities container
-        jq('#maxui-search').on('click', '#maxui-favorites-filter', function(event) {
+        jq('#maxuichat-widget-container #maxui-search').on('click', '#maxui-favorites-filter', function(event) {
             event.preventDefault();
             var favoritesButton = jq(event.currentTarget);
             var filterFavorites = !favoritesButton.hasClass('active');
             var valued_literal = '';
             var recent_literal = '';
             if (filterFavorites) {
-                maxui.addFilter({
+                maxui.addFilterChat({
                     type: 'favorites',
                     value: true,
                     visible: false
@@ -10160,7 +9999,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 valued_literal = maxui.settings.literals.valued_favorited_activity;
                 recent_literal = maxui.settings.literals.recent_favorited_activity;
             } else {
-                maxui.delFilter({
+                maxui.delFilterChat({
                     type: 'favorites',
                     value: true
                 });
@@ -10168,21 +10007,21 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 recent_literal = maxui.settings.literals.recent_activity;
             }
             favoritesButton.toggleClass('active', filterFavorites);
-            jq('#maxui-activity-sort .maxui-most-recent').text(recent_literal);
-            jq('#maxui-activity-sort .maxui-most-valued').text(valued_literal);
+            jq('#maxuichat-widget-container #maxui-activity-sort .maxui-most-recent').text(recent_literal);
+            jq('#maxuichat-widget-container #maxui-activity-sort .maxui-most-valued').text(valued_literal);
         });
         //Assign hashtag filtering via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-hashtag', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-hashtag', function(event) {
             event.preventDefault();
-            maxui.addFilter({
+            maxui.addFilterChat({
                 type: 'hashtag',
                 value: jq(this).attr('value')
             });
-            jq('#maxui-search').toggleClass('folded', false);
+            jq('#maxuichat-widget-container #maxui-search').toggleClass('folded', false);
         });
         //Add to writeContexts selected subscription to post in it.
-        jq('#maxui-subscriptions').on('change', function() {
-            var $urlContext = jq('#maxui-subscriptions :selected').val();
+        jq('#maxuichat-widget-container #maxui-subscriptions').on('change', function() {
+            var $urlContext = jq('#maxuichat-widget-container #maxui-subscriptions :selected').val();
             if ($urlContext !== 'timeline') {
                 maxui.settings.writeContexts = [];
                 maxui.settings.writeContextsHashes = [];
@@ -10198,33 +10037,33 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Assign filter closing via delegating the click to the filters container
-        jq('#maxui-search-filters').on('click', '.maxui-close', function(event) {
+        jq('#maxuichat-widget-container #maxui-search-filters').on('click', '.maxui-close', function(event) {
             event.preventDefault();
             var filter = jq(this.parentNode.parentNode);
-            maxui.delFilter({
+            maxui.delFilterChat({
                 type: filter.attr('type'),
                 value: filter.attr('value')
             });
         });
         //Assign filter closing via delegating the click to the filters container
-        jq('#maxui-new-participants').on('click', '.maxui-close', function(event) {
+        jq('#maxuichat-widget-container #maxui-new-participants').on('click', '.maxui-close', function(event) {
             event.preventDefault();
             var filter = jq(this.parentNode.parentNode);
-            maxui.delPerson({
+            maxui.delPersonChat({
                 username: filter.attr('username')
             });
         });
         //Assign filter closing via delegating the click to the filters container
-        jq('#maxui-new-displayName').on('keyup', 'input', function(event) {
+        jq('#maxuichat-widget-container #maxui-new-displayName').on('keyup', 'input', function(event) {
             event.preventDefault();
-            maxui.reloadPersons();
+            maxui.reloadPersonsChat();
         });
         //Assign user mention suggestion to textarea by click
-        jq('#maxui-newactivity').on('click', '.maxui-prediction', function(event) {
+        jq('#maxuichat-widget-container #maxui-newactivity-chat').on('click', '.maxui-prediction', function(event) {
             event.preventDefault();
             var $selected = jq(this);
-            var $area = jq('#maxui-newactivity-box textarea');
-            var $predictive = jq('#maxui-newactivity #maxui-predictive');
+            var $area = jq('#maxuichat-widget-container #maxui-newactivity-box textarea');
+            var $predictive = jq('#maxuichat-widget-container #maxui-newactivity-chat #maxui-predictive');
             var text = $area.val();
             var matchMention = new RegExp('^\\s*@([\\w\\.]+)');
             var replacement = text.replace(matchMention, '@' + $selected.text() + ' ');
@@ -10238,14 +10077,14 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             $predictive.hide();
         });
         //Assign user mention suggestion to input by click
-        jq('#maxui-conversation-predictive').on('click', '.maxui-prediction', function(event) {
+        jq('#maxuichat-widget-container #maxui-conversation-predictive').on('click', '.maxui-prediction', function(event) {
             event.preventDefault();
             var $selected = jq(this);
-            var $area = jq('#maxui-add-people-box .maxui-text-input');
-            var $predictive = jq('#maxui-conversation-predictive');
+            var $area = jq('#maxuichat-widget-container #maxui-add-people-box .maxui-text-input');
+            var $predictive = jq('#maxuichat-widget-container #maxui-conversation-predictive');
             var username = $selected.attr('data-username');
             var displayname = $selected.attr('data-displayname');
-            maxui.addPerson({
+            maxui.addPersonChat({
                 'username': username,
                 'displayName': displayname
             });
@@ -10253,21 +10092,21 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             $area.val('').focus();
         });
         //Assign toggling conversations section
-        jq('#maxui-show-conversations').on('click', function(event) {
+        jq('#maxuichat-widget-container #maxui-show-conversations').on('click', function(event) {
             event.preventDefault();
             window.status = '';
-            maxui.toggleSection('conversations');
+            maxui.toggleSectionChat('conversations');
         });
         //Assign activation of timeline section by its button
-        jq('#maxui-show-timeline').on('click', function(event) {
+        jq('#maxuichat-widget-container #maxui-show-timeline').on('click', function(event) {
             event.preventDefault();
             window.status = '';
-            maxui.printActivities({}, function(event) {
-                maxui.toggleSection('timeline');
+            maxui.printActivitiesChat({}, function(event) {
+                maxui.toggleSectionChat('timeline');
             });
         });
         //Toggle favorite status via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-action.maxui-favorites', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-action.maxui-favorites', function(event) {
             event.preventDefault();
             var $favorites = jq(this);
             var $activity = jq(this).closest('.maxui-activity');
@@ -10284,7 +10123,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Toggle like status via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-action.maxui-likes', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-action.maxui-likes', function(event) {
             event.preventDefault();
             var $likes = jq(this);
             var $activity = jq(this).closest('.maxui-activity');
@@ -10304,7 +10143,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Toggle flagged status via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-action.maxui-flag', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-action.maxui-flag', function(event) {
             event.preventDefault();
             var $flag = jq(this);
             var $activity = jq(this).closest('.maxui-activity');
@@ -10314,18 +10153,18 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 maxui.maxClient.unflagActivity(activityid, function(event) {
                     $flag.toggleClass('maxui-flagged', false);
                     $activity.toggleClass('maxui-flagged', false);
-                    maxui.printActivities({});
+                    maxui.printActivitiesChat({});
                 });
             } else {
                 maxui.maxClient.flagActivity(activityid, function(event) {
                     $flag.toggleClass('maxui-flagged', true);
                     $activity.toggleClass('maxui-flagged', false);
-                    maxui.printActivities({});
+                    maxui.printActivitiesChat({});
                 });
             }
         });
         //Assign activity removal confirmation dialog toggle via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-action.maxui-delete', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-action.maxui-delete', function(event) {
             event.preventDefault();
             var $activity = jq(this).closest('.maxui-activity');
             var $dialog = $activity.find('.maxui-actions > .maxui-popover');
@@ -10347,7 +10186,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Assign activity removal confirmation dialog via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-actions .maxui-button-cancel', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-actions .maxui-button-cancel', function(event) {
             event.preventDefault();
             // Hide all visible dialogs
             var $popover = jq('.maxui-popover:visible').css({
@@ -10356,7 +10195,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             $popover.hide();
         });
         //Assign activity removal via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-actions .maxui-button-delete', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-actions .maxui-button-delete', function(event) {
             event.preventDefault();
             var $activity = jq(this).closest('.maxui-activity');
             var activityid = $activity.attr('id');
@@ -10378,7 +10217,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             });
         });
         //Assign activity comment removal confirmation dialog toggle via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-delete-comment', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-delete-comment', function(event) {
             event.preventDefault();
             var $comment = jq(this).closest('.maxui-comment');
             var $dialog = $comment.find('.maxui-popover');
@@ -10400,7 +10239,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Assign activity comment removal confirmation dialog via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-comment .maxui-button-cancel', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-comment .maxui-button-cancel', function(event) {
             event.preventDefault();
             var $popover = jq('.maxui-popover').css({
                 opacity: 0
@@ -10408,7 +10247,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             $popover.hide();
         });
         //Assign activity comment removal via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-comment .maxui-button-delete', function(event) {
+        jq('#maxuichat-widget-container #maxui-activities').on('click', '.maxui-comment .maxui-button-delete', function(event) {
             event.preventDefault();
             var $comment = jq(this).closest('.maxui-comment');
             var $activity = $comment.closest('.maxui-activity');
@@ -10431,33 +10270,33 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 });
             });
         });
-        jq('#maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-most-recent', function(event) {
+        jq('#maxuichat-widget-container #maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-most-recent', function(event) {
             event.preventDefault();
             var $sortbutton = jq(this);
             if (!$sortbutton.hasClass('active')) {
-                jq('#maxui-activity-sort .maxui-sort-action.active').toggleClass('active', false);
+                jq('#maxuichat-widget-container #maxui-activity-sort .maxui-sort-action.active').toggleClass('active', false);
                 $sortbutton.toggleClass('active', true);
-                maxui.printActivities({});
+                maxui.printActivitiesChat({});
             }
         });
-        jq('#maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-most-valued', function(event) {
+        jq('#maxuichat-widget-container #maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-most-valued', function(event) {
             event.preventDefault();
             var $sortbutton = jq(this);
             if (!$sortbutton.hasClass('active')) {
-                jq('#maxui-activity-sort .maxui-sort-action.active').toggleClass('active', false);
+                jq('#maxuichat-widget-container #maxui-activity-sort .maxui-sort-action.active').toggleClass('active', false);
                 $sortbutton.toggleClass('active', true);
-                maxui.printActivities({
+                maxui.printActivitiesChat({
                     sortBy: 'likes'
                 });
             }
         });
-        jq('#maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-flagged', function(event) {
+        jq('#maxuichat-widget-container #maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-flagged', function(event) {
             event.preventDefault();
             var $sortbutton = jq(this);
             if (!$sortbutton.hasClass('active')) {
-                jq('#maxui-activity-sort .maxui-sort-action.active').toggleClass('active', false);
+                jq('#maxuichat-widget-container #maxui-activity-sort .maxui-sort-action.active').toggleClass('active', false);
                 $sortbutton.toggleClass('active', true);
-                maxui.printActivities({
+                maxui.printActivitiesChat({
                     sortBy: 'flagged'
                 });
             }
@@ -10466,7 +10305,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         //                    add people predicting
         // **************************************************************************************
         var selector = '.maxui-text-input';
-        jq('#maxui-add-people-box').on('focusin', selector, function(event) {
+        jq('#maxuichat-widget-container #maxui-add-people-box').on('focusin', selector, function(event) {
             event.preventDefault();
             var text = jq(this).val();
             var literal = jq(this).attr('data-literal');
@@ -10475,7 +10314,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 jq(this).val('');
             }
         }).on('keydown', selector, function(event) {
-            if (jq('#maxui-conversation-predictive:visible').length > 0 && (event.which === 40 || event.which === 38 || event.which === 13 || event.which === 9)) {
+            if (jq('#maxuichat-widget-container #maxui-conversation-predictive:visible').length > 0 && (event.which === 40 || event.which === 38 || event.which === 13 || event.which === 9)) {
                 maxui.utils.freezeEvent(event);
             }
         }).on('keyup', selector, function(event) {
@@ -10496,11 +10335,11 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var match = text.match(matchMention);
             var matchMentionEOL = new RegExp('^\\s*([\\u00C0-\\u00FC\\w\\. ]+)\\s*$');
             var matchEOL = text.match(matchMentionEOL);
-            var $selected = jq('#maxui-conversation-predictive .maxui-prediction.selected');
+            var $selected = jq('#maxuichat-widget-container #maxui-conversation-predictive .maxui-prediction.selected');
             var $area = jq(this);
-            var $predictive = jq('#maxui-conversation-predictive');
+            var $predictive = jq('#maxuichat-widget-container #maxui-conversation-predictive');
             var num_predictions = $predictive.find('.maxui-prediction').length;
-            var is_predicting = jq('#maxui-conversation-predictive:visible').length > 0;
+            var is_predicting = jq('#maxuichat-widget-container #maxui-conversation-predictive:visible').length > 0;
             // Up & down
             if (key === 40 && is_predicting && num_predictions > 1) {
                 var $next = $selected.next();
@@ -10523,7 +10362,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             } else if ((key === 13 || key === 9) && is_predicting) {
                 var username = $selected.attr('data-username');
                 var displayname = $selected.attr('data-displayname');
-                maxui.addPerson({
+                maxui.addPersonChat({
                     'username': username,
                     'displayName': displayname
                 });
@@ -10537,7 +10376,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                         if (matchEOL) {
                             $predictive.show();
                             $predictive.html('<ul></ul>');
-                            maxui.printPredictions(match[1], '#maxui-conversation-predictive');
+                            maxui.printPredictionsChat(match[1], '#maxui-conversation-predictive');
                         }
                     } else {
                         $predictive.hide();
@@ -10560,24 +10399,24 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         });
         // **************************************************************************************
         //Assign Activity post action And textarea behaviour
-        maxui.bindActionBehaviour('#maxui-newactivity', '#maxui-newactivity-box', {}, function(text) {
+        maxui.bindActionBehaviourChat('#maxuichat-widget-container #maxui-newactivity-chat', '#maxui-newactivity-box', {}, function(text) {
             if (maxui.settings.UISection === 'timeline') {
-                maxui.sendActivity(text);
-                jq('#maxui-search').toggleClass('folded', true);
+                maxui.sendActivityChat(text);
+                jq('#maxuichat-widget-container #maxui-search').toggleClass('folded', true);
             } else if (maxui.settings.UISection === 'conversations') {
                 if (maxui.settings.conversationsSection === 'conversations') {
-                    var participants_box = jq('#maxui-new-participants')[0];
+                    var participants_box = jq('#maxuichat-widget-container #maxui-new-participants')[0];
                     var participants = [];
                     for (var i = 0; i < participants_box.people.length; i++) {
                         participants.push(participants_box.people[i].username);
                     }
-                    var message = jq('#maxui-newactivity textarea').val();
+                    var message = jq('#maxuichat-widget-container #maxui-newactivity-chat textarea').val();
                     var options = {
                         participants: participants,
                         message: message
                     };
                     if (participants.length > 1) {
-                        var displayName = jq('#maxui-add-people-box #maxui-new-displayName input').val();
+                        var displayName = jq('#maxuichat-widget-container #maxui-add-people-box #maxui-new-displayName input').val();
                         options.displayName = displayName;
                     }
                     maxui.conversations.create(options);
@@ -10591,11 +10430,11 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var match = text.match(matchMention);
             var matchMentionEOL = new RegExp('^\\s*@([\\w\\.]+)\\s*$');
             var matchEOL = text.match(matchMentionEOL);
-            var $selected = jq('#maxui-newactivity .maxui-prediction.selected');
+            var $selected = jq('#maxuichat-widget-container #maxui-newactivity-chat .maxui-prediction.selected');
             var $area = jq(area);
-            var $predictive = jq('#maxui-newactivity #maxui-predictive');
+            var $predictive = jq('#maxuichat-widget-container #maxui-newactivity-chat #maxui-predictive');
             var num_predictions = $predictive.find('.maxui-prediction').length;
-            var is_predicting = jq('#maxui-newactivity #maxui-predictive:visible').length > 0;
+            var is_predicting = jq('#maxuichat-widget-container #maxui-newactivity-chat #maxui-predictive:visible').length > 0;
             // Up & down
             if (key === 40 && is_predicting && num_predictions > 1) {
                 var $next = $selected.next();
@@ -10632,7 +10471,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                         if (matchEOL) {
                             $predictive.show();
                             $predictive.html('<ul></ul>');
-                            maxui.printPredictions(match[1], '#maxui-newactivity #maxui-predictive');
+                            maxui.printPredictionsChat(match[1], '#maxui-newactivity-chat #maxui-predictive');
                         }
                         jq(button).removeAttr('disabled');
                         jq(button).attr('class', 'maxui-button');
@@ -10647,7 +10486,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                     }
                 } else if (maxui.settings.UISection === 'conversations') {
                     if (maxui.settings.conversationsSection === 'conversations') {
-                        maxui.reloadPersons();
+                        maxui.reloadPersonsChat();
                     } else if (maxui.settings.conversationsSection === 'messages') {
                         $predictive.hide();
                         jq(button).removeAttr('disabled');
@@ -10658,27 +10497,27 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             } //1
         }); //function;
         //Assign Commentbox send comment action And textarea behaviour
-        maxui.bindActionBehaviour('#maxui-activities', '.maxui-newcommentbox', {}, function(text) {
+        maxui.bindActionBehaviourChat('#maxuichat-widget-container #maxui-activities', '.maxui-newcommentbox', {}, function(text) {
             var activityid = jq(this).closest('.maxui-activity').attr('id');
             maxui.maxClient.addComment(text, activityid, function() {
-                jq('#activityContainer textarea').val('');
+                jq('#maxuichat-widget-container #activityContainer textarea').val('');
                 var activity_id = this.object.inReplyTo[0].id;
-                maxui.printCommentsForActivity(activity_id);
-                jq('#' + activity_id + ' .maxui-newcommentbox textarea').val('');
-                jq('#' + activity_id + ' .maxui-newcommentbox .maxui-button').attr('disabled', 'disabled');
+                maxui.printCommentsForActivityChat(activity_id);
+                jq('#maxuichat-widget-container #' + activity_id + ' .maxui-newcommentbox textarea').val('');
+                jq('#maxuichat-widget-container #' + activity_id + ' .maxui-newcommentbox .maxui-button').attr('disabled', 'disabled');
             });
         });
         //Assign Search box search action And input behaviour
-        maxui.bindActionBehaviour('#maxui-search', '#maxui-search-box', {}, function(text) {
-            maxui.textSearch(text);
-            jq('#maxui-search').toggleClass('folded', false);
-            jq('#maxui-search-text').val('');
+        maxui.bindActionBehaviourChat('#maxuichat-widget-container #maxui-search', '#maxui-search-box', {}, function(text) {
+            maxui.textSearchChat(text);
+            jq('#maxuichat-widget-container #maxui-search').toggleClass('folded', false);
+            jq('#maxuichat-widget-container #maxui-search-text').val('');
         });
         // // Execute search if <enter> pressed
-        // jq('#maxui-search .maxui-text-input').keyup(function(e) {
+        // jq('#maxuichat-widget-container #maxui-search .maxui-text-input').keyup(function(e) {
         //           if (e.keyCode === 13) {
-        //              maxui.textSearch(jq(this).attr('value'))
-        //              jq('#maxui-search').toggleClass('folded',false)
+        //              maxui.textSearchChat(jq(this).attr('value'))
+        //              jq('#maxuichat-widget-container #maxui-search').toggleClass('folded',false)
         //           }
         // });
     };
@@ -10692,7 +10531,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    @param {object} options          Extra options, currently ignore-button, to avoid button updates
      *    @param {Function} clickFunction  Function to execute when click on the button
      **/
-    jq.fn.bindActionBehaviour = function(delegate, target, options, clickFunction) {
+    jq.fn.bindActionBehaviourChat = function(delegate, target, options, clickFunction) {
         // Clear input when focusing in only if user hasn't typed anything yet
         var maxui = this;
         var selector = target + ' .maxui-text-input';
@@ -10788,7 +10627,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *    @param {String} text    A string containing whitespace-separated keywords/#hashtags
      **/
-    jq.fn.textSearch = function(text) {
+    jq.fn.textSearchChat = function(text) {
         var maxui = this;
         //Normalize spaces
         var normalized = maxui.utils.normalizeWhiteSpace(text);
@@ -10810,20 +10649,20 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                     break;
             }
             if (keyword.length >= 3) {
-                this.addFilter({
+                this.addFilterChat({
                     type: kwtype,
                     value: keyword
                 }, false);
             }
         }
-        this.reloadFilters();
+        this.reloadFiltersChat();
     };
     /**
      *    Prepares a object with the current active filters
      *
      *    @param {String} (optional)    A string containing the id of the last activity loaded
      **/
-    jq.fn.getFilters = function() {
+    jq.fn.getFiltersChat = function() {
         var maxui = this;
         var params = {
             filters: maxui.filters
@@ -10860,29 +10699,29 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *    @param {String} (optional)    A string containing the id of the last activity loaded
      **/
-    jq.fn.reloadFilters = function() {
+    jq.fn.reloadFiltersChat = function() {
         var maxui = this;
         var filters;
         var params = {
             filters: maxui.filters
         };
         var activity_items = maxui.templates.filters.render(params);
-        jq('#maxui-search-filters').html(activity_items);
+        jq('#maxuichat-widget-container #maxui-search-filters').html(activity_items);
         // Accept a optional parameter indicating search start point
         if (arguments.length > 0) {
-            filters = maxui.getFilters(arguments[0]);
+            filters = maxui.getFiltersChat(arguments[0]);
         } else {
-            filters = maxui.getFilters();
+            filters = maxui.getFiltersChat();
         }
-        maxui.printActivities({});
+        maxui.printActivitiesChat({});
         //Enable or disable filter toogle if there are visible filters defined (or not)
-        jq('#maxui-search').toggleClass('folded', !filters.visible);
+        jq('#maxuichat-widget-container #maxui-search').toggleClass('folded', !filters.visible);
     };
     /**
      *    Adds a new filter to the search if its not present
      *    @param {Object} filter    An object repesenting a filter, with the keys "type" and "value"
      **/
-    jq.fn.delFilter = function(filter) {
+    jq.fn.delFilterChat = function(filter) {
         var maxui = this;
         var deleted = false;
         for (var i = 0; i < maxui.filters.length; i++) {
@@ -10892,14 +10731,14 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         }
         if (deleted) {
-            this.reloadFilters();
+            this.reloadFiltersChat();
         }
     };
     /**
      *    Adds a new filter to the search if its not present
      *    @param {Object} filter    An object repesenting a filter, with the keys "type" and "value"
      **/
-    jq.fn.addFilter = function(filter) {
+    jq.fn.addFilterChat = function(filter) {
         var maxui = this;
         var reload = true;
         //Reload or not by func argument
@@ -10933,7 +10772,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         if (!already_filtered) {
             maxui.filters.push(filter);
             if (reload === true) {
-                this.reloadFilters();
+                this.reloadFiltersChat();
             }
         }
     };
@@ -10943,27 +10782,27 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *    @param {String} (optional)    A string containing the id of the last activity loaded
      **/
-    jq.fn.reloadPersons = function() {
+    jq.fn.reloadPersonsChat = function() {
         var maxui = this;
-        var $participants_box = jq('#maxui-new-participants');
+        var $participants_box = jq('#maxuichat-widget-container #maxui-new-participants');
         var participants_box = $participants_box[0];
         if (!participants_box.people) {
             participants_box.people = [];
         }
-        var $button = jq('#maxui-newactivity input.maxui-button');
-        var $newmessagebox = jq('#maxui-newactivity');
+        var $button = jq('#maxuichat-widget-container #maxui-newactivity-chat input.maxui-button');
+        var $newmessagebox = jq('#maxuichat-widget-container #maxui-newactivity-chat');
         var message = $newmessagebox.find('textarea').val();
         var placeholder = $newmessagebox.find('textarea').attr('data-literal');
         message = maxui.utils.normalizeWhiteSpace(message);
-        var $newdisplaynamebox = jq('#maxui-add-people-box #maxui-new-displayName');
+        var $newdisplaynamebox = jq('#maxuichat-widget-container #maxui-add-people-box #maxui-new-displayName');
         var displayName = $newdisplaynamebox.find('input').val();
         displayName = maxui.utils.normalizeWhiteSpace(displayName);
         var params = {
             persons: participants_box.people
         };
         var participants_items = maxui.templates.participants.render(params);
-        jq('#maxui-new-participants').html(participants_items);
-        jq('#maxui-add-people-box .maxui-label .maxui-count').text('({0}/{1})'.format(participants_box.people.length + 1, maxui.settings.maximumConversations));
+        jq('#maxuichat-widget-container #maxui-new-participants').html(participants_items);
+        jq('#maxuichat-widget-container #maxui-add-people-box .maxui-label .maxui-count').text('({0}/{1})'.format(participants_box.people.length + 1, maxui.settings.maximumConversations));
         if (participants_box.people.length > 0) {
             var has_more_than_one_participant = participants_box.people.length > 1;
             var has_a_displayname = displayName !== '';
@@ -10993,7 +10832,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 $newdisplaynamebox.show();
             } else {
                 $newdisplaynamebox.hide();
-                $newdisplaynamebox.find('.maxui-text-input').val('');
+                $newdisplaynamebox.find('#maxuichat-widget-container .maxui-text-input').val('');
             }
         } else if (message !== '' && message !== placeholder) {
             $button.attr('disabled', 'disabled');
@@ -11006,16 +10845,16 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 'bottom': -25
             }, 200);
             $newdisplaynamebox.hide();
-            $newdisplaynamebox.find('.maxui-text-input').val('');
+            $newdisplaynamebox.find('#maxuichat-widget-container .maxui-text-input').val('');
         }
     };
     /**
      *    Removes a person from the list of new conversation
      *    @param {String} person    A String representing a user's username
      **/
-    jq.fn.delPerson = function(person) {
+    jq.fn.delPersonChat = function(person) {
         var deleted = false;
-        var participants_box = jq('#maxui-new-participants')[0];
+        var participants_box = jq('#maxuichat-widget-container #maxui-new-participants')[0];
         for (var i = 0; i < participants_box.people.length; i++) {
             if (participants_box.people[i].username === person.username) {
                 deleted = true;
@@ -11023,16 +10862,16 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         }
         if (deleted) {
-            this.reloadPersons();
+            this.reloadPersonsChat();
         }
     };
     /**
      *    Adds a new person to the list of new conversation
      *    @param {String} person    A String representing a user's username
      **/
-    jq.fn.addPerson = function(person) {
+    jq.fn.addPersonChat = function(person) {
         var maxui = this;
-        var participants_box = jq('#maxui-new-participants')[0];
+        var participants_box = jq('#maxuichat-widget-container #maxui-new-participants')[0];
         var reload = true;
         //Reload or not by func argument
         if (arguments.length > 1) {
@@ -11051,7 +10890,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (!already_filtered) {
                 participants_box.people.push(person);
                 if (reload === true) {
-                    this.reloadPersons();
+                    this.reloadPersonsChat();
                 }
             }
         }
@@ -11059,25 +10898,25 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     /**
      *    Toggles between main sections
      **/
-    jq.fn.toggleSection = function(sectionToEnable) {
+    jq.fn.toggleSectionChat = function(sectionToEnable) {
         var maxui = this;
         var textarea_literal;
-        var $search = jq('#maxui-search');
-        var $activitysort = jq('#maxui-activity-sort');
-        var $timeline = jq('#maxui-timeline');
-        var $timeline_wrapper = jq('#maxui-timeline .maxui-wrapper');
-        var $conversations = jq('#maxui-conversations');
-        var $common_header = jq('#maxui-common-header');
+        var $search = jq('#maxuichat-widget-container #maxui-search');
+        var $activitysort = jq('#maxuichat-widget-container #maxui-activity-sort');
+        var $timeline = jq('#maxuichat-widget-container #maxui-timeline');
+        var $timeline_wrapper = jq('#maxuichat-widget-container #maxui-timeline .maxui-wrapper');
+        var $conversations = jq('#maxuichat-widget-container #maxui-conversations');
+        var $common_header = jq('#maxuichat-widget-container #maxui-common-header');
         var $conversations_user_input = $conversations.find('input#add-user-input');
-        var $conversations_list = jq('#maxui-conversations #maxui-conversations-list');
-        var $conversations_wrapper = jq('#maxui-conversations .maxui-wrapper');
-        var $postbutton = jq('#maxui-newactivity-box .maxui-button');
-        var $subscriptionsSelect = jq('#maxui-newactivity-box #maxui-subscriptions');
-        var $postbox = jq('#maxui-newactivity');
-        var $postbox_text = jq('#maxui-newactivity-box textarea');
-        var $conversationsbutton = jq('#maxui-show-conversations');
-        var $timelinebutton = jq('#maxui-show-timeline');
-        var $addpeople = jq('#maxui-add-people-box');
+        var $conversations_list = jq('#maxuichat-widget-container #maxui-conversations #maxui-conversations-list');
+        var $conversations_wrapper = jq('#maxuichat-widget-container #maxui-conversations .maxui-wrapper');
+        var $postbutton = jq('#maxuichat-widget-container #maxui-newactivity-box .maxui-button');
+        var $subscriptionsSelect = jq('#maxuichat-widget-container #maxui-newactivity-box #maxui-subscriptions');
+        var $postbox = jq('#maxuichat-widget-container #maxui-newactivity-chat');
+        var $postbox_text = jq('#maxuichat-widget-container #maxui-newactivity-box textarea');
+        var $conversationsbutton = jq('#maxuichat-widget-container #maxui-show-conversations');
+        var $timelinebutton = jq('#maxuichat-widget-container #maxui-show-timeline');
+        var $addpeople = jq('#maxuichat-widget-container #maxui-add-people-box');
         // Real width of the widget, without the two 1-pixel borders;
         var widgetWidth = maxui.width();
         var sectionPadding = 10;
@@ -11141,10 +10980,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 $conversationsbutton.show();
             }
             $timelinebutton.hide();
-            if (maxui.settings.hidePostboxOnTimeline) {
+            if (maxui.settings.hidePostboxChatOnTimeline) {
                 $postbox.hide();
             }
-            if (maxui.hidePostbox()) {
+            if (maxui.hidePostboxChat()) {
                 $postbox.hide();
             }
         }
@@ -11152,7 +10991,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     /**
      *    Returns the current settings of the plugin
      **/
-    jq.fn.Settings = function() {
+    jq.fn.settings = function() {
         var maxui = this;
         return maxui.settings;
     };
@@ -11160,26 +10999,26 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    Sends a post when user clicks `post activity` button with
      *    the current contents of the `maxui-newactivity` textarea
      **/
-    jq.fn.sendActivity = function() {
+    jq.fn.sendActivityChat = function() {
         var maxui = this;
-        var text = jq('#maxui-newactivity textarea').val();
+        var text = jq('#maxuichat-widget-container #maxui-newactivity-chat textarea').val();
         var func_params = [];
         // change to recent view before posting
-        jq('#maxui-activity-sort .maxui-sort-action.active').toggleClass('active', false);
-        jq('#maxui-activity-sort .maxui-sort-action.maxui-most-recent').toggleClass('active', true);
+        jq('#maxuichat-widget-container #maxui-activity-sort .maxui-sort-action.active').toggleClass('active', false);
+        jq('#maxuichat-widget-container #maxui-activity-sort .maxui-sort-action.maxui-most-recent').toggleClass('active', true);
         func_params.push(text);
         func_params.push(maxui.settings.writeContexts);
         func_params.push(function() {
-            jq('#maxui-newactivity textarea').val('');
-            jq('#maxui-newactivity .maxui-button').attr('disabled', 'disabled');
-            var first = jq('.maxui-activity:first');
+            jq('#maxuichat-widget-container #maxui-newactivity-chat textarea').val('');
+            jq('#maxuichat-widget-container #maxui-newactivity-chat .maxui-button').attr('disabled', 'disabled');
+            var first = jq('#maxuichat-widget-container .maxui-activity:first');
             if (first.length > 0) {
                 var filter = {
                     after: first.attr('id')
                 };
-                maxui.printActivities(filter);
+                maxui.printActivitiesChat(filter);
             } else {
-                maxui.printActivities({});
+                maxui.printActivitiesChat({});
             }
         });
         //Pass generator to activity post if defined
@@ -11194,10 +11033,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    Loads more activities from max posted earlier than
      *    the oldest loaded activity
      **/
-    jq.fn.loadMoreActivities = function() {
+    jq.fn.loadMoreActivitiesChat = function() {
         var maxui = this;
-        var lastActivity = jq('.maxui-activity:last').attr('id');
-        if (jq('#maxui-activity-sort .maxui-sort-action.maxui-most-recent').hasClass('active')) {
+        var lastActivity = jq('#maxuichat-widget-container .maxui-activity:last').attr('id');
+        if (jq('#maxuichat-widget-container #maxui-activity-sort .maxui-sort-action.maxui-most-recent').hasClass('active')) {
             if (jq("#" + lastActivity + " .maxui-comment").length > 0) {
                 lastActivity = jq("#" + lastActivity + " .maxui-comment:last").attr('id');
             }
@@ -11205,25 +11044,25 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         var filter = {
             before: lastActivity
         };
-        maxui.printActivities(filter);
+        maxui.printActivitiesChat(filter);
     };
     /** PG
      *    Loads news activities from max posted earlier than
      *    the oldest loaded activity
      **/
-    jq.fn.loadNewsActivities = function() {
+    jq.fn.loadNewsActivitiesChat = function() {
         var maxui = this;
-        maxui.printActivities();
+        maxui.printActivitiesChat();
     };
     /**
      *    Renders the conversations list of the current user, defined in settings.username
      **/
-    jq.fn.printPredictions = function(query, predictive_selector) {
+    jq.fn.printPredictionsChat = function(query, predictive_selector) {
         var maxui = this;
         var func_params = [];
         func_params.push(query);
         func_params.push(function(items) {
-            maxui.formatPredictions(items, predictive_selector);
+            maxui.formatPredictionsChat(items, predictive_selector);
         });
         var userListRetriever = this.maxClient.getUsersList;
         userListRetriever.apply(this.maxClient, func_params);
@@ -11232,7 +11071,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *
      **/
-    jq.fn.formatPredictions = function(items, predictive_selector) {
+    jq.fn.formatPredictionsChat = function(items, predictive_selector) {
         var maxui = this;
         // String to store the generated html pieces of each conversation item
         var predictions = '';
@@ -11264,7 +11103,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *
      **/
-    jq.fn.canCommentActivity = function(url) {
+    jq.fn.canCommentActivityChat = function(url) {
         var maxui = this;
         for (var i in maxui.settings.subscriptionsWrite) {
             var hash = maxui.settings.subscriptionsWrite[i].hash;
@@ -11283,7 +11122,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    @param {String} insertAt  were to prepend or append activities, 'beginning' or 'end
      *    @param {Function} (optional)  A function to call when all formatting is finished
      **/
-    jq.fn.formatActivities = function(items, insertAt) {
+    jq.fn.formatActivitiesChat = function(items, insertAt) {
         var maxui = this;
         var activities = '';
         // Iterate through all the activities
@@ -11340,9 +11179,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             _.defaults(activity.object, {
                 filename: activity.id
             });
-            var canCommentActivity = maxui.settings.canwrite;
+            var canCommentActivityChat = maxui.settings.canwrite;
             if (activity.contexts) {
-                canCommentActivity = maxui.canCommentActivity(activity.contexts[0].url);
+                canCommentActivityChat = maxui.canCommentActivityChat(activity.contexts[0].url);
             }
             var params = {
                 id: activity.id,
@@ -11368,8 +11207,8 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 via: generator,
                 fileDownload: activity.object.objectType === 'file',
                 filename: activity.object.filename,
-                canViewComments: canCommentActivity || activity.replies.length > 0,
-                canWriteComment: canCommentActivity
+                canViewComments: canCommentActivityChat || activity.replies.length > 0,
+                canWriteComment: canCommentActivityChat
             };
             // Render the activities template and append it at the end of the rendered activities
             // partials is used to render each comment found in the activities
@@ -11384,35 +11223,35 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         // Prepare animation and insert activities at the top of activity stream
         if (insertAt === 'beggining') {
             // Load all the activities in a overflow-hidden div to calculate the height
-            jq('#maxui-preload .maxui-wrapper').prepend(activities);
-            var ritems = jq('#maxui-preload .maxui-wrapper .maxui-activity');
+            jq('#maxuichat-widget-container #maxui-preload .maxui-wrapper').prepend(activities);
+            var ritems = jq('#maxuichat-widget-container #maxui-preload .maxui-wrapper .maxui-activity');
             var heightsum = 0;
             for (i = 0; i < ritems.length; i++) {
                 heightsum += jq(ritems[i]).height() + 18;
             }
             // Move the hidden div to be hidden on top of the last activity and behind the main UI
-            var currentPreloadHeight = jq('#maxui-preload').height();
-            jq('#maxui-preload').height(heightsum - currentPreloadHeight);
-            jq('#maxui-preload').css({
+            var currentPreloadHeight = jq('#maxuichat-widget-container #maxui-preload').height();
+            jq('#maxuichat-widget-container #maxui-preload').height(heightsum - currentPreloadHeight);
+            jq('#maxuichat-widget-container #maxui-preload').css({
                 "margin-top": (heightsum - currentPreloadHeight) * -1
             });
             // Animate it to appear sliding on the bottom of the main UI
-            jq('#maxui-preload').animate({
+            jq('#maxuichat-widget-container #maxui-preload').animate({
                 "margin-top": 0
             }, 200, function() {
                 // When the animation ends, move the new activites to its native container
-                jq('#maxui-preload .maxui-wrapper').html("");
-                jq('#maxui-activities').prepend(activities);
-                jq('#maxui-preload').height(0);
+                jq('#maxuichat-widget-container #maxui-preload .maxui-wrapper').html("");
+                jq('#maxuichat-widget-container #maxui-activities').prepend(activities);
+                jq('#maxuichat-widget-container #maxui-preload').height(0);
             });
         }
         // Insert at the end
         else if (insertAt === 'end') {
-            jq('#maxui-activities').append(activities);
+            jq('#maxuichat-widget-container #maxui-activities').append(activities);
         }
         // Otherwise, replace everything
         else {
-            jq('#maxui-activities').html(activities);
+            jq('#maxuichat-widget-container #maxui-activities').html(activities);
         }
         // if Has a callback, execute it
         if (arguments.length > 2) {
@@ -11431,7 +11270,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    @param {String} items         a list of objects representing comments, returned by max
      *    @param {String} activity_id   id of the activity where comments belong to
      **/
-    jq.fn.formatComment = function(items, activity_id) {
+    jq.fn.formatCommentChat = function(items, activity_id) {
         // When receiving the list of activities from max
         // construct the object for Hogan
         // `activities `contain the list of activity objects
@@ -11466,7 +11305,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     /**
      *    Renders the postbox
      **/
-    jq.fn.renderPostbox = function() {
+    jq.fn.renderPostboxChat = function() {
         var maxui = this;
         // Render the postbox UI if user has permission
         var showCT = maxui.settings.UISection === 'conversations';
@@ -11481,21 +11320,21 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             showSubscriptionList: maxui.settings.showSubscriptionList && maxui.settings.subscriptionsWrite.length > 0,
             subscriptionList: maxui.settings.subscriptionsWrite
         };
-        var postbox = maxui.templates.postBox.render(params);
-        var $postbox = jq('#maxui-newactivity');
+        var postbox = maxui.templates.postBoxChat.render(params);
+        var $postbox = jq('#maxuichat-widget-container #maxui-newactivity-chat');
         $postbox.html(postbox);
     };
     /**
      *    Renders the timeline of the current user, defined in settings.username
      **/
-    jq.fn.printActivities = function(ufilters) {
+    jq.fn.printActivitiesChat = function(ufilters) {
         // save a reference to the container object to be able to access it
         // from callbacks defined in inner levels
         var maxui = this;
         var func_params = [];
         var insert_at = 'replace';
         // Get current defined filters and update with custom
-        var filters = maxui.getFilters().filters;
+        var filters = maxui.getFiltersChat().filters;
         jq.extend(filters, ufilters);
         if (filters.before) {
             insert_at = 'end';
@@ -11504,9 +11343,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             insert_at = 'beggining';
         }
         if (!filters.sortBy) {
-            if (jq('#maxui-activity-sort .maxui-sort-action.maxui-most-valued').hasClass('active')) {
+            if (jq('#maxuichat-widget-container #maxui-activity-sort .maxui-sort-action.maxui-most-valued').hasClass('active')) {
                 filters.sortBy = 'likes';
-            } else if (jq('#maxui-activity-sort .maxui-sort-action.maxui-flagged').hasClass('active')) {
+            } else if (jq('#maxuichat-widget-container #maxui-activity-sort .maxui-sort-action.maxui-flagged').hasClass('active')) {
                 filters.sortBy = 'flagged';
             } else {
                 filters.sortBy = maxui.settings.activitySortOrder;
@@ -11561,19 +11400,19 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                                 maxui.settings.canflag = false;
                             }
                         }
-                        maxui.renderPostbox();
+                        maxui.renderPostboxChat();
                         // format the result items as activities
-                        maxui.formatActivities(items, insert_at, callback);
+                        maxui.formatActivitiesChat(items, insert_at, callback);
                     });
                 } else {
-                    maxui.renderPostbox(items, insert_at, callback);
+                    maxui.renderPostboxChat(items, insert_at, callback);
                     // format the result items as activities
-                    maxui.formatActivities(items, insert_at, callback);
+                    maxui.formatActivitiesChat(items, insert_at, callback);
                 }
             });
         } else {
             func_params.push(function(items) {
-                maxui.formatActivities(items, insert_at);
+                maxui.formatActivitiesChat(items, insert_at);
             });
         }
         // if passed as param, assume an object with search filtering params
@@ -11584,12 +11423,12 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     /**
      *    Renders the timeline of the current user, defined in settings.username
      **/
-    jq.fn.printCommentsForActivity = function(activity_id) {
+    jq.fn.printCommentsForActivityChat = function(activity_id) {
         var maxui = this;
         var func_params = [];
         func_params.push(activity_id);
         func_params.push(function(data) {
-            maxui.formatComment(data, activity_id);
+            maxui.formatCommentChat(data, activity_id);
         });
         this.maxClient.getCommentsForActivity.apply(this.maxClient, func_params);
     };
@@ -11603,7 +11442,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
 ;
 
 //
-// Loader function for max.ui.js
+// Loader function for max.uichat.js
 //
 // The timeout is set to assure that the code will be invoked at the end of the file load
 // This snippet also assures that maxui will be instantiated only once.
@@ -11613,8 +11452,8 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
 //
 'use strict';
 window.setTimeout(function() {
-    if (window._MAXUI && window._MAXUI.onReady && !window._MAXUI.hasRun) {
-        window._MAXUI.hasRun = true;
-        _MAXUI.onReady();
+    if (window._MAXUI_Chat && window._MAXUI_Chat.onReady && !window._MAXUI_Chat.hasRun) {
+        window._MAXUI_Chat.hasRun = true;
+        _MAXUI_Chat.onReady();
     }
 }, 0);

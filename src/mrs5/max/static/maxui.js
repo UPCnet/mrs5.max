@@ -7915,13 +7915,18 @@ var max = max || {};
                 self.listview.insert(conversation);
                 self.messagesview.remaining = 0;
                 message.ack = true;
+                self.loadWrappers();
                 self.messagesview.append(message);
                 self.messagesview.render();
                 self.messagesview.show(chash);
-                self.loadWrappers();
+                self.hideNameChat();
                 self.$newparticipants[0].people = [];
                 self.maxui.reloadPersons();
             });
+        };
+        MaxConversations.prototype.hideNameChat = function() {
+            jq('#maxui-add-people-box #maxui-new-displayName input').val('');
+            jq('#maxui-add-people-box #maxui-new-displayName').hide();
         };
         MaxConversations.prototype.updateUnreadConversations = function(data) {
             var self = this;
@@ -8052,7 +8057,7 @@ max.templates = function() {
                 <div class="maxui-actions">\
                     <a href="" class="maxui-action maxui-commentaction maxui-icon- {{#replies}}maxui-has-comments{{/replies}}"><strong>{{replies.length}}</strong> {{literals.toggle_comments}}</a>\
                     <a href="" class="maxui-action maxui-favorites {{#favorited}}maxui-favorited{{/favorited}} maxui-icon-">{{literals.favorite}}</a>\
-                    <a href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-">{{literals.like}}</a>\
+                    <a href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-"><strong>{{likes}}</strong> {{literals.like}}</a>\
                     {{#canFlagActivity}}\
                     <a href="" class="maxui-action maxui-flag {{#flagged}}maxui-flagged{{/flagged}} maxui-icon-">{{literals.flag_activity_icon}}</a>\
                     {{/canFlagActivity}}\
@@ -8071,17 +8076,21 @@ max.templates = function() {
                 </div>\
             </div>\
         \
+            {{#canViewComments}}\
             <div class="maxui-comments" style="display: none">\
                 <div class="maxui-commentsbox">\
                     {{#replies}}\
                         {{> comment}}\
                     {{/replies}}\
                 </div>\
+                {{#canWriteComment}}\
                 <div class="maxui-newcommentbox">\
                         <textarea class="maxui-empty maxui-text-input" id="maxui-commentBox" data-literal="{{literals.new_comment_text}}">{{literals.new_comment_text}}</textarea>\
                         <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{literals.new_comment_post}}"/>\
                 </div>\
+                {{/canWriteComment}}\
             </div>\
+            {{/canViewComments}}\
         \
             <div class="maxui-clear"></div>\
         </div>\
@@ -9846,7 +9855,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             'enableAlerts': false,
             'UISection': 'timeline',
             'disableTimeline': false,
-            'disableConversations': false,
+            'disableConversations': true,
             'conversationsSection': 'conversations',
             'currentConversationSection': 'conversations',
             'activitySortOrder': 'comments',
@@ -10046,7 +10055,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var params = {
                 username: maxui.settings.username,
                 literals: maxui.settings.literals,
-                showMaxUIClass: showCT ? 'maxui-chat' : 'maxui-activity',
+                showMaxUIClass: showCT ? 'maxui-container-chat' : 'maxui-container-activity',
                 showConversations: showCT ? 'display:block;' : 'display:none;',
                 showConversationsToggle: toggleCT ? 'display:block;' : 'display:none;',
                 showTimeline: showTL ? 'display:block;' : 'display:none;',
@@ -11179,6 +11188,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         }
         var activityAdder = maxui.maxClient.addActivity;
         activityAdder.apply(maxui.maxClient, func_params);
+        jq('#maxui-subscriptions option:first-child').attr("selected", "selected");
     };
     /**
      *    Loads more activities from max posted earlier than
