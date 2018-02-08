@@ -1,4 +1,9 @@
-<div id="maxuichat-widget-container"></div>
+<section id="box_chat" class="ulearnbox portletChat" role="section">
+      <div class="osomcorner-wrapper"><div class="osomcorner"></div></div>
+      <h2 style="outline-style: none;">Chats</h2>
+      <div id="maxuichat-widget-container"></div>
+</section>
+
 <script type="text/javascript"
         tal:attributes="src string:${view/portal_url}/max_variables_chat.js">
 </script>
