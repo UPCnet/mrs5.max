@@ -49,7 +49,7 @@ window._MAXUI_Activity.onReady = function() {
 */
 
 (function(d_activity){
-var muiactivity_location = '++maxui++static/maxuiactivity.js';
+var muiactivity_location = '++maxui++static/maxuiactivity.min.js';
 var muiactivity = d_activity.createElement('script'); muiactivity.type = 'text/javascript'; muiactivity.async = true;
 muiactivity.src = muiactivity_location;
 var s_activity= d_activity.getElementsByTagName('script')[0]; s_activity.parentNode.insertBefore(muiactivity, s_activity);

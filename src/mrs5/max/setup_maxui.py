@@ -10,8 +10,10 @@ ORIGINAL_MAXUI_FONT_URL = 'font'
 DEFAULT_MAXUI_FONTS_URL = './maxui/font'
 DEFAULT_MAXUI_FONTS_FOLDER = './maxui/font'
 DEFAULT_MAXUI_GITHUB_URL = 'https://github.com/UPCnet/max.ui5.js'
-DEFAULT_MAXUI_BRANCH = 'master'
+DEFAULT_MAXUI_BRANCH = 'chatactivity'
 DEFAULT_MAXUI_JS = './maxui.min.js'
+DEFAULT_MAXUICHAT_JS = './maxuichat.min.js'
+DEFAULT_MAXUIACTIVITY_JS = './maxuiactivity.min.js'
 DEFAULT_MAXUI_CSS = './maxui.css'
 
 
@@ -81,6 +83,16 @@ def main():
         js_location = js_location.strip()
         config['js_location'] = js_location if js_location else DEFAULT_MAXUI_JS
 
+    if 'js_location_chat' not in config:
+        js_location_chat = raw_input("Javascript file location ['{}']: ".format(DEFAULT_MAXUICHAT_JS))
+        js_location_chat = js_location_chat.strip()
+        config['js_location_chat'] = js_location_chat if js_location_chat else DEFAULT_MAXUICHAT_JS
+
+    if 'js_location_activity' not in config:
+        js_location_activity = raw_input("Javascript file location ['{}']: ".format(DEFAULT_MAXUIACTIVITY_JS))
+        js_location_activity = js_location_activity.strip()
+        config['js_location_activity'] = js_location_activity if js_location_activity else DEFAULT_MAXUIACTIVITY_JS
+
     if 'css_location' not in config:
         css_location = raw_input("Stylesheet file location ['{}']: ".format(DEFAULT_MAXUI_CSS))
         css_location = css_location.strip()
@@ -112,6 +124,52 @@ def main():
     # Store downloaded js source for map
     path = '/'.join(config['js_location'].split('/')[:-1])
     open(path + '/maxui.js', 'w').write(js)
+
+    js = downloadFile(config, 'builds/{}/maxuichat.min.js'.format(version))
+    if not js:
+        print ' MAX UI Version {} build not found'.format(version)
+        sys.exit(1)
+    # Store downloaded js
+    open(config['js_location_chat'], 'w').write(js)
+
+    js = downloadFile(config, 'builds/{}/maxuichat.min.js.map'.format(version))
+    if not js:
+        print ' MAX UI jsmap Version {} build not found'.format(version)
+        sys.exit(1)
+    # Store downloaded js map
+    fname = config['js_location_chat'].split('.js')[0]
+    open('{}.map'.format(fname), 'w').write(js)
+
+    js = downloadFile(config, 'builds/{}/maxuichat.js'.format(version))
+    if not js:
+        print ' MAX UI js source Version {} build not found'.format(version)
+        sys.exit(1)
+    # Store downloaded js source for map
+    path = '/'.join(config['js_location_chat'].split('/')[:-1])
+    open(path + '/maxuichat.js', 'w').write(js)
+
+    js = downloadFile(config, 'builds/{}/maxuiactivity.min.js'.format(version))
+    if not js:
+        print ' MAX UI Version {} build not found'.format(version)
+        sys.exit(1)
+    # Store downloaded js
+    open(config['js_location_activity'], 'w').write(js)
+
+    js = downloadFile(config, 'builds/{}/maxuiactivity.min.js.map'.format(version))
+    if not js:
+        print ' MAX UI jsmap Version {} build not found'.format(version)
+        sys.exit(1)
+    # Store downloaded js map
+    fname = config['js_location_activity'].split('.js')[0]
+    open('{}.map'.format(fname), 'w').write(js)
+
+    js = downloadFile(config, 'builds/{}/maxuiactivity.js'.format(version))
+    if not js:
+        print ' MAX UI js source Version {} build not found'.format(version)
+        sys.exit(1)
+    # Store downloaded js source for map
+    path = '/'.join(config['js_location_activity'].split('/')[:-1])
+    open(path + '/maxuiactivity.js', 'w').write(js)
 
     #Download and modify CSS
     css = downloadFile(config, 'builds/{}/maxui.min.css'.format(version))

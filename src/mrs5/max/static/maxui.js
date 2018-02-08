@@ -8006,13 +8006,11 @@ var max = max || {};
 
 /*jshint multistr: true */
 /**
-* @fileoverview Provides hogan compiled templates
-*               ready to render.
-*/
+ * @fileoverview Provides hogan compiled templates
+ *               ready to render.
+ */
 'use strict';
-
 var max = max || {};
-
 max.templates = function() {
     var templates = {
         activity: Hogan.compile('\
@@ -9843,7 +9841,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.1';
+        maxui.version = '5.0.2';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
