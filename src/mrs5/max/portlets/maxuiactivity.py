@@ -8,6 +8,8 @@ from plone.portlets.interfaces import IPortletDataProvider
 
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
+from mrs5.max import _
+
 
 class IMaxUIActivityPortlet(IPortletDataProvider):
     """A portlet
