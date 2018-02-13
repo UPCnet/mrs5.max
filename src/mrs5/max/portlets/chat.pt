@@ -1,7 +1,0 @@
-<section id="box_chat" class="ulearnbox portletChat" role="section">
-      <div class="osomcorner-wrapper"><div class="osomcorner"></div></div>
-      <h2 style="outline-style: none;">Chats</h2>
-      <iframe class="maxui-widget-chat" name="chat" scrolling="no"
-              tal:attributes="src string:${view/portal_url}/maxui_chat">
-      </iframe>
-</section>

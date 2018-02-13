@@ -3,7 +3,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: GenWebUPC\n"
-"POT-Creation-Date: 2018-01-31 13:39+0000\n"
+"POT-Creation-Date: 2018-02-13 11:20+0000\n"
 "PO-Revision-Date: 2013-07-09 11:35+0100\n"
 "Last-Translator: Corina Riba <corina.riba@upcnet.es>\n"
 "Language-Team: Plone Team@UPCnet <plone.team@upcnet.es>\n"
@@ -52,7 +52,7 @@ msgstr "Obtener token"
 msgid "Give the credentials of a valid account."
 msgstr "Dar las credenciales de una cuenta válida."
 
-#: ../configure.zcml:51
+#: ../configure.zcml:58
 msgid "Installs the mrs5.max add-on."
 msgstr "Instalar el complemento mrs5.max."
 
@@ -80,7 +80,7 @@ msgstr "El usuario."
 msgid "This portlet displays Max UI."
 msgstr "Este portlet muestra el MAX UI."
 
-#: ../configure.zcml:60
+#: ../configure.zcml:67
 msgid "Uninstalls the mrs5.max add-on."
 msgstr "Desinstalar el complemento mrs5.max."
 
@@ -169,10 +169,25 @@ msgstr "Endpoint del token OAuth"
 msgid "label_twitter"
 msgstr "Usuario de Twitter"
 
-#: ../configure.zcml:51
+#. Default: "MAX UI"
+#: ../portlets/maxui.py:47
+msgid "maxui"
+msgstr "MAX UI"
+
+#. Default: "MAX UI: Activity"
+#: ../portlets/maxuiactivity.py:36
+msgid "maxuiactivity"
+msgstr "MAX UI: Actividad"
+
+#. Default: "MAX UI: Chat"
+#: ../portlets/maxuichat.py:35
+msgid "maxuichat"
+msgstr "MAX UI: Chat"
+
+#: ../configure.zcml:58
 msgid "mrs5.max"
 msgstr "mrs5.max"
 
-#: ../configure.zcml:60
+#: ../configure.zcml:67
 msgid "mrs5.max (uninstall)"
 msgstr "mrs5.max (desinstalación)"

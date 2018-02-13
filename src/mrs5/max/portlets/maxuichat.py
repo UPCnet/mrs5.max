@@ -32,7 +32,7 @@ class Assignment(base.Assignment):
         """This property is used to give the title of the portlet in the
         "manage portlets" screen.
         """
-        return "Max UI Chat Portlet"
+        return _(u'maxuichat', default=u'MAX UI: Chat')
 
 
 class Renderer(base.Renderer):

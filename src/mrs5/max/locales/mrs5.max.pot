@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2018-01-31 13:39+0000\n"
+"POT-Creation-Date: 2018-02-13 11:20+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -53,7 +53,7 @@ msgstr ""
 msgid "Give the credentials of a valid account."
 msgstr ""
 
-#: ../configure.zcml:51
+#: ../configure.zcml:58
 msgid "Installs the mrs5.max add-on."
 msgstr ""
 
@@ -81,7 +81,7 @@ msgstr ""
 msgid "This portlet displays Max UI."
 msgstr ""
 
-#: ../configure.zcml:60
+#: ../configure.zcml:67
 msgid "Uninstalls the mrs5.max add-on."
 msgstr ""
 
@@ -170,10 +170,25 @@ msgstr ""
 msgid "label_twitter"
 msgstr ""
 
-#: ../configure.zcml:51
+#. Default: "MAX UI"
+#: ../portlets/maxui.py:47
+msgid "maxui"
+msgstr ""
+
+#. Default: "MAX UI: Activity"
+#: ../portlets/maxuiactivity.py:36
+msgid "maxuiactivity"
+msgstr ""
+
+#. Default: "MAX UI: Chat"
+#: ../portlets/maxuichat.py:35
+msgid "maxuichat"
+msgstr ""
+
+#: ../configure.zcml:58
 msgid "mrs5.max"
 msgstr ""
 
-#: ../configure.zcml:60
+#: ../configure.zcml:67
 msgid "mrs5.max (uninstall)"
 msgstr ""

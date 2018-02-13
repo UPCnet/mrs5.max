@@ -33,7 +33,7 @@ class Assignment(base.Assignment):
         """This property is used to give the title of the portlet in the
         "manage portlets" screen.
         """
-        return "Max UI Activity Portlet"
+        return _(u'maxuiactivity', default=u'MAX UI: Activity')
 
 
 class Renderer(base.Renderer):

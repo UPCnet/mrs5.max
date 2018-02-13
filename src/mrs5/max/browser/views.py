@@ -47,19 +47,3 @@ class GetMaxHash(grok.View):
     def render(self):
         url = self.context.absolute_url()
         return sha1(url).hexdigest()
-
-
-class MAXUIChat(grok.View):
-    """ Delete users from the plone & max & communities """
-    grok.name('maxui_chat')
-    grok.context(IPloneSiteRoot)
-
-    render = ViewPageTemplateFile('views_templates/maxui_chat.pt')
-
-    @memoize_contextless
-    def portal_url(self):
-        return self.portal().absolute_url()
-
-    @memoize_contextless
-    def portal(self):
-        return getSite()

@@ -7,7 +7,7 @@
     i18n_domain="upc.maxui">
 
     <plone:portlet
-     name="mrs5.max.widget"
+     name="mrs5.max.maxui"
      interface=".maxui.IMaxUIPortlet"
      assignment=".maxui.Assignment"
      view_permission="zope2.View"
@@ -17,16 +17,7 @@
      />
 
     <plone:portlet
-     name="mrs.max.chat.widget"
-     interface=".chat.IChatPortlet"
-     assignment=".chat.Assignment"
-     view_permission="zope2.View"
-     renderer=".chat.Renderer"
-     addview=".chat.AddForm"
-     />
-
-    <plone:portlet
-     name="mrs5.maxchat.widget"
+     name="mrs5.max.maxuichat"
      interface=".maxuichat.IMaxUIChatPortlet"
      assignment=".maxuichat.Assignment"
      view_permission="zope2.View"
@@ -35,7 +26,7 @@
      />
 
     <plone:portlet
-     name="mrs5.maxactivity.widget"
+     name="mrs5.max.maxuiactivity"
      interface=".maxuiactivity.IMaxUIActivityPortlet"
      assignment=".maxuiactivity.Assignment"
      view_permission="zope2.View"

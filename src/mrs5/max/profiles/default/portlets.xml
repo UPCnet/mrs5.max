@@ -1,28 +1,14 @@
 <?xml version="1.0"?>
-<portlets>
+<portlets xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+          i18n:domain="ulearn">
 
- <portlet
-   addview="mrs5.max.widget"
-   title="MAX UI Portlet"
-   description="MAX UI portlet to host the activitystream widget"
-   />
+  <portlet addview="mrs5.max.maxui" title="MAX UI"
+           i18n:attributes="title" />
 
-  <portlet
-    addview="mrs.max.chat.widget"
-    title="Chat: MAX UI Portlet"
-    description="MAX UI portlet to host the activitystream widget"
-    />
+  <portlet addview="mrs5.max.maxuichat" title="MAX UI: Chat"
+           i18n:attributes="title" />
 
-  <portlet
-   addview="mrs5.maxchat.widget"
-   title="MAX UI Chat Portlet"
-   description="MAX UI portlet to host the chat widget"
-   />
-
-  <portlet
-   addview="mrs5.maxactivity.widget"
-   title="MAX UI Activity Portlet"
-   description="MAX UI portlet to host the activity widget"
-   />
+  <portlet addview="mrs5.max.maxuiactivity" title="MAX UI: Activity"
+           i18n:attributes="title" />
 
 </portlets>
