@@ -6893,7 +6893,7 @@ var max = max || {};
                     // drag only if target content is taller than scrollbar
                     if (self.enabled()) {
                         // Calculate dragger position, constrained to actual limits
-                        var margintop = event.clientY - self.$bar.offset().top;
+                        var margintop = event.clientY + jq(window).scrollTop() - self.$bar.offset().top;
                         if (margintop < 0) {
                             margintop = 0;
                         }
