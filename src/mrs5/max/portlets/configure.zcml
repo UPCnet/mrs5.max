@@ -24,7 +24,7 @@
      renderer=".maxuichat.Renderer"
      addview=".maxuichat.AddForm"
      />
-
+<!--
     <plone:portlet
      name="mrs5.max.maxuiactivity"
      interface=".maxuiactivity.IMaxUIActivityPortlet"
@@ -32,6 +32,6 @@
      view_permission="zope2.View"
      renderer=".maxuiactivity.Renderer"
      addview=".maxuiactivity.AddForm"
-     />
+     /> -->
 
 </configure>
