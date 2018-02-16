@@ -8,7 +8,7 @@
   <portlet addview="mrs5.max.maxuichat" title="MAX UI: Chat"
            i18n:attributes="title" />
 
-  <portlet addview="mrs5.max.maxuiactivity" title="MAX UI: Activity"
-           i18n:attributes="title" />
+  <!-- <portlet addview="mrs5.max.maxuiactivity" title="MAX UI: Activity"
+           i18n:attributes="title" /> -->
 
 </portlets>
