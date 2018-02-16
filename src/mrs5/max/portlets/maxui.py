@@ -1,12 +1,16 @@
 from zope import schema
+from zope.component import getMultiAdapter
+from zope.component import getUtility
 from zope.component.hooks import getSite
+
 from zope.formlib import form
 from zope.interface import implements
 
 from plone.app.portlets.portlets import base
 from plone.memoize.view import memoize_contextless
 from plone.portlets.interfaces import IPortletDataProvider
-
+from plone.portlets.interfaces import IPortletManager
+from plone.portlets.interfaces import IPortletRetriever
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
 from mrs5.max import _
@@ -20,12 +24,6 @@ class IMaxUIPortlet(IPortletDataProvider):
     same.
     """
 
-    displayChat = schema.Bool(
-        title=_(u'Display chat'),
-        required=True,
-        default=True
-    )
-
 
 class Assignment(base.Assignment):
     """Portlet assignment.
@@ -36,8 +34,8 @@ class Assignment(base.Assignment):
 
     implements(IMaxUIPortlet)
 
-    def __init__(self, displayChat=True):
-        self.displayChat = displayChat
+    def __init__(self):
+        pass
 
     @property
     def title(self):
@@ -66,25 +64,22 @@ class Renderer(base.Renderer):
         return getSite()
 
     def isDisplayedChat(self):
-        if hasattr(self.data, 'displayChat'):
-            return self.data.displayChat
+        columns = ['ContentWellPortlets.BelowTitlePortletManager1',
+                   'ContentWellPortlets.BelowTitlePortletManager2',
+                   'ContentWellPortlets.BelowTitlePortletManager3',
+                   'plone.leftcolumn', 'plone.rightcolumn']
+        for column in columns:
+            managerColumn = getUtility(IPortletManager, name=column)
+            retriever = getMultiAdapter((self.context, managerColumn), IPortletRetriever)
+            portlets = retriever.getPortlets()
+            for portlet in portlets:
+                if portlet['name'] == 'maxuichat':
+                    return False
         return True
 
 
-class AddForm(base.AddForm):
+class AddForm(base.NullAddForm):
     """Portlet add form.
     """
-    schema = IMaxUIPortlet
-    label = _(u"Add Max UI Portlet")
-    description = _(u"This portlet displays Max UI.")
-
-    def create(self, data):
-        return Assignment(displayChat=data.get('displayChat', True))
-
-
-class EditForm(base.EditForm):
-    """Portlet edit form.
-    """
-    schema = IMaxUIPortlet
-    label = _(u"Edit Max UI Portlet")
-    description = _(u"This portlet displays Max UI.")
+    def create(self):
+        return Assignment()

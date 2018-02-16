@@ -13,7 +13,6 @@
      view_permission="zope2.View"
      renderer=".maxui.Renderer"
      addview=".maxui.AddForm"
-     editview=".maxui.EditForm"
      />
 
     <plone:portlet
