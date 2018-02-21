@@ -59,22 +59,24 @@ class MAXJSVariables(BrowserView):
         registry = queryUtility(IRegistry)
         settings = registry.forInterface(IMAXUISettings, check=False)
 
+        pl = api.portal.get_tool('portal_languages')
         if api.user.is_anonymous():  # the user has not logged in
             username = ''
             oauth_token = ''
+            default_lang = pl.getDefaultLanguage()
         else:
             user = api.user.get_current()
             # Force username to lowercase
             username = user.id.lower()
             oauth_token = user.getProperty('oauth_token', None)
+            default_lang = user.getProperty('language')
+            if default_lang == '':
+                default_lang = pl.getDefaultLanguage()
 
         # Use the restricted username and token in case we are admin.
         if username == 'admin':
             username = settings.max_restricted_username
             oauth_token = settings.max_restricted_token
-
-        pl = api.portal.get_tool('portal_languages')
-        default_lang = pl.getDefaultLanguage()
 
         activity_views_map = {
             'Darreres Activitats': 'recent',
@@ -116,22 +118,24 @@ class MAXJSVariablesChat(BrowserView):
         registry = queryUtility(IRegistry)
         settings = registry.forInterface(IMAXUISettings, check=False)
 
+        pl = api.portal.get_tool('portal_languages')
         if api.user.is_anonymous():  # the user has not logged in
             username = ''
             oauth_token = ''
+            default_lang = pl.getDefaultLanguage()
         else:
             user = api.user.get_current()
             # Force username to lowercase
             username = user.id.lower()
             oauth_token = user.getProperty('oauth_token', None)
+            default_lang = user.getProperty('language')
+            if default_lang == '':
+                default_lang = pl.getDefaultLanguage()
 
         # Use the restricted username and token in case we are admin.
         if username == 'admin':
             username = settings.max_restricted_username
             oauth_token = settings.max_restricted_token
-
-        pl = api.portal.get_tool('portal_languages')
-        default_lang = pl.getDefaultLanguage()
 
         activity_views_map = {
             'Darreres Activitats': 'recent',
