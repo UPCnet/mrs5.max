@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: GenWebUPC\n"
-"POT-Creation-Date: 2018-02-13 11:20+0000\n"
+"POT-Creation-Date: 2018-02-21 14:27+0000\n"
 "PO-Revision-Date: 2010-06-04 11:20+0100\n"
 "Last-Translator: Corina Riba <corina.riba@upcnet.es>\n"
 "Language-Team: Plone Team@UPCnet <plone.team@upcnet.es>\n"
@@ -14,10 +14,6 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: mrs5.max\n"
 
-#: ../portlets/maxui.py:78
-msgid "Add Max UI Portlet"
-msgstr "Afegir portlet MAX UI"
-
 #: ../browser/controlpanel.py:140
 msgid "Cancel"
 msgstr "Cancel·lar"
@@ -25,14 +21,6 @@ msgstr "Cancel·lar"
 #: ../browser/controlpanel.py:136
 msgid "Changes saved"
 msgstr "Canvis guardats"
-
-#: ../portlets/maxui.py:24
-msgid "Display chat"
-msgstr "Mostrar Chat"
-
-#: ../portlets/maxui.py:89
-msgid "Edit Max UI Portlet"
-msgstr "Editar portlet MAX UI"
 
 #: ../browser/controlpanel.py:142
 msgid "Edit cancelled"
@@ -74,13 +62,14 @@ msgstr "La contrasenya del compte d'usuari proporcionada."
 msgid "The username."
 msgstr "El usuari."
 
-#: ../portlets/maxui.py:79
-msgid "This portlet displays Max UI."
-msgstr "Aquest portlet mostra el MAX UI."
-
 #: ../configure.zcml:67
 msgid "Uninstalls the mrs5.max add-on."
 msgstr "Desinstal·la el complement mrs5.max."
+
+#. Default: "Chats"
+#: ../portlets/maxuichat.pt:3
+msgid "chats"
+msgstr "Xats"
 
 #. Default: "Please, specify the HUB domain for this site."
 #: ../browser/controlpanel.py:87
@@ -168,17 +157,17 @@ msgid "label_twitter"
 msgstr "Usuari de Twitter"
 
 #. Default: "MAX UI"
-#: ../portlets/maxui.py:47
+#: ../portlets/maxui.py:45
 msgid "maxui"
 msgstr "MAX UI"
 
 #. Default: "MAX UI: Activity"
-#: ../portlets/maxuiactivity.py:36
+#: ../portlets/maxuiactivity.py:38
 msgid "maxuiactivity"
 msgstr "MAX UI: Activitat"
 
 #. Default: "MAX UI: Chat"
-#: ../portlets/maxuichat.py:35
+#: ../portlets/maxuichat.py:37
 msgid "maxuichat"
 msgstr "MAX UI: Xat"
 

@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2018-02-13 11:20+0000\n"
+"POT-Creation-Date: 2018-02-21 14:27+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,24 +17,12 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: mrs5.max\n"
 
-#: ../portlets/maxui.py:78
-msgid "Add Max UI Portlet"
-msgstr ""
-
 #: ../browser/controlpanel.py:140
 msgid "Cancel"
 msgstr ""
 
 #: ../browser/controlpanel.py:136
 msgid "Changes saved"
-msgstr ""
-
-#: ../portlets/maxui.py:24
-msgid "Display chat"
-msgstr ""
-
-#: ../portlets/maxui.py:89
-msgid "Edit Max UI Portlet"
 msgstr ""
 
 #: ../browser/controlpanel.py:142
@@ -77,12 +65,13 @@ msgstr ""
 msgid "The username."
 msgstr ""
 
-#: ../portlets/maxui.py:79
-msgid "This portlet displays Max UI."
-msgstr ""
-
 #: ../configure.zcml:67
 msgid "Uninstalls the mrs5.max add-on."
+msgstr ""
+
+#. Default: "Chats"
+#: ../portlets/maxuichat.pt:3
+msgid "chats"
 msgstr ""
 
 #. Default: "Please, specify the HUB domain for this site."
@@ -171,17 +160,17 @@ msgid "label_twitter"
 msgstr ""
 
 #. Default: "MAX UI"
-#: ../portlets/maxui.py:47
+#: ../portlets/maxui.py:45
 msgid "maxui"
 msgstr ""
 
 #. Default: "MAX UI: Activity"
-#: ../portlets/maxuiactivity.py:36
+#: ../portlets/maxuiactivity.py:38
 msgid "maxuiactivity"
 msgstr ""
 
 #. Default: "MAX UI: Chat"
-#: ../portlets/maxuichat.py:35
+#: ../portlets/maxuichat.py:37
 msgid "maxuichat"
 msgstr ""
 

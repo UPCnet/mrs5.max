@@ -1,6 +1,6 @@
 <section id="box_chat" class="ulearnbox portletChat" role="section">
       <div class="osomcorner-wrapper"><div class="osomcorner"></div></div>
-      <h2 style="outline-style: none;">Chats</h2>
+      <h2 style="outline-style: none;" i18n:domain="mrs5.max" i18n:translate="chats">Chats</h2>
       <div id="maxuichat-widget-container"></div>
 </section>
 
