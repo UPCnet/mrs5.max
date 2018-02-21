@@ -5,6 +5,7 @@
         tal:attributes="src string:${view/portal_url}/max_variables.js">
 </script>
 <script type="text/javascript" src="++maxui++static/maxui.loader.js"></script>
+<script type="text/javascript" src="++maxui++static/reloadactivity.js"></script>
 <!-- <script type="text/javascript">
   setInterval(function(){$("#maxui-news-activities .maxui-button").trigger("click");}, 180000);
 </script> -->
