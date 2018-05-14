@@ -82,24 +82,34 @@ class maxUserCreator(object):
         # maxclient.setActor(user)
         # maxclient.setToken(token)
 
+        member = api.user.get(username=user)
+
         try:
-            maxclient.people[user].post()
+            #Mayo2018: Si el usuario existe, lo creamos en el max.
+            #Esto lo hacemos porque si han dado de alta un usuario en el ldap
+            #y entra en comunidades lo hemos de dar de alta en el max
+            if member != None:
+                maxclient.people[user].post()
 
-            if maxclient.last_response_code == 201:
-                logger.info('MAX user created for user: %s' % user)
-            elif maxclient.last_response_code == 200:
-                logger.info('MAX user already created for user: {}'.format(user))
+                if maxclient.last_response_code == 201:
+                    logger.info('MAX user created:  %s' % user)
+                elif maxclient.last_response_code == 200:
+                    logger.info('MAX user already created: {}'.format(user))
+                else:
+                    logger.error('Error creating MAX user: {}. '.format(user))
+                    logger.error(prettyResponse(maxclient.last_response))
+
+                # Temporarily subscribe always the user to the default context
+                # July2014 - Victor: Disable automatic subscription to the default
+                # context as it was proven to not be used anymore.
+                # maxclient.setActor(user)
+                # portal_url = api.portal.get().absolute_url()
+                # maxclient.people[user].subscriptions.post(object_url=portal_url)
             else:
-                logger.error('Error creating MAX user for user: {}. '.format(user))
-                logger.error(prettyResponse(maxclient.last_response))
+                logger.info('Invalid credentials for user: {}'.format(user))
 
-            # Temporarily subscribe always the user to the default context
-            # July2014 - Victor: Disable automatic subscription to the default
-            # context as it was proven to not be used anymore.
-            # maxclient.setActor(user)
-            # portal_url = api.portal.get().absolute_url()
-            # maxclient.people[user].subscriptions.post(object_url=portal_url)
 
         except:
             logger.error('Could not contact with MAX server.')
             logger.error(prettyResponse(maxclient.last_response))
+
