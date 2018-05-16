@@ -1,10 +1,10 @@
 {
-    "branch": "chatactivity", 
-    "css_location": "static/max.ui.css", 
-    "fonts_location": "static", 
-    "fonts_url": "++maxui++static", 
-    "github_url": "https://github.com/UPCnet/max.ui5.js", 
-    "js_location": "static/max.ui.min.js", 
-    "js_location_activity": "static/maxuiactivity.min.js", 
+    "branch": "chatactivity",
+    "css_location": "static/max.ui.css",
+    "fonts_location": "static",
+    "fonts_url": "++maxui++static",
+    "github_url": "https://github.com/UPCnet/max.ui5.js",
+    "js_location": "static/max.ui.min.js",
+    "js_location_activity": "static/maxuiactivity.min.js",
     "js_location_chat": "static/maxuichat.min.js"
 }

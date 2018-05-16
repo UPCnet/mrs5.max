@@ -9,13 +9,13 @@
     i18n_domain="mrs5.max">
 
   <includeDependencies package="." />
-  <grok:grok package="." />
   <i18n:registerTranslations directory="locales" />
 
   <include package=".browser" />
   <include package=".portlets" />
 
   <include package="plone.resource" file="meta.zcml"/>
+  <grok:grok package="." />
 
   <!-- Resource traversers -->
   <adapter

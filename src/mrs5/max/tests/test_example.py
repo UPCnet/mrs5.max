@@ -3,12 +3,12 @@ import unittest2 as unittest
 from Products.CMFCore.utils import getToolByName
 
 from mrs5.max.testing import \
-    MRS_MAX_INTEGRATION_TESTING
+    MRS5_MAX_INTEGRATION_TESTING
 
 
 class TestExample(unittest.TestCase):
 
-    layer = MRS_MAX_INTEGRATION_TESTING
+    layer = MRS5_MAX_INTEGRATION_TESTING
 
     def setUp(self):
         self.app = self.layer['app']

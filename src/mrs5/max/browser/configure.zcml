@@ -6,12 +6,11 @@
     xmlns:grok="http://namespaces.zope.org/grok"
     i18n_domain="mrs5.max">
 
-<!--     permission="base.authenticated" -->
     <browser:page
       name="avatar"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"
       class=".avatar.getAvatar"
-      permission="zope.Public"
+      permission="base.authenticated"
       />
 
     <browser:page
@@ -36,6 +35,5 @@
         permission="cmf.ManagePortal"
         />
 
-    <grok:grok package="." />
 
 </configure>

@@ -47,7 +47,8 @@ setup(
         'plone.app.z3cform',
         'plone.directives.form',
         'max5.client',
-        'hub5.client'
+        'hub5.client',
+        'base5.core'
     ],
     extras_require={
         'test': [
