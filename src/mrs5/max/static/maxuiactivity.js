@@ -6968,11 +6968,13 @@ var max = max || {};
 
 /*jshint multistr: true */
 /**
- * @fileoverview Provides hogan compiled templates
- *               ready to render.
- */
+* @fileoverview Provides hogan compiled templates
+*               ready to render.
+*/
 'use strict';
+
 var max = max || {};
+
 max.templates = function() {
     var templates = {
         activity: Hogan.compile('\
@@ -9544,10 +9546,6 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 jq(button).attr('class', 'maxui-button maxui-disabled');
                 jq(this).attr('class', 'maxui-empty maxui-text-input');
                 jq(this).removeAttr('title');
-                jq('.maxui-error-box').width(jq(this).width() - 4);
-                jq('.maxui-error-box').animate({
-                    'bottom': 0
-                }, 200);
             } else {
                 if (maxui.settings.canwrite && !options.ignore_button) {
                     jq(button).removeAttr('disabled');
