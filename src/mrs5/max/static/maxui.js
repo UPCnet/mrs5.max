@@ -8006,13 +8006,11 @@ var max = max || {};
 
 /*jshint multistr: true */
 /**
-* @fileoverview Provides hogan compiled templates
-*               ready to render.
-*/
+ * @fileoverview Provides hogan compiled templates
+ *               ready to render.
+ */
 'use strict';
-
 var max = max || {};
-
 max.templates = function() {
     var templates = {
         activity: Hogan.compile('\
@@ -9843,7 +9841,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.3';
+        maxui.version = '5.0.4';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -10048,7 +10046,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var showTL = maxui.settings.UISection === 'timeline';
             var toggleTL = maxui.settings.disableTimeline === false && !showTL;
             var toggleCT = maxui.settings.disableConversations === false && !showCT;
-            var containerWidth = (jq("#menusup").length === 1 ? jq("#menusup").width() : maxui.width()) - maxui.settings.scrollbarWidth;
+            var containerWidth = (jq("#menusup").length === 1 ? jq("#menusup").width() : maxui.width()) - maxui.settings.scrollbarWidth - 30;
             var showRecentOrder = maxui.settings.activitySortView === 'recent';
             var showLikesOrder = maxui.settings.activitySortView === 'likes';
             var showFlaggedOrder = maxui.settings.activitySortView === 'flagged';
@@ -10071,7 +10069,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             maxui.overlay = new max.views.MaxOverlay(maxui);
             // Define widths
             // XXX TODO :Read from renderer styles, not hardcoded values
-            maxui.settings.widgetWidth = jq("#menusup").length === 1 ? jq("#menusup").width() : maxui.width();
+            maxui.settings.widgetWidth = jq("#menusup").length === 1 ? jq("#menusup").width() - 30 : maxui.width();
             maxui.settings.sectionsWidth = maxui.settings.widgetWidth - maxui.settings.scrollbarWidth - maxui.settings.widgetBorder;
             // First-rendering of conversations list, even if it's not displayed on start
             if (!maxui.settings.disableConversations) {
@@ -11075,7 +11073,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         var $timelinebutton = jq('#maxui-show-timeline');
         var $addpeople = jq('#maxui-add-people-box');
         // Real width of the widget, without the two 1-pixel borders;
-        var widgetWidth = jq("#menusup").length === 1 ? jq("#menusup").width() : maxui.width();
+        var widgetWidth = jq("#menusup").length === 1 ? jq("#menusup").width() - 30 : maxui.width();
         var sectionPadding = 10;
         var widgetBorder = 1;
         var sectionsWidth = widgetWidth - maxui.conversations.scrollbar.width - (sectionPadding * 2) - (widgetBorder * 2);
