@@ -4,7 +4,7 @@ from zope.component import queryUtility
 from zope.component.hooks import getSite
 
 from plone.registry.interfaces import IRegistry
-from plone.app.controlpanel.interfaces import IConfigurationChangedEvent
+from Products.CMFPlone.interfaces import IConfigurationChangedEvent
 
 from Products.CMFCore.utils import getToolByName
 from Products.PluggableAuthService.interfaces.authservice import IPropertiedUser
@@ -58,7 +58,7 @@ def updateOauthServerOnOsirisPASPlugin(event):
 
     if 'oauth_server' in event.data:
         portal = getSite()
-        portal.acl_users.pasosiris.oauth_server = event.data['oauth_server']
+        portal.acl_users.pasosiris5.oauth_server = event.data['oauth_server']
 
 
 @grok.subscribe(IPropertiedUser, IPrincipalCreatedEvent)

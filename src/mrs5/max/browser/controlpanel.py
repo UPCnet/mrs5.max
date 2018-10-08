@@ -5,7 +5,7 @@ from zope.event import notify
 from zope.component import queryUtility
 from zope.component import getUtility
 
-from plone.app.controlpanel.events import ConfigurationChangedEvent
+from Products.CMFPlone.controlpanel.events import ConfigurationChangedEvent
 
 from Products.statusmessages.interfaces import IStatusMessage
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
