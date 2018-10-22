@@ -54,7 +54,20 @@ def updateMAXUserInfo(event):
 
 @grok.subscribe(IConfigurationChangedEvent)
 def updateOauthServerOnOsirisPASPlugin(event):
-    """This subscriber will trigger when an admin updates the MAX settings."""
+    """This subscriber will trigger when an admin updates the MAX settings.
+
+        El oauth_server del pasosiris5 se rellena cuando esta vacio desde
+        max5.client/src/max5/client/client.py
+        def oauth_server(self)
+
+        que llama a:
+        https://max.upcnet.es/vilalta/info
+        {"max.oauth_server": "https://oauth.upcnet.es/vilalta", "version": "5.3.16", "max.server_id": "vilalta"}
+        Por tanto, se guarda el max.oauth_server
+
+        Si guardamos la configuración del MAX UI settings, tambien lee lo anterior
+        por tanto no importa el dominio que se escriba en esta configuracion para esto
+    """
 
     if 'oauth_server' in event.data:
         portal = getSite()
