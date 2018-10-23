@@ -1,23 +1,21 @@
+# -*- encoding: utf-8 -*-
 from five import grok
+from max5.client.rest import MaxClient
+from mrs5.max.browser.controlpanel import IMAXUISettings
+from mrs5.max.utilities import IMAXClient
+from mrs5.max.utilities import prettyResponse
+from plone import api
+from plone.registry.interfaces import IRegistry
+from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.interfaces import IConfigurationChangedEvent
+from Products.PluggableAuthService.interfaces.authservice import IPropertiedUser
+from Products.PluggableAuthService.interfaces.events import IPrincipalCreatedEvent
 from zope.component import getUtility
 from zope.component import queryUtility
 from zope.component.hooks import getSite
 
-from plone.registry.interfaces import IRegistry
-from Products.CMFPlone.interfaces import IConfigurationChangedEvent
-
-from Products.CMFCore.utils import getToolByName
-from Products.PluggableAuthService.interfaces.authservice import IPropertiedUser
-from Products.PluggableAuthService.interfaces.events \
-    import IPrincipalCreatedEvent
-
-from max5.client.rest import MaxClient
-from mrs5.max.utilities import IMAXClient, prettyResponse
-from mrs5.max.browser.controlpanel import IMAXUISettings
-
 import logging
 import plone.api
-from plone import api
 
 
 logger = logging.getLogger('mrs5.max')
