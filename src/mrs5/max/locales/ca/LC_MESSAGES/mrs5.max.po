@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: GenWebUPC\n"
+"Project-Id-Version: Mrs5Max\n"
 "POT-Creation-Date: 2018-02-21 14:27+0000\n"
 "PO-Revision-Date: 2010-06-04 11:20+0100\n"
 "Last-Translator: Corina Riba <corina.riba@upcnet.es>\n"
