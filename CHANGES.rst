@@ -2,11 +2,12 @@ Changelog
 =========
 
 
-0.3 (unreleased)
+0.3 (2018-10-29)
 ----------------
 
-- Nothing changed yet.
-
+* Quitar Genweb [Pilar Marinas]
+* add coding utf-8 [alberto.duran]
+* Como se actualiza el portal.acl_users.pasosiris5.oauth_server [Pilar Marinas]
 
 0.2 (2018-10-11)
 ----------------
