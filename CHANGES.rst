@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.5 (unreleased)
+0.5 (2018-11-20)
 ----------------
 
-- Nothing changed yet.
-
+* reloadactivity.js - Lanzar solo si esta activado la tab de Actividad [Iago López Fernández]
 
 0.4 (2018-11-12)
 ----------------
