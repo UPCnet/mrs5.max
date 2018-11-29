@@ -8917,12 +8917,13 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         //Assign click to loadmore
         jq('#maxuiactivity-widget-container #maxui-more-activities .maxui-button').click(function(event) {
             event.preventDefault();
-            if (jq('#maxuiactivity-widget-container #maxui-search').hasClass('folded')) {
+            maxui.loadMoreActivities();
+            /*if (jq('#maxuiactivity-widget-container #maxui-search').hasClass('folded')) {
                 maxui.loadMoreActivitiesActivity();
             } else {
                 var last_result_id = jq('.maxui-activity:last').attr('id');
                 maxui.reloadFiltersActivity(last_result_id);
-            }
+            }*/
         });
         //PG Assign click to load news activities
         jq('#maxuiactivity-widget-container #maxui-news-activities .maxui-button').click(function(event) {

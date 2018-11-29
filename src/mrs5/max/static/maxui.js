@@ -9841,7 +9841,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.5';
+        maxui.version = '5.0.6';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -10103,12 +10103,13 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         //Assign click to loadmore
         jq('#maxui-more-activities .maxui-button').click(function(event) {
             event.preventDefault();
-            if (jq('#maxui-search').hasClass('folded')) {
+            maxui.loadMoreActivities();
+            /*if (jq('#maxui-search').hasClass('folded')) {
                 maxui.loadMoreActivities();
             } else {
                 var last_result_id = jq('.maxui-activity:last').attr('id');
                 maxui.reloadFilters(last_result_id);
-            }
+            }*/
         });
         //PG Assign click to load news activities
         jq('#maxui-news-activities .maxui-button').click(function(event) {
