@@ -9841,7 +9841,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.7';
+        maxui.version = '5.0.8';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -10711,7 +10711,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var section = maxui.settings.UISection;
             if (jq(delegate + ' #maxui-predictive:visible').length > 0 && (event.which === 40 || event.which === 38 || event.which === 13 || event.which === 9)) {
                 maxui.utils.freezeEvent(event);
-            } else if (event.which === 13 && event.shiftKey === false && !options.ignore_button && section === "conversations") {
+            } else if (event.which === 13 && event.shiftKey === false && !options.ignore_button && ((section === "conversations") || jq(event.target).attr("id") === "maxui-search-text")) {
                 event.preventDefault();
                 var $area = jq(this).parent().find('.maxui-text-input');
                 var literal = $area.attr('data-literal');
