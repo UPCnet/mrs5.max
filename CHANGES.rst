@@ -2,11 +2,12 @@ Changelog
 =========
 
 
-0.8 (unreleased)
+0.8 (2019-02-11)
 ----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.8 setup finished [Iago López Fernández]
+* Añadir minificados [Iago López Fernández]
+* Eliminar fichero no utilizado [Iago López Fernández]
 
 0.7 (2019-01-31)
 ----------------
