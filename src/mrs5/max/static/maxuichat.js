@@ -10548,7 +10548,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         }).on('keydown', selector, function(event) {
             if (jq(delegate + ' #maxui-predictive:visible').length > 0 && (event.which === 40 || event.which === 38 || event.which === 13 || event.which === 9)) {
                 maxui.utils.freezeEvent(event);
-            } else if (event.which === 13 && event.shiftKey === false && !options.ignore_button) {
+            } else if (event.which === 13 && event.shiftKey === false && !options.ignore_button && !jq(this).is("textarea")) {
                 event.preventDefault();
                 var $area = jq(this).parent().find('.maxui-text-input');
                 var literal = $area.attr('data-literal');
