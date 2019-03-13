@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.9 (unreleased)
+0.9 (2019-03-13)
 ----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.9 setup finished [Iago López Fernández]
 
 0.8 (2019-02-11)
 ----------------
