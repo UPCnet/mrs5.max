@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.10 (unreleased)
+0.10 (2019-03-14)
 -----------------
 
-- Nothing changed yet.
-
+* Afegir css max als templates en html [alberto.duran]
 
 0.9 (2019-03-13)
 ----------------
