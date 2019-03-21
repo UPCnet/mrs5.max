@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.11 (unreleased)
+0.11 (2019-03-21)
 -----------------
 
-- Nothing changed yet.
-
+* Add registry IMAXUISettings delete by error [Pilar Marinas]
 
 0.10 (2019-03-14)
 -----------------
