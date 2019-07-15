@@ -7393,7 +7393,7 @@ var max = max || {};
                     'border-color': '#ccc'
                 });
                 self.mainview.$common_header.removeClass('maxui-showing-messages').addClass('maxui-showing-conversations');
-                self.mainview.scrollbar.setHeight(self.mainview.height - 45);
+                self.mainview.scrollbar.setHeight(self.mainview.height - 60);
                 self.mainview.scrollbar.setTarget('#maxui-conversations #maxui-conversations-list');
                 self.mainview.scrollbar.setContentPosition(0);
                 self.mainview.$addpeople.animate({
@@ -7766,7 +7766,7 @@ var max = max || {};
                     'left': 0,
                     'margin-left': 0
                 }, 400, function(event) {
-                    self.mainview.scrollbar.setHeight(self.mainview.height - 45);
+                    self.mainview.scrollbar.setHeight(self.mainview.height - 60);
                     self.mainview.scrollbar.setTarget('#maxui-conversations #maxui-messages');
                     self.mainview.scrollbar.setContentPosition(100);
                 });

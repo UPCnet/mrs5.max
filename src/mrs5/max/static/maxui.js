@@ -7393,7 +7393,7 @@ var max = max || {};
                     'border-color': '#ccc'
                 });
                 self.mainview.$common_header.removeClass('maxui-showing-messages').addClass('maxui-showing-conversations');
-                self.mainview.scrollbar.setHeight(self.mainview.height - 45);
+                self.mainview.scrollbar.setHeight(self.mainview.height - 75);
                 self.mainview.scrollbar.setTarget('#maxui-conversations #maxui-conversations-list');
                 self.mainview.scrollbar.setContentPosition(0);
                 self.mainview.$addpeople.animate({
@@ -7766,7 +7766,7 @@ var max = max || {};
                     'left': 0,
                     'margin-left': 0
                 }, 400, function(event) {
-                    self.mainview.scrollbar.setHeight(self.mainview.height - 45);
+                    self.mainview.scrollbar.setHeight(self.mainview.height - 75);
                     self.mainview.scrollbar.setTarget('#maxui-conversations #maxui-messages');
                     self.mainview.scrollbar.setContentPosition(100);
                 });
@@ -9841,7 +9841,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.9';
+        maxui.version = '5.0.10';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -11104,7 +11104,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (!maxui.settings.disableTimeline) {
                 $timelinebutton.show();
             }
-            maxui.conversations.scrollbar.setHeight(height - 45);
+            maxui.conversations.scrollbar.setHeight(height - 75);
             maxui.conversations.scrollbar.setTarget('#maxui-conversations #maxui-conversations-list');
             $postbox.show();
         }

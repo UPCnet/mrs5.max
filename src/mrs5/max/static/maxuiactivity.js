@@ -9918,7 +9918,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (!maxui.settings.disableTimeline) {
                 $timelinebutton.show();
             }
-            maxui.conversations.scrollbar.setHeight(height - 45);
+            maxui.conversations.scrollbar.setHeight(height - 75);
             maxui.conversations.scrollbar.setTarget('#maxui-conversations #maxui-conversations-list');
             $postbox.show();
         }
