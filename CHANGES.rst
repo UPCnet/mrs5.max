@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.12 (unreleased)
+0.12 (2019-07-17)
 -----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.10 setup finished - Scrollbar [Iago López Fernández]
 
 0.11 (2019-03-21)
 -----------------
