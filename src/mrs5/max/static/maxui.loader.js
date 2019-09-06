@@ -49,5 +49,5 @@ window._MAXUI.onReady = function() {
         var mui = d.createElement('script'); mui.type = 'text/javascript'; mui.async = true;
         mui.src = mui_location;
         var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mui, s);
-    }, $("#box_chat").length > 1 ? 500 : 0);
+    }, $("#box_chat").length > 0 ? 500 : 0);
 }(document));
