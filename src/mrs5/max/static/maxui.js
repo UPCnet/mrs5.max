@@ -6791,7 +6791,7 @@ var max = max || {};
             self.title = 'Overlay Title';
             self.content = '';
             self.el = '#maxui-overlay-panel';
-            self.overlay_show_class = '.maxui-overlay';
+            self.overlay_show_class = jq("#box_chat").length > 0 ? '#box_chat .maxui-overlay' : '.maxui-overlay';
             jq(self.el + ' .maxui-close').click(function(event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -9841,7 +9841,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.10';
+        maxui.version = '5.0.11';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
