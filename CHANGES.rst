@@ -2,11 +2,12 @@ Changelog
 =========
 
 
-0.13 (unreleased)
+0.13 (2019-09-09)
 -----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.11 setup finished - Mostrar configuración del chat en el portlet correspondiente [Iago López Fernández]
+* Solución para que cargue correctamente el xat en mozilla [Iago López Fernández]
+* Solución para que cargue correctamente el xat en mozilla [Iago López Fernández]
 
 0.12 (2019-07-17)
 -----------------
