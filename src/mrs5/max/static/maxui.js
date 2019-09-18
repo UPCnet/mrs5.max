@@ -8377,6 +8377,7 @@ max.templates = function() {
                       {{/subscriptionList}}\
                     </select>\
                     {{/showSubscriptionList}}\
+                   <input id="maxui-file" name="file" type="file" accept="image/*" />\
                    <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{buttonLiteral}}">\
               </div>\
             '),
@@ -9649,13 +9650,32 @@ MaxClient.prototype.addComment = function(comment, activity, callback) {
     var route = this.ROUTES.comments.format(activity);
     this.POST(route, query, callback);
 };
-MaxClient.prototype.addActivity = function(text, contexts, callback) {
-    var query = {
-        "object": {
-            "objectType": "note",
-            "content": ""
-        }
-    };
+MaxClient.prototype.addActivity = function(text, contexts, callback, files) {
+    if (files.length == 0) {
+      var query = {
+          "object": {
+              "objectType": "note",
+              "content": ""
+          }
+      };
+      if (arguments.length > 3) {
+          query.generator = arguments[3];
+      }
+    } else {
+      var file = files[0];
+
+      var query = {
+          "object": {
+              "mimetype": file.type,
+              "objectType": "image",
+              "content": "",
+              "file": file
+          }
+      };
+      if (arguments.length > 4) {
+          query.generator = arguments[5];
+      }
+    }
     if (contexts.length > 0) {
         query.contexts = [];
         for (var ct = 0; ct < contexts.length; ct++) {
@@ -9667,14 +9687,12 @@ MaxClient.prototype.addActivity = function(text, contexts, callback) {
     }
     query.object.content = text;
     //We have a generator
-    if (arguments.length > 3) {
-        query.generator = arguments[3];
-    }
     var route = this.ROUTES.user_activities.format(this.actor.username);
     var trigger = {
         'done': 'maxui-posted-activity',
         'fail': 'maxui-failed-activity'
     };
+    debugger;
     this.POST(route, query, callback, trigger);
 };
 MaxClient.prototype.removeActivity = function(activity_id, callback) {
@@ -10464,7 +10482,8 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         // **************************************************************************************
         //                    add people predicting
         // **************************************************************************************
-        var selector = '.maxui-text-input';
+        var selector
+         = '.maxui-text-input';
         jq('#maxui-add-people-box').on('focusin', selector, function(event) {
             event.preventDefault();
             var text = jq(this).val();
@@ -10695,6 +10714,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         // Clear input when focusing in only if user hasn't typed anything yet
         var maxui = this;
         var selector = target + ' .maxui-text-input';
+        var selector_file = target + ' #maxui-file';
         var extra_bind = null;
         if (arguments.length > 4) {
             extra_bind = arguments[4];
@@ -10726,7 +10746,8 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var text = jq(this).val();
             var button = jq(this).parent().parent().find('.maxui-button');
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
-            if (normalized === '' && !options.ignore_button) {
+            var file = jq(selector_file).val()
+            if (file === '' && normalized === '' && !options.ignore_button) {
                 jq(button).attr('disabled', 'disabled');
                 jq(button).attr('class', 'maxui-button maxui-disabled');
                 jq(this).attr('class', 'maxui-empty maxui-text-input');
@@ -10740,6 +10761,29 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
             if (extra_bind !== null) {
                 extra_bind(text, this, button, event);
+            }
+        }).on('change', selector_file, function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var text = jq(this).parent().find('.maxui-text-input');
+            var button = jq(this).parent().find('.maxui-button');
+            var normalized = maxui.utils.normalizeWhiteSpace(text.val(), false);
+            var text_literal = text.attr('data-literal');
+            var file = jq(this).val()
+            if (file === '' && (normalized === '' || normalized === text_literal) && !options.ignore_button) {
+                jq(button).attr('disabled', 'disabled');
+                jq(button).attr('class', 'maxui-button maxui-disabled');
+                jq(this).attr('class', 'maxui-empty maxui-text-input');
+                jq(this).removeAttr('title');
+            } else {
+                if (maxui.settings.canwrite && !options.ignore_button) {
+                    jq(button).removeAttr('disabled');
+                    jq(button).attr('class', 'maxui-button');
+                    jq(this).attr('class', 'maxui-text-input');
+                }
+            }
+            if (extra_bind !== null) {
+                extra_bind(file, this, button, event);
             }
         }).on('paste', selector, function(event) {
             var button = jq(this).parent().parent().find('.maxui-button');
@@ -11177,6 +11221,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 maxui.printActivities({});
             }
         });
+        if (jq('#maxui-file').length > 0) {
+          func_params.push(jq('#maxui-file')[0].files);
+        }
         //Pass generator to activity post if defined
         if (maxui.settings.generatorName) {
             func_params.push(maxui.settings.generatorName);
