@@ -7936,11 +7936,18 @@ var max = max || {};
                     return conversation;
                 }
             });
+            var $menuBubble = jQuery('#menusup .fa-comment');
             if (conversations_with_unread_messages.length > 0) {
                 $showconversations.text(conversations_with_unread_messages.length);
                 $showconversations.removeClass('maxui-hidden');
+                if ($menuBubble.length > 0) {
+                    $menuBubble.addClass('flicker');
+                }
             } else {
                 $showconversations.addClass('maxui-hidden');
+                if ($menuBubble.length > 0) {
+                    $menuBubble.removeClass('flicker');
+                }
             }
         };
         MaxConversations.prototype.ReceiveMessage = function(message) {
@@ -9841,7 +9848,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.11';
+        maxui.version = '5.0.12';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
