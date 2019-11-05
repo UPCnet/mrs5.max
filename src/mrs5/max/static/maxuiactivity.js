@@ -6983,9 +6983,13 @@ max.templates = function() {
                     {{#showLikesCount}}<span class="maxui-likescount"><strong>{{likes}}</strong><i class="maxui-icon-thumbs-up"></i></span>{{/showLikesCount}}\
                 </div>\
                 <div class="maxui-actor">\
-                      <a href="#"><span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
-                          <span class="maxui-displayname">{{actor.displayName}}</span></a>\
-                  <span class="maxui-username">{{actor.username}}&nbsp;</span>\
+                    <a href="/profile/{{actor.username}}" title="{{literals.open_profile}}">\
+                        <span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
+                    </a>\
+                    <a class="maxui-filter-actor" href="#">\
+                        <span class="maxui-displayname">{{actor.displayName}}</span>\
+                    </a>\
+                    <span class="maxui-username">{{actor.username}}&nbsp;</span>\
                 </div>\
                 <div class="maxui-activity-message">\
                     {{#fileDownload}}\
@@ -7060,10 +7064,13 @@ max.templates = function() {
             <div class="maxui-activity-content">\
                <span class="maxui-publisheddate">{{date}}</span>\
                <div class="maxui-actor">\
-                   <a href="#">\
+                    <a href="/profile/{{actor.username}}" title="{{literals.open_profile}}">\
                        <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
-                       <span class="maxui-displayname">{{actor.displayName}}</span></a>\
-                     <span class="maxui-username">{{actor.username}}</span>\
+                    </a>\
+                    <a class="maxui-filter-actor" href="#">\
+                       <span class="maxui-displayname">{{actor.displayName}}</span>\
+                    </a>\
+                    <span class="maxui-username">{{actor.username}}</span>\
                </div>\
                <div>\
                    <p class="maxui-body">{{&text}}</p>\
@@ -7722,7 +7729,8 @@ max.literals = function(language) {
         'valued_activity': "Most valued activity",
         'flagged_activity': "Flagged activity",
         'recent_favorited_activity': "Latest favorites",
-        'valued_favorited_activity': "Most valued favorites"
+        'valued_favorited_activity': "Most valued favorites",
+        'open_profile': "Show profile"
     };
     maxui.es = {
         'cancel': 'Cancelar',
@@ -7782,7 +7790,8 @@ max.literals = function(language) {
         'valued_activity': "Actividades más valoradas",
         'flagged_activity': "Actividades destacadas",
         'recent_favorited_activity': "Últimas favoritas",
-        'valued_favorited_activity': "Favoritas más valoradas"
+        'valued_favorited_activity': "Favoritas más valoradas",
+        'open_profile': "Ver el perfil"
     };
     maxui.ca = {
         'cancel': 'Cancelar',
@@ -7842,7 +7851,8 @@ max.literals = function(language) {
         'valued_activity': "Activitats més valorades",
         'flagged_activity': "Activitats destacades",
         'recent_favorited_activity': "Darreres favorites",
-        'valued_favorited_activity': "Favorites més valorades"
+        'valued_favorited_activity': "Favorites més valorades",
+        'open_profile': "Veure el perfil"
     };
     return maxui[language];
 };
@@ -8948,9 +8958,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             jq(this).closest('.maxui-activity').find('.maxui-comments').toggle(200);
         });
         //Assign Username and avatar clicking via delegating the click to the activities container
-        jq('#maxuiactivity-widget-container #maxui-activities').on('click', '.maxui-actor', function(event) {
+        jq('#maxuiactivity-widget-container #maxui-activities').on('click', '.maxui-filter-actor', function(event) {
             event.preventDefault();
-            var actor = jq(this).find('.maxui-username').text();
+            var actor = jq(this).parent().find('.maxui-username').text();
             maxui.addFilterActivity({
                 type: 'actor',
                 value: actor

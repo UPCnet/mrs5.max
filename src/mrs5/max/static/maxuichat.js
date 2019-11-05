@@ -8025,8 +8025,10 @@ max.templates = function() {
                     </div>\
                 </div>\
                 <div class="maxui-actor">\
-                      <a href="#"><span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
-                      <span class="maxui-displayname">{{displayName}}</span></a>\
+                    <a class="maxui-filter-actor" href="#">\
+                        <span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
+                        <span class="maxui-displayname">{{displayName}}</span>\
+                    </a>\
                 </div>\
                 <div>\
                     <p class="maxui-body">{{&text}}</p>\
@@ -8761,7 +8763,8 @@ max.literals = function(language) {
         'valued_activity': "Most valued activity",
         'flagged_activity': "Flagged activity",
         'recent_favorited_activity': "Latest favorites",
-        'valued_favorited_activity': "Most valued favorites"
+        'valued_favorited_activity': "Most valued favorites",
+        'open_profile': "Show profile"
     };
     maxui.es = {
         'cancel': 'Cancelar',
@@ -8821,7 +8824,8 @@ max.literals = function(language) {
         'valued_activity': "Actividades más valoradas",
         'flagged_activity': "Actividades destacadas",
         'recent_favorited_activity': "Últimas favoritas",
-        'valued_favorited_activity': "Favoritas más valoradas"
+        'valued_favorited_activity': "Favoritas más valoradas",
+        'open_profile': "Ver el perfil"
     };
     maxui.ca = {
         'cancel': 'Cancelar',
@@ -8881,7 +8885,8 @@ max.literals = function(language) {
         'valued_activity': "Activitats més valorades",
         'flagged_activity': "Activitats destacades",
         'recent_favorited_activity': "Darreres favorites",
-        'valued_favorited_activity': "Favorites més valorades"
+        'valued_favorited_activity': "Favorites més valorades",
+        'open_profile': "Veure el perfil"
     };
     return maxui[language];
 };
