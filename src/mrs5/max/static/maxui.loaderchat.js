@@ -44,7 +44,7 @@ window._MAXUI_Chat.onReady = function() {
 */
 
 (function(d_chat){
-var muichat_location = '++maxui++static/maxuichat.min.js';
+var muichat_location = window.PORTAL_URL + '/++maxui++static/maxuichat.min.js';
 var muichat = d_chat.createElement('script'); muichat.type = 'text/javascript'; muichat.async = true;
 muichat.src = muichat_location;
 var s_chat = d_chat.getElementsByTagName('script')[0]; s_chat.parentNode.insertBefore(muichat, s_chat);

@@ -45,7 +45,7 @@ window._MAXUI.onReady = function() {
 
 (function(d){
     setTimeout(function(){
-        var mui_location = '++maxui++static/max.ui.min.js';
+        var mui_location = window.PORTAL_URL + '/++maxui++static/max.ui.min.js';
         var mui = d.createElement('script'); mui.type = 'text/javascript'; mui.async = true;
         mui.src = mui_location;
         var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mui, s);
