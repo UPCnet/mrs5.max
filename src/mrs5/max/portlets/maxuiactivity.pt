@@ -3,6 +3,6 @@
 <script type="text/javascript"
         tal:attributes="src string:${view/portal_url}/max_variables.js">
 </script>
-<script type="text/javascript" src="++maxui++static/maxui.loaderactivity.js"></script>
-<script type="text/javascript" src="++maxui++static/maxuiactivity.min.js">
+<script type="text/javascript" tal:attributes="src string:${view/portal_url}/++maxui++static/maxui.loaderactivity.js"></script>
+<script type="text/javascript" tal:attributes="src string:${view/portal_url}/++maxui++static/maxuiactivity.min.js">
 </script>
