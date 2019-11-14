@@ -2,11 +2,12 @@ Changelog
 =========
 
 
-0.15 (unreleased)
+0.15 (2019-11-14)
 -----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.14 [pilar.marinas]
+* Add portal_url in ++ [pilar.marinas]
+* Add portal_url in ++ [pilar.marinas]
 
 0.14 (2019-11-06)
 -----------------
