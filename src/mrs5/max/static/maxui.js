@@ -8028,7 +8028,7 @@ max.templates = function() {
                     {{#showLikesCount}}<span class="maxui-likescount"><strong>{{likes}}</strong><i class="maxui-icon-thumbs-up"></i></span>{{/showLikesCount}}\
                 </div>\
                 <div class="maxui-actor">\
-                    <a href="/profile/{{actor.username}}" title="{{literals.open_profile}}">\
+                    <a href="{{portalURL}}/profile/{{actor.username}}" title="{{literals.open_profile}}">\
                         <span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
                     </a>\
                     <a class="maxui-filter-actor" href="#">\
@@ -8109,7 +8109,7 @@ max.templates = function() {
             <div class="maxui-activity-content">\
                <span class="maxui-publisheddate">{{date}}</span>\
                <div class="maxui-actor">\
-                    <a href="/profile/{{actor.username}}" title="{{literals.open_profile}}">\
+                    <a href="{{portalURL}}/profile/{{actor.username}}" title="{{literals.open_profile}}">\
                        <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
                     </a>\
                     <a class="maxui-filter-actor" href="#">\
@@ -9860,7 +9860,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.13';
+        maxui.version = '5.0.14';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -11382,6 +11382,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 via: generator,
                 fileDownload: activity.object.objectType === 'file',
                 filename: activity.object.filename,
+                portalURL: window.PORTAL_URL,
                 canViewComments: canCommentActivity || activity.replies.length > 0,
                 canWriteComment: canCommentActivity
             };
@@ -11466,6 +11467,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 date: maxui.utils.formatDate(comment.published, maxui.language),
                 text: maxui.utils.formatText(comment.content),
                 avatarURL: maxui.settings.avatarURLpattern.format(comment.actor.username),
+                portalURL: window.PORTAL_URL,
                 canDeleteComment: comment.deletable
             };
             // Render the comment template and append it at the end of the rendered comments

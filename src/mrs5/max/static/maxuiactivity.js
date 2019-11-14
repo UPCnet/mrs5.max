@@ -6983,7 +6983,7 @@ max.templates = function() {
                     {{#showLikesCount}}<span class="maxui-likescount"><strong>{{likes}}</strong><i class="maxui-icon-thumbs-up"></i></span>{{/showLikesCount}}\
                 </div>\
                 <div class="maxui-actor">\
-                    <a href="/profile/{{actor.username}}" title="{{literals.open_profile}}">\
+                    <a href="{{portalURL}}/profile/{{actor.username}}" title="{{literals.open_profile}}">\
                         <span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
                     </a>\
                     <a class="maxui-filter-actor" href="#">\
@@ -7064,7 +7064,7 @@ max.templates = function() {
             <div class="maxui-activity-content">\
                <span class="maxui-publisheddate">{{date}}</span>\
                <div class="maxui-actor">\
-                    <a href="/profile/{{actor.username}}" title="{{literals.open_profile}}">\
+                    <a href="{{portalURL}}/profile/{{actor.username}}" title="{{literals.open_profile}}">\
                        <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
                     </a>\
                     <a class="maxui-filter-actor" href="#">\
