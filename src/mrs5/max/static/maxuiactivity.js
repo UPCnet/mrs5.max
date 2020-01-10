@@ -6968,11 +6968,13 @@ var max = max || {};
 
 /*jshint multistr: true */
 /**
- * @fileoverview Provides hogan compiled templates
- *               ready to render.
- */
+* @fileoverview Provides hogan compiled templates
+*               ready to render.
+*/
 'use strict';
+
 var max = max || {};
+
 max.templates = function() {
     var templates = {
         activity: Hogan.compile('\
@@ -6983,13 +6985,9 @@ max.templates = function() {
                     {{#showLikesCount}}<span class="maxui-likescount"><strong>{{likes}}</strong><i class="maxui-icon-thumbs-up"></i></span>{{/showLikesCount}}\
                 </div>\
                 <div class="maxui-actor">\
-                    <a href="{{portalURL}}/profile/{{actor.username}}" title="{{literals.open_profile}}">\
-                        <span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
-                    </a>\
-                    <a class="maxui-filter-actor" href="#">\
-                        <span class="maxui-displayname">{{actor.displayName}}</span>\
-                    </a>\
-                    <span class="maxui-username">{{actor.username}}&nbsp;</span>\
+                      <a href="#"><span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
+                          <span class="maxui-displayname">{{actor.displayName}}</span></a>\
+                  <span class="maxui-username">{{actor.username}}&nbsp;</span>\
                 </div>\
                 <div class="maxui-activity-message">\
                     {{#fileDownload}}\
@@ -7064,13 +7062,10 @@ max.templates = function() {
             <div class="maxui-activity-content">\
                <span class="maxui-publisheddate">{{date}}</span>\
                <div class="maxui-actor">\
-                    <a href="{{portalURL}}/profile/{{actor.username}}" title="{{literals.open_profile}}">\
+                   <a href="#">\
                        <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
-                    </a>\
-                    <a class="maxui-filter-actor" href="#">\
-                       <span class="maxui-displayname">{{actor.displayName}}</span>\
-                    </a>\
-                    <span class="maxui-username">{{actor.username}}</span>\
+                       <span class="maxui-displayname">{{actor.displayName}}</span></a>\
+                     <span class="maxui-username">{{actor.username}}</span>\
                </div>\
                <div>\
                    <p class="maxui-body">{{&text}}</p>\
@@ -7835,7 +7830,7 @@ max.literals = function(language) {
         'post_permission_unauthorized': 'No estàs autoritzat a publicar en aquest contexte',
         'post_permission_not_here': "No estas citant a @ningú",
         'post_permission_not_enough_participants': "Has d'afegir participants",
-        'post_permission_missing_displayName': "Tens que posar nom al xat",
+        'post_permission_missing_displayName': "Has de posar nom al xat",
         'delete_activity_confirmation': "Estàs segur?",
         'delete_activity_delete': "Esborra",
         'delete_activity_cancel': "No ho toquis!",
