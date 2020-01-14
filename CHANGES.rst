@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.16 (unreleased)
+0.16 (2020-01-14)
 -----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.15 setup finished: Modificar literal chat [Iago López Fernández]
 
 0.15 (2019-11-14)
 -----------------
