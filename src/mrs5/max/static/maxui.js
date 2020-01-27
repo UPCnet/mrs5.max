@@ -8030,9 +8030,13 @@ max.templates = function() {
                     {{#showLikesCount}}<span class="maxui-likescount"><strong>{{likes}}</strong><i class="maxui-icon-thumbs-up"></i></span>{{/showLikesCount}}\
                 </div>\
                 <div class="maxui-actor">\
-                      <a href="#"><span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
-                          <span class="maxui-displayname">{{actor.displayName}}</span></a>\
-                  <span class="maxui-username">{{actor.username}}&nbsp;</span>\
+                    <a href="{{portalURL}}/profile/{{actor.username}}" title="{{literals.open_profile}}">\
+                        <span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
+                    </a>\
+                    <a class="maxui-filter-actor" href="#">\
+                        <span class="maxui-displayname">{{actor.displayName}}</span>\
+                    </a>\
+                    <span class="maxui-username">{{actor.username}}&nbsp;</span>\
                 </div>\
                 <div class="maxui-activity-message">\
                     {{#fileDownload}}\
@@ -8107,10 +8111,13 @@ max.templates = function() {
             <div class="maxui-activity-content">\
                <span class="maxui-publisheddate">{{date}}</span>\
                <div class="maxui-actor">\
-                   <a href="#">\
+                   <a href="{{portalURL}}/profile/{{actor.username}}" title="{{literals.open_profile}}">\
                        <span class="maxui-avatar maxui-little"><img src="{{avatarURL}}"></span>\
-                       <span class="maxui-displayname">{{actor.displayName}}</span></a>\
-                     <span class="maxui-username">{{actor.username}}</span>\
+                    </a>\
+                    <a class="maxui-filter-actor" href="#">\
+                       <span class="maxui-displayname">{{actor.displayName}}</span>\
+                    </a>\
+                    <span class="maxui-username">{{actor.username}}</span>\
                </div>\
                <div>\
                    <p class="maxui-body">{{&text}}</p>\
@@ -8141,8 +8148,10 @@ max.templates = function() {
                     </div>\
                 </div>\
                 <div class="maxui-actor">\
-                      <a href="#"><span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
-                      <span class="maxui-displayname">{{displayName}}</span></a>\
+                    <a class="maxui-filter-actor" href="#">\
+                        <span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
+                        <span class="maxui-displayname">{{displayName}}</span>\
+                    </a>\
                 </div>\
                 <div>\
                     <p class="maxui-body">{{&text}}</p>\
@@ -9853,7 +9862,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.15';
+        maxui.version = '5.0.16';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {

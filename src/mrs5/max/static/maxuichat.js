@@ -8027,8 +8027,10 @@ max.templates = function() {
                     </div>\
                 </div>\
                 <div class="maxui-actor">\
-                      <a href="#"><span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
-                      <span class="maxui-displayname">{{displayName}}</span></a>\
+                    <a class="maxui-filter-actor" href="#">\
+                        <span class="maxui-avatar maxui-big"><img src="{{avatarURL}}"></span>\
+                        <span class="maxui-displayname">{{displayName}}</span>\
+                    </a>\
                 </div>\
                 <div>\
                     <p class="maxui-body">{{&text}}</p>\
