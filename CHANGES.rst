@@ -2,11 +2,11 @@ Changelog
 =========
 
 
-0.17 (unreleased)
+0.17 (2020-01-27)
 -----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.17 setup finished [pilar.marinas]
+* MAX UI 5.0.16 setup finished [pilar.marinas]
 
 0.16 (2020-01-14)
 -----------------
