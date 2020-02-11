@@ -23,6 +23,5 @@ after_success:
   - bin/createcoverage
   - pip install coveralls
   - coveralls
-# notifications:
-#   email:
-#     - plone.team@upcnet.es
+notifications:
+  email: false
