@@ -2,11 +2,12 @@ Changelog
 =========
 
 
-0.18 (unreleased)
+0.18 (2020-02-12)
 -----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.18 setup finished [Iago López Fernández]
+* Turn off email notifications entirely [pilar.marinas]
+* Quitar notificacion travis [pilar.marinas]
 
 0.17 (2020-01-27)
 -----------------
