@@ -8945,7 +8945,7 @@ max.utils = function() {
                     if (!full_url.match('^https?:\/\/')) {
                         full_url = 'http://' + full_url;
                     }
-                    return '<a href="' + full_url + '">' + url + '</a>';
+                    return '<a href="' + full_url + '" target="_blank">' + url + '</a>';
                 });
                 // Format hashtags links
                 text = text.replace(/(\s|^)#{1}(\w+)/gi, function() {
