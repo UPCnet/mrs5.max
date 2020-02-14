@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.19 (unreleased)
+0.19 (2020-02-14)
 -----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.?.? setup finished [Iago López Fernández]
 
 0.18 (2020-02-12)
 -----------------
