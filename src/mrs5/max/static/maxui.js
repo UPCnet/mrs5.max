@@ -9110,7 +9110,7 @@ max.utils = function() {
                     if (!full_url.match('^https?:\/\/')) {
                         full_url = 'http://' + full_url;
                     }
-                    return '<a href="' + full_url + '" target="_blank">' + url + '</a>';
+                    return '<a href="' + full_url + '">' + url + '</a>';
                 });
                 // Format hashtags links
                 text = text.replace(/(\s|^)#{1}(\w+)/gi, function() {
@@ -9862,7 +9862,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.18';
+        maxui.version = '5.0.19';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
