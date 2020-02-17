@@ -23,6 +23,7 @@ window._MAXUI.onReady = function() {
                 'activitySortView': _MAXUI.activitySortView,
                 'hidePostboxOnTimeline': _MAXUI.hidePostboxOnTimeline,
                 'literals': _MAXUI.literals,
+                'siteURL': _MAXUI.contexts,
                 'showSubscriptionList': _MAXUI.showSubscriptionList,
                 'disableConversations': $( "#view_conversations" ).attr( "data-showConversations" ) === "False"
                };

@@ -9110,7 +9110,32 @@ max.utils = function() {
                     if (!full_url.match('^https?:\/\/')) {
                         full_url = 'http://' + full_url;
                     }
-                    return '<a href="' + full_url + '">' + url + '</a>';
+                    var site_url = settings.siteURL.replace('http://', '').replace('https://', '').replace('www.', '');
+                    var external_url = false;
+                    if (full_url.indexOf('bit.ly') >= 0) {
+                        jQuery.ajax({
+                            url: 'https://api-ssl.bitly.com/v3/expand?access_token=4391cf8843d6a1d7e672cba4115a1bea1bc370fc&shortUrl=' + full_url,
+                            type: 'get',
+                            async: false,
+                            success: function(e) {
+                                if (!e.error && !e.data.expand[0].error) {
+                                    var long_url = e.data.expand[0].long_url;
+                                    if (long_url.indexOf(site_url) < 0) {
+                                        external_url = true;
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        if (full_url.indexOf(site_url) < 0) {
+                            external_url = true;
+                        }
+                    }
+                    if (external_url) {
+                        return '<a href="' + full_url + '" target="_blank">' + url + '</a>';
+                    } else {
+                        return '<a href="' + full_url + '">' + url + '</a>';
+                    }
                 });
                 // Format hashtags links
                 text = text.replace(/(\s|^)#{1}(\w+)/gi, function() {
@@ -9862,7 +9887,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.19';
+        maxui.version = '5.0.20';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {

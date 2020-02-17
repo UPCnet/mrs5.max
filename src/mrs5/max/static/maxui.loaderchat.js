@@ -19,6 +19,7 @@ window._MAXUI_Chat.onReady = function() {
                 'avatarURLpattern' : _MAXUI.avatar_url,
                 'domain': _MAXUI.domain,
                 'literals': _MAXUI.literals,
+                'siteURL': _MAXUI.contexts,
                 'UISection': 'conversations',
                 'disableTimeline': true,
                 'disableConversations': false

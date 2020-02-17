@@ -24,6 +24,7 @@ window._MAXUI_Activity.onReady = function() {
                 'activitySortView': _MAXUI.activitySortView,
                 'hidePostboxOnTimeline': _MAXUI.hidePostboxOnTimeline,
                 'literals': _MAXUI.literals,
+                'siteURL': _MAXUI.contexts,
                 'showSubscriptionList': _MAXUI.showSubscriptionList,
                 'UISection': 'timeline',
                 'disableTimeline': false,
