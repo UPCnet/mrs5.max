@@ -14,7 +14,7 @@ long_description = '\n\n'.join([
 
 setup(
     name='mrs5.max',
-    version='0.21.dev0',
+    version='0.21',
     description="MAX UI integration for Plone 5 and related portlets and views.",
     long_description=long_description,
     # Get more from https://pypi.python.org/pypi?%3Aaction=list_classifiers
