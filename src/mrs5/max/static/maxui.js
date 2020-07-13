@@ -7705,8 +7705,16 @@ var max = max || {};
                 jq('#maxui-messages #maxui-message-list').html(messages);
                 _.each(images_to_render, function(message, index, list) {
                     self.maxui.maxClient.getMessageImage('/messages/{0}/image/thumb'.format(message.uuid), function(encoded_image_data) {
-                        var imagetag = '<img class="maxui-embedded" alt="" src="data:image/png;base64,{0}" />'.format(encoded_image_data);
+                        var imagetag = '<img class="maxui-embedded fullImage" alt="" src="data:image/png;base64,{0}" />'.format(encoded_image_data);
                         jq('.maxui-message#{0} .maxui-body'.format(message.uuid)).after(imagetag);
+                        jq('.maxui-message#{0} img.fullImage'.format(message.uuid)).on('click', function(message) {
+                            self.maxui.maxClient.getMessageImage(message.object.fullURL, function(encoded_image_data) {
+                                var image = new Image();
+                                image.src = "data:image/png;base64," + encoded_image_data;
+                                var w = window.open("");
+                                w.document.write(image.outerHTML);
+                            });
+                        });
                         self.mainview.scrollbar.setContentPosition(100);
                     });
                 });
@@ -9862,7 +9870,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.21';
+        maxui.version = '5.0.22';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -11437,8 +11445,16 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         }
         _.each(images_to_render, function(activity, index, list) {
             maxui.maxClient.getMessageImage('/activities/{0}/image/thumb'.format(activity.id), function(encoded_image_data) {
-                var imagetag = '<img class="maxui-embedded" alt="" src="data:image/png;base64,{0}" />'.format(encoded_image_data);
+                var imagetag = '<img class="maxui-embedded fullImage" alt="" src="data:image/png;base64,{0}" />'.format(encoded_image_data);
                 jq('.maxui-activity#{0} .maxui-activity-message .maxui-body'.format(activity.id)).after(imagetag);
+                jq('.maxui-activity#{0} .maxui-activity-message img.fullImage'.format(activity.id)).on('click', function(activity) {
+                    maxui.maxClient.getMessageImage(activity.object.fullURL, function(encoded_image_data) {
+                        var image = new Image();
+                        image.src = "data:image/png;base64," + encoded_image_data;
+                        var w = window.open("");
+                        w.document.write(image.outerHTML);
+                    });
+                });
             });
         });
     };
