@@ -9870,7 +9870,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.23';
+        maxui.version = '5.0.24';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
