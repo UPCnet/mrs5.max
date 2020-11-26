@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.24 (unreleased)
+0.24 (2020-11-26)
 -----------------
 
-- Nothing changed yet.
-
+* Reemplazar getToolByName por api.portal.get_tool [Iago López Fernández]
 
 0.23 (2020-07-24)
 -----------------
