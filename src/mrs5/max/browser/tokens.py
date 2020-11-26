@@ -1,4 +1,5 @@
 from five import grok
+from plone import api
 from plone.directives import form
 
 from zope import schema
@@ -6,7 +7,6 @@ from z3c.form import button
 from zope.component import getUtility
 from zope.component.hooks import getSite
 
-from Products.CMFCore.utils import getToolByName
 from Products.CMFCore.interfaces import ISiteRoot
 from Products.statusmessages.interfaces import IStatusMessage
 
@@ -110,6 +110,6 @@ class resetMyOauthToken(grok.View):
     grok.context(ISiteRoot)
 
     def render(self):
-        pm = getToolByName(self.context, 'portal_membership')
+        pm = api.portal.get_tool(name='portal_membership')
         member = pm.getAuthenticatedMember()
         member.setMemberProperties({'oauth_token': ''})

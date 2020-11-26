@@ -6,7 +6,6 @@ from mrs5.max.utilities import IMAXClient
 from mrs5.max.utilities import prettyResponse
 from plone import api
 from plone.registry.interfaces import IRegistry
-from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces import IConfigurationChangedEvent
 from Products.PluggableAuthService.interfaces.authservice import IPropertiedUser
 from Products.PluggableAuthService.interfaces.events import IPrincipalCreatedEvent
@@ -27,8 +26,7 @@ def updateMAXUserInfo(event):
 
     # Only execute if the event triggers on user profile data change
     if 'fullname' in event.data or 'twitter_username' in event.data:
-        site = getSite()
-        pm = getToolByName(site, "portal_membership")
+        pm = api.portal.get_tool(name="portal_membership")
         if pm.isAnonymousUser():  # the user has not logged in
             username = ''
             return

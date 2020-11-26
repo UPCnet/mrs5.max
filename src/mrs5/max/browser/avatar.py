@@ -3,10 +3,10 @@ from OFS.Image import Image
 from zope.interface import implements
 from zope.publisher.interfaces import IPublishTraverse, NotFound
 
+from plone import api
 from plone.namedfile.utils import set_headers, stream_data
 
 from Products.Five import BrowserView
-from Products.CMFCore.utils import getToolByName
 
 
 class getAvatar(BrowserView):
@@ -27,7 +27,7 @@ class getAvatar(BrowserView):
         return self
 
     def __call__(self):
-        pm = getToolByName(self, 'portal_membership')
+        pm = api.portal.get_tool(name='portal_membership')
         portrait = pm.getPersonalPortrait(self.username)
 
         if isinstance(portrait, Image):
