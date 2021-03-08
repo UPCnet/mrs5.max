@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.25 (unreleased)
+0.25 (2021-03-08)
 -----------------
 
-- Nothing changed yet.
-
+* Si osiris devuelve BadUsernameOrPasswordError no continua mirando plugins autenticacion [Pilar Marinas]
 
 0.24 (2020-11-26)
 -----------------
