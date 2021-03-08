@@ -22,6 +22,7 @@ def getToken(user, password, grant_type=None):
         return token
     except BadUsernameOrPasswordError as error:
         logger.error('Invalid credentials for user "{}" on "{}"'.format(user, maxclient.oauth_server))
+        return 'BadUsernameOrPasswordError'
     except Exception as error:
         logger.error('Exception raised while getting token for user "{}" from "{}"'.format(user, maxclient.oauth_server))
         logger.error('{}: {}'.format(error.__class__.__name__, error.message))
@@ -47,7 +48,11 @@ class oauthTokenRetriever(object):
 
         oauth_token = getToken(user, password)
 
-        if oauth_token:
+        # Modificamos este codigo para que le devuelva al pas.plugins.preauth BadUsernameOrPasswordError
+        # y no continue mirando los siguientes plugins de Authentication Plugins
+        if oauth_token == 'BadUsernameOrPasswordError':
+            return 'BadUsernameOrPasswordError'
+        elif oauth_token:
             member.setMemberProperties({'oauth_token': oauth_token})
             logger.info('oAuth token set for user: %s ' % user)
         else:
