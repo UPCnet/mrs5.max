@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.26 (unreleased)
+0.26 (2021-03-29)
 -----------------
 
-- Nothing changed yet.
-
+* Funcion cacheada productos instalados [Pilar Marinas]
 
 0.25 (2021-03-08)
 -----------------
