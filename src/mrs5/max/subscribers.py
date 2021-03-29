@@ -13,6 +13,8 @@ from zope.component import getUtility
 from zope.component import queryUtility
 from zope.component.hooks import getSite
 
+from ulearn5.core.hooks import packages_installed
+
 import logging
 import plone.api
 
@@ -75,8 +77,9 @@ def createMAXUser(principal, event):
     """This subscriber will trigger when a user is created."""
 
     pid = 'mrs5.max'
-    qi_tool = plone.api.portal.get_tool(name='portal_quickinstaller')
-    installed = [p['id'] for p in qi_tool.listInstalledProducts()]
+    installed = packages_installed()
+    # qi_tool = plone.api.portal.get_tool(name='portal_quickinstaller')
+    # installed = [p['id'] for p in qi_tool.listInstalledProducts()]
 
     if pid in installed:
         maxclient, settings = getUtility(IMAXClient)()
