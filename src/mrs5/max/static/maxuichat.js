@@ -11202,6 +11202,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (activity.contexts) {
                 canCommentActivityChat = maxui.canCommentActivityChat(activity.contexts[0].url);
             }
+            var likesUsernames = [];
+            for (var like in activity.likes) {
+                likesUsernames.push(activity.likes[like].username);
+            }
             var params = {
                 id: activity.id,
                 actor: activity.actor,
@@ -11218,6 +11222,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 likes: activity.likesCount ? activity.likesCount : 0,
                 showLikesCount: maxui.currentSortOrder === 'likes',
                 liked: activity.liked,
+                likesUsernames: likesUsernames.join('&#10;'),
                 flagged: activity.flagged,
                 avatarURL: avatar_url,
                 publishedIn: contexts,

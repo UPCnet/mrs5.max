@@ -7023,7 +7023,7 @@ max.templates = function() {
                 <div class="maxui-actions">\
                     <a href="" class="maxui-action maxui-commentaction maxui-icon- {{#replies}}maxui-has-comments{{/replies}}"><strong>{{replies.length}}</strong> {{literals.toggle_comments}}</a>\
                     <a href="" class="maxui-action maxui-favorites {{#favorited}}maxui-favorited{{/favorited}} maxui-icon-">{{literals.favorite}}</a>\
-                    <a href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-"><strong>{{likes}}</strong> {{literals.like}}</a>\
+                    <a title="{{likesUsernames}}" href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-"><strong>{{likes}}</strong> {{literals.like}}</a>\
                     {{#canFlagActivity}}\
                     <a href="" class="maxui-action maxui-flag {{#flagged}}maxui-flagged{{/flagged}} maxui-icon-">{{literals.flag_activity_icon}}</a>\
                     {{/canFlagActivity}}\
@@ -10165,6 +10165,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (activity.contexts) {
                 canCommentActivityActivity = maxui.canCommentActivityActivity(activity.contexts[0].url);
             }
+            var likesUsernames = [];
+            for (var like in activity.likes) {
+                likesUsernames.push(activity.likes[like].username);
+            }
             var params = {
                 id: activity.id,
                 actor: activity.actor,
@@ -10181,6 +10185,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 likes: activity.likesCount ? activity.likesCount : 0,
                 showLikesCount: maxui.currentSortOrder === 'likes',
                 liked: activity.liked,
+                likesUsernames: likesUsernames.join('&#10;'),
                 flagged: activity.flagged,
                 avatarURL: avatar_url,
                 publishedIn: contexts,
