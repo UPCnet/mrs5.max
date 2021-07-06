@@ -9870,7 +9870,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.0.25';
+        maxui.version = '5.0.26';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -10319,16 +10319,26 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var activityid = $activity.attr('id');
             var liked = $likes.hasClass('maxui-liked');
             var $likes_count = $likes.children('strong');
+            var likesUsernames = [];
+            if ($likes.attr('title') !== "") {
+                likesUsernames = $likes.attr('title').split('&#13;');
+            }
             if (liked) {
                 maxui.maxClient.unlikeActivity(activityid, function(event) {
                     $likes.toggleClass('maxui-liked', false);
                 });
                 $likes_count.text(parseInt($likes_count.text(), 10) - 1);
+                likesUsernames = jq.grep(likesUsernames, function(value) {
+                    return value !== maxui.settings.username;
+                });
+                $likes.attr('title', likesUsernames.join('&#13;'));
             } else {
                 maxui.maxClient.likeActivity(activityid, function(event) {
                     $likes.toggleClass('maxui-liked', true);
                 });
                 $likes_count.text(parseInt($likes_count.text(), 10) + 1);
+                likesUsernames.push(maxui.settings.username);
+                $likes.attr('title', likesUsernames.join('&#13;'));
             }
         });
         //Toggle flagged status via delegating the click to the activities container
@@ -11388,7 +11398,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 likes: activity.likesCount ? activity.likesCount : 0,
                 showLikesCount: maxui.currentSortOrder === 'likes',
                 liked: activity.liked,
-                likesUsernames: likesUsernames.join('&#10;'),
+                likesUsernames: likesUsernames.join('&#13;'),
                 flagged: activity.flagged,
                 avatarURL: avatar_url,
                 publishedIn: contexts,
