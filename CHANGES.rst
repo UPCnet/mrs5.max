@@ -2,11 +2,12 @@ Changelog
 =========
 
 
-0.27 (unreleased)
+0.27 (2021-07-07)
 -----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.28 setup finished [Iago López Fernández]
+* MAX UI 5.0.26 setup finished [Iago López Fernández]
+* MAX UI 5.0.25 setup finished [Iago López Fernández]
 
 0.26 (2021-03-29)
 -----------------
