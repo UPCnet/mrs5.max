@@ -8076,7 +8076,7 @@ max.templates = function() {
                 <div class="maxui-actions">\
                     <a href="" class="maxui-action maxui-commentaction maxui-icon- {{#replies}}maxui-has-comments{{/replies}}"><strong>{{replies.length}}</strong> {{literals.toggle_comments}}</a>\
                     <a href="" class="maxui-action maxui-favorites {{#favorited}}maxui-favorited{{/favorited}} maxui-icon-">{{literals.favorite}}</a>\
-                    <a title="{{likesUsernames}}" href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-"><strong>{{likes}}</strong> {{literals.like}}</a>\
+                    <a {{#showLikes}}title="{{likesUsernames}}" {{/showLikes}}href="" class="maxui-action maxui-likes {{#liked}}maxui-liked{{/liked}} maxui-icon-"><strong>{{likes}}</strong> {{literals.like}}</a>\
                     {{#canFlagActivity}}\
                     <a href="" class="maxui-action maxui-flag {{#flagged}}maxui-flagged{{/flagged}} maxui-icon-">{{literals.flag_activity_icon}}</a>\
                     {{/canFlagActivity}}\
@@ -9898,7 +9898,8 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             'maxTalkURL': "",
             'generator': "",
             'domain': "",
-            'showSubscriptionList': false
+            'showSubscriptionList': false,
+            'showLikes': true
         };
         // extend defaults with user-defined settings
         maxui.settings = jq.extend(defaults, options);
@@ -10320,7 +10321,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var liked = $likes.hasClass('maxui-liked');
             var $likes_count = $likes.children('strong');
             var likesUsernames = [];
-            if ($likes.attr('title') !== "") {
+            if ($likes.attr('title') && $likes.attr('title') !== "") {
                 likesUsernames = $likes.attr('title').split('\n');
             }
             if (liked) {
@@ -10331,14 +10332,18 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 likesUsernames = jq.grep(likesUsernames, function(value) {
                     return value !== maxui.settings.username;
                 });
-                $likes.attr('title', likesUsernames.join('\n'));
+                if (maxui.settings.showLikes) {
+                    $likes.attr('title', likesUsernames.join('\n'));
+                }
             } else {
                 maxui.maxClient.likeActivity(activityid, function(event) {
                     $likes.toggleClass('maxui-liked', true);
                 });
                 $likes_count.text(parseInt($likes_count.text(), 10) + 1);
                 likesUsernames.push(maxui.settings.username);
-                $likes.attr('title', likesUsernames.join('\n'));
+                if (maxui.settings.showLikes) {
+                    $likes.attr('title', likesUsernames.join('\n'));
+                }
             }
         });
         //Toggle flagged status via delegating the click to the activities container
@@ -11397,6 +11402,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 favorited: activity.favorited,
                 likes: activity.likesCount ? activity.likesCount : 0,
                 showLikesCount: maxui.currentSortOrder === 'likes',
+                showLikes: maxui.settings.showLikes,
                 liked: activity.liked,
                 likesUsernames: likesUsernames.join('\n'),
                 flagged: activity.flagged,
@@ -11577,6 +11583,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         if (arguments.length > 1) {
             var callback = arguments[1];
             func_params.push(function(items) {
+                maxui.settings.showLikes = window._MAXUI.showLikes;
                 // Determine write permission, granted by default if we don't find a restriction
                 maxui.settings.canwrite = true;
                 // If we don't have a context, we're in timeline, so we can write

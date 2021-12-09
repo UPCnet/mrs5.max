@@ -27,6 +27,7 @@ window._MAXUI.hidePostboxOnTimeline = false;
 window._MAXUI.domain = '%(domain)s';
 window._MAXUI.literals = %(literals)s;
 window._MAXUI.showSubscriptionList = true;
+window._MAXUI.showLikes = true;
 """
 
 TEMPLATE_CHAT = """\
@@ -45,6 +46,7 @@ window._MAXUI.hidePostboxOnTimeline = false;
 window._MAXUI.domain = '%(domain)s';
 window._MAXUI.literals = %(literals)s;
 window._MAXUI.showSubscriptionList = false;
+window._MAXUI.showLikes = true;
 """
 
 class MAXJSVariables(BrowserView):
