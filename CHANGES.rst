@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-0.28 (unreleased)
+0.28 (2021-12-13)
 -----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.0.28 setup finished Parametrizar ver quien hace likes [ilopezsmx]
 
 0.27 (2021-07-07)
 -----------------
