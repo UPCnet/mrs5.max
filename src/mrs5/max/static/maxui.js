@@ -5875,7 +5875,7 @@ max.templates = function() {
                 </div>\
                 <div class="maxui-activity-message">\
                     {{#fileDownload}}\
-                    <form action="/activities/{{id}}/file/download" method="POST">\
+                    <form action="{{maxURL}}/activities/{{id}}/file/download" method="POST">\
                         <input type="hidden" name="X-Oauth-Token" value="{{auth.token}}">\
                         <input type="hidden" name="X-Oauth-Username" value="{{auth.username}}">\
                         <input type="hidden" name="X-Oauth-Scope" value="widgetcli">\
@@ -7360,6 +7360,7 @@ MaxClient.prototype.POSTFILE = function (route, query, callback) {
     if (arguments.length > 3) {
         triggers = arguments[3];
     }
+    
     jQuery.ajax({
         url: resource_uri,
         beforeSend: function (xhr) {
@@ -7378,6 +7379,7 @@ MaxClient.prototype.POSTFILE = function (route, query, callback) {
         if (triggers.done) {
             jQuery(window).trigger(triggers.done, result);
         }
+        
     }).fail(function (xhr) {
         jQuery(window).trigger('maxclienterror', xhr);
         if (triggers.fail) {
@@ -9334,6 +9336,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 fileDownload: activity.object.objectType === 'file',
                 filename: activity.object.filename,
                 portalURL: window.PORTAL_URL,
+                maxURL: maxui.settings.maxServerURL,
                 canViewComments: canCommentActivity || activity.replies.length > 0,
                 canWriteComment: canCommentActivity
             };
@@ -9555,6 +9558,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         // if passed as param, assume an object with search filtering params
         // one or all of [limit, before, after, hashtag]
         func_params.push(filters);
+        //debugger;
         activityRetriever.apply(this.maxClient, func_params);
     };
     /**
