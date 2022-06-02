@@ -6533,7 +6533,7 @@ var max = max || {};
             self.maxui.logger.info('Succesfully connected to {0}'.format(self.stompServer), self.logtag);
         };
         var errorCallback = function(error) {
-            self.maxui.logger.error(error.body);
+            self.maxui.logger.error(error);
         };
         self.stomp.connect(headers, connectCallback, errorCallback);
     };
