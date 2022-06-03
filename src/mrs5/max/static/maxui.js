@@ -1,226 +1,226 @@
 var Hogan = {};
 
 (function (Hogan, useArrayBuffer) {
-  Hogan.Template = function (renderFunc, text, compiler, options) {
-    this.r = renderFunc || this.r;
-    this.c = compiler;
-    this.options = options;
-    this.text = text || '';
-    this.buf = (useArrayBuffer) ? [] : '';
-  }
-
-  Hogan.Template.prototype = {
-    // render: replaced by generated code.
-    r: function (context, partials, indent) { return ''; },
-
-    // variable escaping
-    v: hoganEscape,
-
-    // triple stache
-    t: coerceToString,
-
-    render: function render(context, partials, indent) {
-      return this.ri([context], partials || {}, indent);
-    },
-
-    // render internal -- a hook for overrides that catches partials too
-    ri: function (context, partials, indent) {
-      return this.r(context, partials, indent);
-    },
-
-    // tries to find a partial in the curent scope and render it
-    rp: function(name, context, partials, indent) {
-      var partial = partials[name];
-
-      if (!partial) {
-        return '';
-      }
-
-      if (this.c && typeof partial == 'string') {
-        partial = this.c.compile(partial, this.options);
-      }
-
-      return partial.ri(context, partials, indent);
-    },
-
-    // render a section
-    rs: function(context, partials, section) {
-      var tail = context[context.length - 1];
-
-      if (!isArray(tail)) {
-        section(context, partials, this);
-        return;
-      }
-
-      for (var i = 0; i < tail.length; i++) {
-        context.push(tail[i]);
-        section(context, partials, this);
-        context.pop();
-      }
-    },
-
-    // maybe start a section
-    s: function(val, ctx, partials, inverted, start, end, tags) {
-      var pass;
-
-      if (isArray(val) && val.length === 0) {
-        return false;
-      }
-
-      if (typeof val == 'function') {
-        val = this.ls(val, ctx, partials, inverted, start, end, tags);
-      }
-
-      pass = (val === '') || !!val;
-
-      if (!inverted && pass && ctx) {
-        ctx.push((typeof val == 'object') ? val : ctx[ctx.length - 1]);
-      }
-
-      return pass;
-    },
-
-    // find values with dotted names
-    d: function(key, ctx, partials, returnFound) {
-      var names = key.split('.'),
-          val = this.f(names[0], ctx, partials, returnFound),
-          cx = null;
-
-      if (key === '.' && isArray(ctx[ctx.length - 2])) {
-        return ctx[ctx.length - 1];
-      }
-
-      for (var i = 1; i < names.length; i++) {
-        if (val && typeof val == 'object' && names[i] in val) {
-          cx = val;
-          val = val[names[i]];
-        } else {
-          val = '';
-        }
-      }
-
-      if (returnFound && !val) {
-        return false;
-      }
-
-      if (!returnFound && typeof val == 'function') {
-        ctx.push(cx);
-        val = this.lv(val, ctx, partials);
-        ctx.pop();
-      }
-
-      return val;
-    },
-
-    // find values with normal names
-    f: function(key, ctx, partials, returnFound) {
-      var val = false,
-          v = null,
-          found = false;
-
-      for (var i = ctx.length - 1; i >= 0; i--) {
-        v = ctx[i];
-        if (v && typeof v == 'object' && key in v) {
-          val = v[key];
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) {
-        return (returnFound) ? false : "";
-      }
-
-      if (!returnFound && typeof val == 'function') {
-        val = this.lv(val, ctx, partials);
-      }
-
-      return val;
-    },
-
-    // higher order templates
-    ho: function(val, cx, partials, text, tags) {
-      var compiler = this.c;
-      var options = this.options;
-      options.delimiters = tags;
-      var text = val.call(cx, text);
-      text = (text == null) ? String(text) : text.toString();
-      this.b(compiler.compile(text, options).render(cx, partials));
-      return false;
-    },
-
-    // template result buffering
-    b: (useArrayBuffer) ? function(s) { this.buf.push(s); } :
-                          function(s) { this.buf += s; },
-    fl: (useArrayBuffer) ? function() { var r = this.buf.join(''); this.buf = []; return r; } :
-                           function() { var r = this.buf; this.buf = ''; return r; },
-
-    // lambda replace section
-    ls: function(val, ctx, partials, inverted, start, end, tags) {
-      var cx = ctx[ctx.length - 1],
-          t = null;
-
-      if (!inverted && this.c && val.length > 0) {
-        return this.ho(val, cx, partials, this.text.substring(start, end), tags);
-      }
-
-      t = val.call(cx);
-
-      if (typeof t == 'function') {
-        if (inverted) {
-          return true;
-        } else if (this.c) {
-          return this.ho(t, cx, partials, this.text.substring(start, end), tags);
-        }
-      }
-
-      return t;
-    },
-
-    // lambda replace variable
-    lv: function(val, ctx, partials) {
-      var cx = ctx[ctx.length - 1];
-      var result = val.call(cx);
-
-      if (typeof result == 'function') {
-        result = coerceToString(result.call(cx));
-        if (this.c && ~result.indexOf("{\u007B")) {
-          return this.c.compile(result, this.options).render(cx, partials);
-        }
-      }
-
-      return coerceToString(result);
+    Hogan.Template = function (renderFunc, text, compiler, options) {
+        this.r = renderFunc || this.r;
+        this.c = compiler;
+        this.options = options;
+        this.text = text || '';
+        this.buf = (useArrayBuffer) ? [] : '';
     }
 
-  };
+    Hogan.Template.prototype = {
+        // render: replaced by generated code.
+        r: function (context, partials, indent) { return ''; },
 
-  var rAmp = /&/g,
-      rLt = /</g,
-      rGt = />/g,
-      rApos =/\'/g,
-      rQuot = /\"/g,
-      hChars =/[&<>\"\']/;
+        // variable escaping
+        v: hoganEscape,
+
+        // triple stache
+        t: coerceToString,
+
+        render: function render(context, partials, indent) {
+            return this.ri([context], partials || {}, indent);
+        },
+
+        // render internal -- a hook for overrides that catches partials too
+        ri: function (context, partials, indent) {
+            return this.r(context, partials, indent);
+        },
+
+        // tries to find a partial in the curent scope and render it
+        rp: function (name, context, partials, indent) {
+            var partial = partials[name];
+
+            if (!partial) {
+                return '';
+            }
+
+            if (this.c && typeof partial == 'string') {
+                partial = this.c.compile(partial, this.options);
+            }
+
+            return partial.ri(context, partials, indent);
+        },
+
+        // render a section
+        rs: function (context, partials, section) {
+            var tail = context[context.length - 1];
+
+            if (!isArray(tail)) {
+                section(context, partials, this);
+                return;
+            }
+
+            for (var i = 0; i < tail.length; i++) {
+                context.push(tail[i]);
+                section(context, partials, this);
+                context.pop();
+            }
+        },
+
+        // maybe start a section
+        s: function (val, ctx, partials, inverted, start, end, tags) {
+            var pass;
+
+            if (isArray(val) && val.length === 0) {
+                return false;
+            }
+
+            if (typeof val == 'function') {
+                val = this.ls(val, ctx, partials, inverted, start, end, tags);
+            }
+
+            pass = (val === '') || !!val;
+
+            if (!inverted && pass && ctx) {
+                ctx.push((typeof val == 'object') ? val : ctx[ctx.length - 1]);
+            }
+
+            return pass;
+        },
+
+        // find values with dotted names
+        d: function (key, ctx, partials, returnFound) {
+            var names = key.split('.'),
+                val = this.f(names[0], ctx, partials, returnFound),
+                cx = null;
+
+            if (key === '.' && isArray(ctx[ctx.length - 2])) {
+                return ctx[ctx.length - 1];
+            }
+
+            for (var i = 1; i < names.length; i++) {
+                if (val && typeof val == 'object' && names[i] in val) {
+                    cx = val;
+                    val = val[names[i]];
+                } else {
+                    val = '';
+                }
+            }
+
+            if (returnFound && !val) {
+                return false;
+            }
+
+            if (!returnFound && typeof val == 'function') {
+                ctx.push(cx);
+                val = this.lv(val, ctx, partials);
+                ctx.pop();
+            }
+
+            return val;
+        },
+
+        // find values with normal names
+        f: function (key, ctx, partials, returnFound) {
+            var val = false,
+                v = null,
+                found = false;
+
+            for (var i = ctx.length - 1; i >= 0; i--) {
+                v = ctx[i];
+                if (v && typeof v == 'object' && key in v) {
+                    val = v[key];
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                return (returnFound) ? false : "";
+            }
+
+            if (!returnFound && typeof val == 'function') {
+                val = this.lv(val, ctx, partials);
+            }
+
+            return val;
+        },
+
+        // higher order templates
+        ho: function (val, cx, partials, text, tags) {
+            var compiler = this.c;
+            var options = this.options;
+            options.delimiters = tags;
+            var text = val.call(cx, text);
+            text = (text == null) ? String(text) : text.toString();
+            this.b(compiler.compile(text, options).render(cx, partials));
+            return false;
+        },
+
+        // template result buffering
+        b: (useArrayBuffer) ? function (s) { this.buf.push(s); } :
+            function (s) { this.buf += s; },
+        fl: (useArrayBuffer) ? function () { var r = this.buf.join(''); this.buf = []; return r; } :
+            function () { var r = this.buf; this.buf = ''; return r; },
+
+        // lambda replace section
+        ls: function (val, ctx, partials, inverted, start, end, tags) {
+            var cx = ctx[ctx.length - 1],
+                t = null;
+
+            if (!inverted && this.c && val.length > 0) {
+                return this.ho(val, cx, partials, this.text.substring(start, end), tags);
+            }
+
+            t = val.call(cx);
+
+            if (typeof t == 'function') {
+                if (inverted) {
+                    return true;
+                } else if (this.c) {
+                    return this.ho(t, cx, partials, this.text.substring(start, end), tags);
+                }
+            }
+
+            return t;
+        },
+
+        // lambda replace variable
+        lv: function (val, ctx, partials) {
+            var cx = ctx[ctx.length - 1];
+            var result = val.call(cx);
+
+            if (typeof result == 'function') {
+                result = coerceToString(result.call(cx));
+                if (this.c && ~result.indexOf("{\u007B")) {
+                    return this.c.compile(result, this.options).render(cx, partials);
+                }
+            }
+
+            return coerceToString(result);
+        }
+
+    };
+
+    var rAmp = /&/g,
+        rLt = /</g,
+        rGt = />/g,
+        rApos = /\'/g,
+        rQuot = /\"/g,
+        hChars = /[&<>\"\']/;
 
 
-  function coerceToString(val) {
-    return String((val === null || val === undefined) ? '' : val);
-  }
+    function coerceToString(val) {
+        return String((val === null || val === undefined) ? '' : val);
+    }
 
-  function hoganEscape(str) {
-    str = coerceToString(str);
-    return hChars.test(str) ?
-      str
-        .replace(rAmp,'&amp;')
-        .replace(rLt,'&lt;')
-        .replace(rGt,'&gt;')
-        .replace(rApos,'&#39;')
-        .replace(rQuot, '&quot;') :
-      str;
-  }
+    function hoganEscape(str) {
+        str = coerceToString(str);
+        return hChars.test(str) ?
+            str
+                .replace(rAmp, '&amp;')
+                .replace(rLt, '&lt;')
+                .replace(rGt, '&gt;')
+                .replace(rApos, '&#39;')
+                .replace(rQuot, '&quot;') :
+            str;
+    }
 
-  var isArray = Array.isArray || function(a) {
-    return Object.prototype.toString.call(a) === '[object Array]';
-  };
+    var isArray = Array.isArray || function (a) {
+        return Object.prototype.toString.call(a) === '[object Array]';
+    };
 
 })(typeof exports !== 'undefined' ? exports : Hogan);
 
@@ -228,341 +228,342 @@ var Hogan = {};
 
 
 (function (Hogan) {
-  // Setup regex  assignments
-  // remove whitespace according to Mustache spec
-  var rIsWhitespace = /\S/,
-      rQuot = /\"/g,
-      rNewline =  /\n/g,
-      rCr = /\r/g,
-      rSlash = /\\/g,
-      tagTypes = {
-        '#': 1, '^': 2, '/': 3,  '!': 4, '>': 5,
-        '<': 6, '=': 7, '_v': 8, '{': 9, '&': 10
-      };
+    // Setup regex  assignments
+    // remove whitespace according to Mustache spec
+    var rIsWhitespace = /\S/,
+        rQuot = /\"/g,
+        rNewline = /\n/g,
+        rCr = /\r/g,
+        rSlash = /\\/g,
+        tagTypes = {
+            '#': 1, '^': 2, '/': 3, '!': 4, '>': 5,
+            '<': 6, '=': 7, '_v': 8, '{': 9, '&': 10
+        };
 
-  Hogan.scan = function scan(text, delimiters) {
-    var len = text.length,
-        IN_TEXT = 0,
-        IN_TAG_TYPE = 1,
-        IN_TAG = 2,
-        state = IN_TEXT,
-        tagType = null,
-        tag = null,
-        buf = '',
-        tokens = [],
-        seenTag = false,
-        i = 0,
-        lineStart = 0,
-        otag = '{{',
-        ctag = '}}';
+    Hogan.scan = function scan(text, delimiters) {
+        var len = text.length,
+            IN_TEXT = 0,
+            IN_TAG_TYPE = 1,
+            IN_TAG = 2,
+            state = IN_TEXT,
+            tagType = null,
+            tag = null,
+            buf = '',
+            tokens = [],
+            seenTag = false,
+            i = 0,
+            lineStart = 0,
+            otag = '{{',
+            ctag = '}}';
 
-    function addBuf() {
-      if (buf.length > 0) {
-        tokens.push(new String(buf));
-        buf = '';
-      }
-    }
-
-    function lineIsWhitespace() {
-      var isAllWhitespace = true;
-      for (var j = lineStart; j < tokens.length; j++) {
-        isAllWhitespace =
-          (tokens[j].tag && tagTypes[tokens[j].tag] < tagTypes['_v']) ||
-          (!tokens[j].tag && tokens[j].match(rIsWhitespace) === null);
-        if (!isAllWhitespace) {
-          return false;
-        }
-      }
-
-      return isAllWhitespace;
-    }
-
-    function filterLine(haveSeenTag, noNewLine) {
-      addBuf();
-
-      if (haveSeenTag && lineIsWhitespace()) {
-        for (var j = lineStart, next; j < tokens.length; j++) {
-          if (!tokens[j].tag) {
-            if ((next = tokens[j+1]) && next.tag == '>') {
-              // set indent to token value
-              next.indent = tokens[j].toString()
+        function addBuf() {
+            if (buf.length > 0) {
+                tokens.push(new String(buf));
+                buf = '';
             }
-            tokens.splice(j, 1);
-          }
         }
-      } else if (!noNewLine) {
-        tokens.push({tag:'\n'});
-      }
 
-      seenTag = false;
-      lineStart = tokens.length;
-    }
+        function lineIsWhitespace() {
+            var isAllWhitespace = true;
+            for (var j = lineStart; j < tokens.length; j++) {
+                isAllWhitespace =
+                    (tokens[j].tag && tagTypes[tokens[j].tag] < tagTypes['_v']) ||
+                    (!tokens[j].tag && tokens[j].match(rIsWhitespace) === null);
+                if (!isAllWhitespace) {
+                    return false;
+                }
+            }
 
-    function changeDelimiters(text, index) {
-      var close = '=' + ctag,
-          closeIndex = text.indexOf(close, index),
-          delimiters = trim(
-            text.substring(text.indexOf('=', index) + 1, closeIndex)
-          ).split(' ');
-
-      otag = delimiters[0];
-      ctag = delimiters[1];
-
-      return closeIndex + close.length - 1;
-    }
-
-    if (delimiters) {
-      delimiters = delimiters.split(' ');
-      otag = delimiters[0];
-      ctag = delimiters[1];
-    }
-
-    for (i = 0; i < len; i++) {
-      if (state == IN_TEXT) {
-        if (tagChange(otag, text, i)) {
-          --i;
-          addBuf();
-          state = IN_TAG_TYPE;
-        } else {
-          if (text.charAt(i) == '\n') {
-            filterLine(seenTag);
-          } else {
-            buf += text.charAt(i);
-          }
+            return isAllWhitespace;
         }
-      } else if (state == IN_TAG_TYPE) {
-        i += otag.length - 1;
-        tag = tagTypes[text.charAt(i + 1)];
-        tagType = tag ? text.charAt(i + 1) : '_v';
-        if (tagType == '=') {
-          i = changeDelimiters(text, i);
-          state = IN_TEXT;
-        } else {
-          if (tag) {
-            i++;
-          }
-          state = IN_TAG;
+
+        function filterLine(haveSeenTag, noNewLine) {
+            addBuf();
+
+            if (haveSeenTag && lineIsWhitespace()) {
+                for (var j = lineStart, next; j < tokens.length; j++) {
+                    if (!tokens[j].tag) {
+                        if ((next = tokens[j + 1]) && next.tag == '>') {
+                            // set indent to token value
+                            next.indent = tokens[j].toString()
+                        }
+                        tokens.splice(j, 1);
+                    }
+                }
+            } else if (!noNewLine) {
+                tokens.push({ tag: '\n' });
+            }
+
+            seenTag = false;
+            lineStart = tokens.length;
         }
-        seenTag = i;
-      } else {
-        if (tagChange(ctag, text, i)) {
-          tokens.push({tag: tagType, n: trim(buf), otag: otag, ctag: ctag,
-                       i: (tagType == '/') ? seenTag - ctag.length : i + otag.length});
-          buf = '';
-          i += ctag.length - 1;
-          state = IN_TEXT;
-          if (tagType == '{') {
-            if (ctag == '}}') {
-              i++;
+
+        function changeDelimiters(text, index) {
+            var close = '=' + ctag,
+                closeIndex = text.indexOf(close, index),
+                delimiters = trim(
+                    text.substring(text.indexOf('=', index) + 1, closeIndex)
+                ).split(' ');
+
+            otag = delimiters[0];
+            ctag = delimiters[1];
+
+            return closeIndex + close.length - 1;
+        }
+
+        if (delimiters) {
+            delimiters = delimiters.split(' ');
+            otag = delimiters[0];
+            ctag = delimiters[1];
+        }
+
+        for (i = 0; i < len; i++) {
+            if (state == IN_TEXT) {
+                if (tagChange(otag, text, i)) {
+                    --i;
+                    addBuf();
+                    state = IN_TAG_TYPE;
+                } else {
+                    if (text.charAt(i) == '\n') {
+                        filterLine(seenTag);
+                    } else {
+                        buf += text.charAt(i);
+                    }
+                }
+            } else if (state == IN_TAG_TYPE) {
+                i += otag.length - 1;
+                tag = tagTypes[text.charAt(i + 1)];
+                tagType = tag ? text.charAt(i + 1) : '_v';
+                if (tagType == '=') {
+                    i = changeDelimiters(text, i);
+                    state = IN_TEXT;
+                } else {
+                    if (tag) {
+                        i++;
+                    }
+                    state = IN_TAG;
+                }
+                seenTag = i;
             } else {
-              cleanTripleStache(tokens[tokens.length - 1]);
+                if (tagChange(ctag, text, i)) {
+                    tokens.push({
+                        tag: tagType, n: trim(buf), otag: otag, ctag: ctag,
+                        i: (tagType == '/') ? seenTag - ctag.length : i + otag.length
+                    });
+                    buf = '';
+                    i += ctag.length - 1;
+                    state = IN_TEXT;
+                    if (tagType == '{') {
+                        if (ctag == '}}') {
+                            i++;
+                        } else {
+                            cleanTripleStache(tokens[tokens.length - 1]);
+                        }
+                    }
+                } else {
+                    buf += text.charAt(i);
+                }
             }
-          }
-        } else {
-          buf += text.charAt(i);
         }
-      }
+
+        filterLine(seenTag, true);
+
+        return tokens;
     }
 
-    filterLine(seenTag, true);
-
-    return tokens;
-  }
-
-  function cleanTripleStache(token) {
-    if (token.n.substr(token.n.length - 1) === '}') {
-      token.n = token.n.substring(0, token.n.length - 1);
-    }
-  }
-
-  function trim(s) {
-    if (s.trim) {
-      return s.trim();
-    }
-
-    return s.replace(/^\s*|\s*$/g, '');
-  }
-
-  function tagChange(tag, text, index) {
-    if (text.charAt(index) != tag.charAt(0)) {
-      return false;
-    }
-
-    for (var i = 1, l = tag.length; i < l; i++) {
-      if (text.charAt(index + i) != tag.charAt(i)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  function buildTree(tokens, kind, stack, customTags) {
-    var instructions = [],
-        opener = null,
-        token = null;
-
-    while (tokens.length > 0) {
-      token = tokens.shift();
-      if (token.tag == '#' || token.tag == '^' || isOpener(token, customTags)) {
-        stack.push(token);
-        token.nodes = buildTree(tokens, token.tag, stack, customTags);
-        instructions.push(token);
-      } else if (token.tag == '/') {
-        if (stack.length === 0) {
-          throw new Error('Closing tag without opener: /' + token.n);
+    function cleanTripleStache(token) {
+        if (token.n.substr(token.n.length - 1) === '}') {
+            token.n = token.n.substring(0, token.n.length - 1);
         }
-        opener = stack.pop();
-        if (token.n != opener.n && !isCloser(token.n, opener.n, customTags)) {
-          throw new Error('Nesting error: ' + opener.n + ' vs. ' + token.n);
+    }
+
+    function trim(s) {
+        if (s.trim) {
+            return s.trim();
         }
-        opener.end = token.i;
+
+        return s.replace(/^\s*|\s*$/g, '');
+    }
+
+    function tagChange(tag, text, index) {
+        if (text.charAt(index) != tag.charAt(0)) {
+            return false;
+        }
+
+        for (var i = 1, l = tag.length; i < l; i++) {
+            if (text.charAt(index + i) != tag.charAt(i)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function buildTree(tokens, kind, stack, customTags) {
+        var instructions = [],
+            opener = null,
+            token = null;
+
+        while (tokens.length > 0) {
+            token = tokens.shift();
+            if (token.tag == '#' || token.tag == '^' || isOpener(token, customTags)) {
+                stack.push(token);
+                token.nodes = buildTree(tokens, token.tag, stack, customTags);
+                instructions.push(token);
+            } else if (token.tag == '/') {
+                if (stack.length === 0) {
+                    throw new Error('Closing tag without opener: /' + token.n);
+                }
+                opener = stack.pop();
+                if (token.n != opener.n && !isCloser(token.n, opener.n, customTags)) {
+                    throw new Error('Nesting error: ' + opener.n + ' vs. ' + token.n);
+                }
+                opener.end = token.i;
+                return instructions;
+            } else {
+                instructions.push(token);
+            }
+        }
+
+        if (stack.length > 0) {
+            throw new Error('missing closing tag: ' + stack.pop().n);
+        }
+
         return instructions;
-      } else {
-        instructions.push(token);
-      }
     }
 
-    if (stack.length > 0) {
-      throw new Error('missing closing tag: ' + stack.pop().n);
+    function isOpener(token, tags) {
+        for (var i = 0, l = tags.length; i < l; i++) {
+            if (tags[i].o == token.n) {
+                token.tag = '#';
+                return true;
+            }
+        }
     }
 
-    return instructions;
-  }
-
-  function isOpener(token, tags) {
-    for (var i = 0, l = tags.length; i < l; i++) {
-      if (tags[i].o == token.n) {
-        token.tag = '#';
-        return true;
-      }
-    }
-  }
-
-  function isCloser(close, open, tags) {
-    for (var i = 0, l = tags.length; i < l; i++) {
-      if (tags[i].c == close && tags[i].o == open) {
-        return true;
-      }
-    }
-  }
-
-  Hogan.generate = function (tree, text, options) {
-    var code = 'var _=this;_.b(i=i||"");' + walk(tree) + 'return _.fl();';
-    if (options.asString) {
-      return 'function(c,p,i){' + code + ';}';
+    function isCloser(close, open, tags) {
+        for (var i = 0, l = tags.length; i < l; i++) {
+            if (tags[i].c == close && tags[i].o == open) {
+                return true;
+            }
+        }
     }
 
-    return new Hogan.Template(new Function('c', 'p', 'i', code), text, Hogan, options);
-  }
+    Hogan.generate = function (tree, text, options) {
+        var code = 'var _=this;_.b(i=i||"");' + walk(tree) + 'return _.fl();';
+        if (options.asString) {
+            return 'function(c,p,i){' + code + ';}';
+        }
 
-  function esc(s) {
-    return s.replace(rSlash, '\\\\')
+        return new Hogan.Template(new Function('c', 'p', 'i', code), text, Hogan, options);
+    }
+
+    function esc(s) {
+        return s.replace(rSlash, '\\\\')
             .replace(rQuot, '\\\"')
             .replace(rNewline, '\\n')
             .replace(rCr, '\\r');
-  }
-
-  function chooseMethod(s) {
-    return (~s.indexOf('.')) ? 'd' : 'f';
-  }
-
-  function walk(tree) {
-    var code = '';
-    for (var i = 0, l = tree.length; i < l; i++) {
-      var tag = tree[i].tag;
-      if (tag == '#') {
-        code += section(tree[i].nodes, tree[i].n, chooseMethod(tree[i].n),
-                        tree[i].i, tree[i].end, tree[i].otag + " " + tree[i].ctag);
-      } else if (tag == '^') {
-        code += invertedSection(tree[i].nodes, tree[i].n,
-                                chooseMethod(tree[i].n));
-      } else if (tag == '<' || tag == '>') {
-        code += partial(tree[i]);
-      } else if (tag == '{' || tag == '&') {
-        code += tripleStache(tree[i].n, chooseMethod(tree[i].n));
-      } else if (tag == '\n') {
-        code += text('"\\n"' + (tree.length-1 == i ? '' : ' + i'));
-      } else if (tag == '_v') {
-        code += variable(tree[i].n, chooseMethod(tree[i].n));
-      } else if (tag === undefined) {
-        code += text('"' + esc(tree[i]) + '"');
-      }
-    }
-    return code;
-  }
-
-  function section(nodes, id, method, start, end, tags) {
-    return 'if(_.s(_.' + method + '("' + esc(id) + '",c,p,1),' +
-           'c,p,0,' + start + ',' + end + ',"' + tags + '")){' +
-           '_.rs(c,p,' +
-           'function(c,p,_){' +
-           walk(nodes) +
-           '});c.pop();}';
-  }
-
-  function invertedSection(nodes, id, method) {
-    return 'if(!_.s(_.' + method + '("' + esc(id) + '",c,p,1),c,p,1,0,0,"")){' +
-           walk(nodes) +
-           '};';
-  }
-
-  function partial(tok) {
-    return '_.b(_.rp("' +  esc(tok.n) + '",c,p,"' + (tok.indent || '') + '"));';
-  }
-
-  function tripleStache(id, method) {
-    return '_.b(_.t(_.' + method + '("' + esc(id) + '",c,p,0)));';
-  }
-
-  function variable(id, method) {
-    return '_.b(_.v(_.' + method + '("' + esc(id) + '",c,p,0)));';
-  }
-
-  function text(id) {
-    return '_.b(' + id + ');';
-  }
-
-  Hogan.parse = function(tokens, text, options) {
-    options = options || {};
-    return buildTree(tokens, '', [], options.sectionTags || []);
-  },
-
-  Hogan.cache = {};
-
-  Hogan.compile = function(text, options) {
-    // options
-    //
-    // asString: false (default)
-    //
-    // sectionTags: [{o: '_foo', c: 'foo'}]
-    // An array of object with o and c fields that indicate names for custom
-    // section tags. The example above allows parsing of {{_foo}}{{/foo}}.
-    //
-    // delimiters: A string that overrides the default delimiters.
-    // Example: "<% %>"
-    //
-    options = options || {};
-
-    var key = text + '||' + !!options.asString;
-
-    var t = this.cache[key];
-
-    if (t) {
-      return t;
     }
 
-    t = this.generate(this.parse(this.scan(text, options.delimiters), text, options), text, options);
-    return this.cache[key] = t;
-  };
+    function chooseMethod(s) {
+        return (~s.indexOf('.')) ? 'd' : 'f';
+    }
+
+    function walk(tree) {
+        var code = '';
+        for (var i = 0, l = tree.length; i < l; i++) {
+            var tag = tree[i].tag;
+            if (tag == '#') {
+                code += section(tree[i].nodes, tree[i].n, chooseMethod(tree[i].n),
+                    tree[i].i, tree[i].end, tree[i].otag + " " + tree[i].ctag);
+            } else if (tag == '^') {
+                code += invertedSection(tree[i].nodes, tree[i].n,
+                    chooseMethod(tree[i].n));
+            } else if (tag == '<' || tag == '>') {
+                code += partial(tree[i]);
+            } else if (tag == '{' || tag == '&') {
+                code += tripleStache(tree[i].n, chooseMethod(tree[i].n));
+            } else if (tag == '\n') {
+                code += text('"\\n"' + (tree.length - 1 == i ? '' : ' + i'));
+            } else if (tag == '_v') {
+                code += variable(tree[i].n, chooseMethod(tree[i].n));
+            } else if (tag === undefined) {
+                code += text('"' + esc(tree[i]) + '"');
+            }
+        }
+        return code;
+    }
+
+    function section(nodes, id, method, start, end, tags) {
+        return 'if(_.s(_.' + method + '("' + esc(id) + '",c,p,1),' +
+            'c,p,0,' + start + ',' + end + ',"' + tags + '")){' +
+            '_.rs(c,p,' +
+            'function(c,p,_){' +
+            walk(nodes) +
+            '});c.pop();}';
+    }
+
+    function invertedSection(nodes, id, method) {
+        return 'if(!_.s(_.' + method + '("' + esc(id) + '",c,p,1),c,p,1,0,0,"")){' +
+            walk(nodes) +
+            '};';
+    }
+
+    function partial(tok) {
+        return '_.b(_.rp("' + esc(tok.n) + '",c,p,"' + (tok.indent || '') + '"));';
+    }
+
+    function tripleStache(id, method) {
+        return '_.b(_.t(_.' + method + '("' + esc(id) + '",c,p,0)));';
+    }
+
+    function variable(id, method) {
+        return '_.b(_.v(_.' + method + '("' + esc(id) + '",c,p,0)));';
+    }
+
+    function text(id) {
+        return '_.b(' + id + ');';
+    }
+
+    Hogan.parse = function (tokens, text, options) {
+        options = options || {};
+        return buildTree(tokens, '', [], options.sectionTags || []);
+    },
+
+        Hogan.cache = {};
+
+    Hogan.compile = function (text, options) {
+        // options
+        //
+        // asString: false (default)
+        //
+        // sectionTags: [{o: '_foo', c: 'foo'}]
+        // An array of object with o and c fields that indicate names for custom
+        // section tags. The example above allows parsing of {{_foo}}{{/foo}}.
+        //
+        // delimiters: A string that overrides the default delimiters.
+        // Example: "<% %>"
+        //
+        options = options || {};
+
+        var key = text + '||' + !!options.asString;
+
+        var t = this.cache[key];
+
+        if (t) {
+            return t;
+        }
+
+        t = this.generate(this.parse(this.scan(text, options.delimiters), text, options), text, options);
+        return this.cache[key] = t;
+    };
 })(typeof exports !== 'undefined' ? exports : Hogan);
 
 
 
 ;
 
-(function(jQuery)
-{
+(function (jQuery) {
     /*
 
     Trimmed down to only the necessary bits
@@ -572,8 +573,8 @@ var Hogan = {};
      * Licensed under the MIT license.
      */
 
-    jQuery.easydate = { };
-    jQuery.easydate.locales = { };
+    jQuery.easydate = {};
+    jQuery.easydate.locales = {};
     jQuery.easydate.locales.en = {
         "future_format": "%s %t",
         "past_format": "%t %s",
@@ -623,7 +624,7 @@ var Hogan = {};
     };
 
 
-    jQuery.easydate.locales.es= {
+    jQuery.easydate.locales.es = {
         "future_format": "%s %t",
         "past_format": "%s %t",
         "second": "segundo",
@@ -656,24 +657,22 @@ var Hogan = {};
             { name: "now", limit: 5 },
             { name: "second", limit: 60, in_seconds: 1 },
             { name: "minute", limit: 3600, in_seconds: 60 },
-            { name: "hour", limit: 86400, in_seconds: 3600  },
+            { name: "hour", limit: 86400, in_seconds: 3600 },
             { name: "yesterday", limit: 172800, past_only: true },
             { name: "tomorrow", limit: 172800, future_only: true },
             { name: "day", limit: 604800, in_seconds: 86400 },
-            { name: "week", limit: 2629743, in_seconds: 604800  },
+            { name: "week", limit: 2629743, in_seconds: 604800 },
             { name: "month", limit: 31556926, in_seconds: 2629743 },
             { name: "year", limit: Infinity, in_seconds: 31556926 }
         ],
-        uneasy_format: function(date)
-        {
+        uneasy_format: function (date) {
             return date.toLocaleDateString();
         },
         locale: jQuery.easydate.locales.en
     };
 
-    function __(str, value, settings)
-    {
-        if(!isNaN(value) && value != 1)
+    function __(str, value, settings) {
+        if (!isNaN(value) && value != 1)
             str = str + "s";
         return settings.locale[str] || str;
     }
@@ -686,46 +685,42 @@ var Hogan = {};
     // synchronizing the user's clock with a server-side clock.
 
     // Formats a Date object to a human-readable localized string.
-    jQuery.easydate.format_date = function(date, language)
-    {
+    jQuery.easydate.format_date = function (date, language) {
         var settings = jQuery.extend({}, defaults);
         settings.locale = jQuery.easydate.locales[language]
         var now = new Date();
-        var diff = (( now.getTime() - date.getTime()) / 1000);
+        var diff = ((now.getTime() - date.getTime()) / 1000);
         var diff_abs = Math.abs(diff);
 
-        if(isNaN(diff))
-          {
+        if (isNaN(diff)) {
 
             return;
 
-           }
+        }
         // Return if we shouldn't format this date because it is in the past
         // or future and our setting does not allow it.
-        if((!settings.format_future && diff < 0) ||
+        if ((!settings.format_future && diff < 0) ||
             (!settings.format_past && diff > 0))
             return;
 
-        for(var i in settings.units)
-        {
+        for (var i in settings.units) {
             var unit = settings.units[i];
 
             // Skip this unit if it's for past dates only and this is a future
             // date, or if it's for future dates only and this is a past date.
-            if((unit.past_only && diff < 0) || (unit.future_only && diff > 0))
+            if ((unit.past_only && diff < 0) || (unit.future_only && diff > 0))
                 continue;
 
-            if(diff_abs < unit.limit)
-            {
+            if (diff_abs < unit.limit) {
                 // Case for units that are not really measurement units - e.g.,
                 // "yesterday" or "now".
-                if(isNaN(unit.in_seconds))
+                if (isNaN(unit.in_seconds))
                     return __(unit.name, NaN, settings);
 
                 var val = diff_abs / unit.in_seconds;
                 val = Math.round(val);
                 var format_string;
-                if(diff < 0)
+                if (diff < 0)
                     format_string = __("future_format", NaN, settings)
                         .replace("%s", __("in", NaN, settings))
                 else
@@ -745,58 +740,58 @@ var Hogan = {};
 
 ;
 
-(function( jQuery ) {
-  // Create the request object
-  // (This is still attached to ajaxSettings for backward compatibility)
-  jQuery.ajaxSettings.xdr = function() {
-    return (window.XDomainRequest ? new window.XDomainRequest() : null);
-  };
+(function (jQuery) {
+    // Create the request object
+    // (This is still attached to ajaxSettings for backward compatibility)
+    jQuery.ajaxSettings.xdr = function () {
+        return (window.XDomainRequest ? new window.XDomainRequest() : null);
+    };
 
-  // Determine support properties
-  (function( xdr ) {
-    jQuery.extend( jQuery.support, { iecors: !!xdr });
-  })( jQuery.ajaxSettings.xdr() );
+    // Determine support properties
+    (function (xdr) {
+        jQuery.extend(jQuery.support, { iecors: !!xdr });
+    })(jQuery.ajaxSettings.xdr());
 
-  // Create transport if the browser can provide an xdr
-  if ( jQuery.support.iecors ) {
+    // Create transport if the browser can provide an xdr
+    if (jQuery.support.iecors) {
 
-    jQuery.ajaxTransport(function( s ) {
-      var callback,
-        xdr = s.xdr();
+        jQuery.ajaxTransport(function (s) {
+            var callback,
+                xdr = s.xdr();
 
-      return {
-        send: function( headers, complete ) {
-          xdr.onload = function() {
-            var headers = { 'Content-Type': xdr.contentType };
-            complete(200, 'OK', { text: xdr.responseText }, headers);
-          };
+            return {
+                send: function (headers, complete) {
+                    xdr.onload = function () {
+                        var headers = { 'Content-Type': xdr.contentType };
+                        complete(200, 'OK', { text: xdr.responseText }, headers);
+                    };
 
-          // Apply custom fields if provided
-          if ( s.xhrFields ) {
-            xhr.onerror = s.xhrFields.error;
-            xhr.ontimeout = s.xhrFields.timeout;
-          }
+                    // Apply custom fields if provided
+                    if (s.xhrFields) {
+                        xhr.onerror = s.xhrFields.error;
+                        xhr.ontimeout = s.xhrFields.timeout;
+                    }
 
-          xdr.open( s.type, s.url );
+                    xdr.open(s.type, s.url);
 
-          // XDR has no method for setting headers O_o
+                    // XDR has no method for setting headers O_o
 
-          xdr.send( ( s.hasContent && s.data ) || null );
-        },
+                    xdr.send((s.hasContent && s.data) || null);
+                },
 
-        abort: function() {
-          xdr.abort();
-        }
-      };
-    });
-  }
-})( jQuery );
+                abort: function () {
+                    xdr.abort();
+                }
+            };
+        });
+    }
+})(jQuery);
 
 
 ;
 
 (function (factory) {
-    if ( typeof define === 'function' && define.amd ) {
+    if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define(['jquery'], factory);
     } else if (typeof exports === 'object') {
@@ -808,25 +803,25 @@ var Hogan = {};
     }
 }(function ($) {
 
-    var toFix  = ['wheel', 'mousewheel', 'DOMMouseScroll', 'MozMousePixelScroll'],
-        toBind = ( 'onwheel' in document || document.documentMode >= 9 ) ?
-                    ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'],
-        slice  = Array.prototype.slice,
+    var toFix = ['wheel', 'mousewheel', 'DOMMouseScroll', 'MozMousePixelScroll'],
+        toBind = ('onwheel' in document || document.documentMode >= 9) ?
+            ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'],
+        slice = Array.prototype.slice,
         nullLowestDeltaTimeout, lowestDelta;
 
-    if ( $.event.fixHooks ) {
-        for ( var i = toFix.length; i; ) {
-            $.event.fixHooks[ toFix[--i] ] = $.event.mouseHooks;
+    if ($.event.fixHooks) {
+        for (var i = toFix.length; i;) {
+            $.event.fixHooks[toFix[--i]] = $.event.mouseHooks;
         }
     }
 
     var special = $.event.special.mousewheel = {
         version: '3.1.9',
 
-        setup: function() {
-            if ( this.addEventListener ) {
-                for ( var i = toBind.length; i; ) {
-                    this.addEventListener( toBind[--i], handler, false );
+        setup: function () {
+            if (this.addEventListener) {
+                for (var i = toBind.length; i;) {
+                    this.addEventListener(toBind[--i], handler, false);
                 }
             } else {
                 this.onmousewheel = handler;
@@ -836,21 +831,21 @@ var Hogan = {};
             $.data(this, 'mousewheel-page-height', special.getPageHeight(this));
         },
 
-        teardown: function() {
-            if ( this.removeEventListener ) {
-                for ( var i = toBind.length; i; ) {
-                    this.removeEventListener( toBind[--i], handler, false );
+        teardown: function () {
+            if (this.removeEventListener) {
+                for (var i = toBind.length; i;) {
+                    this.removeEventListener(toBind[--i], handler, false);
                 }
             } else {
                 this.onmousewheel = null;
             }
         },
 
-        getLineHeight: function(elem) {
+        getLineHeight: function (elem) {
             return parseInt($(elem)['offsetParent' in $.fn ? 'offsetParent' : 'parent']().css('fontSize'), 10);
         },
 
-        getPageHeight: function(elem) {
+        getPageHeight: function (elem) {
             return $(elem).height();
         },
 
@@ -860,34 +855,34 @@ var Hogan = {};
     };
 
     $.fn.extend({
-        mousewheel: function(fn) {
+        mousewheel: function (fn) {
             return fn ? this.bind('mousewheel', fn) : this.trigger('mousewheel');
         },
 
-        unmousewheel: function(fn) {
+        unmousewheel: function (fn) {
             return this.unbind('mousewheel', fn);
         }
     });
 
 
     function handler(event) {
-        var orgEvent   = event || window.event,
-            args       = slice.call(arguments, 1),
-            delta      = 0,
-            deltaX     = 0,
-            deltaY     = 0,
-            absDelta   = 0;
+        var orgEvent = event || window.event,
+            args = slice.call(arguments, 1),
+            delta = 0,
+            deltaX = 0,
+            deltaY = 0,
+            absDelta = 0;
         event = $.event.fix(orgEvent);
         event.type = 'mousewheel';
 
         // Old school scrollwheel delta
-        if ( 'detail'      in orgEvent ) { deltaY = orgEvent.detail * -1;      }
-        if ( 'wheelDelta'  in orgEvent ) { deltaY = orgEvent.wheelDelta;       }
-        if ( 'wheelDeltaY' in orgEvent ) { deltaY = orgEvent.wheelDeltaY;      }
-        if ( 'wheelDeltaX' in orgEvent ) { deltaX = orgEvent.wheelDeltaX * -1; }
+        if ('detail' in orgEvent) { deltaY = orgEvent.detail * -1; }
+        if ('wheelDelta' in orgEvent) { deltaY = orgEvent.wheelDelta; }
+        if ('wheelDeltaY' in orgEvent) { deltaY = orgEvent.wheelDeltaY; }
+        if ('wheelDeltaX' in orgEvent) { deltaX = orgEvent.wheelDeltaX * -1; }
 
         // Firefox < 17 horizontal scrolling related to DOMMouseScroll event
-        if ( 'axis' in orgEvent && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
+        if ('axis' in orgEvent && orgEvent.axis === orgEvent.HORIZONTAL_AXIS) {
             deltaX = deltaY * -1;
             deltaY = 0;
         }
@@ -896,59 +891,59 @@ var Hogan = {};
         delta = deltaY === 0 ? deltaX : deltaY;
 
         // New school wheel delta (wheel event)
-        if ( 'deltaY' in orgEvent ) {
+        if ('deltaY' in orgEvent) {
             deltaY = orgEvent.deltaY * -1;
-            delta  = deltaY;
+            delta = deltaY;
         }
-        if ( 'deltaX' in orgEvent ) {
+        if ('deltaX' in orgEvent) {
             deltaX = orgEvent.deltaX;
-            if ( deltaY === 0 ) { delta  = deltaX * -1; }
+            if (deltaY === 0) { delta = deltaX * -1; }
         }
 
         // No change actually happened, no reason to go any further
-        if ( deltaY === 0 && deltaX === 0 ) { return; }
+        if (deltaY === 0 && deltaX === 0) { return; }
 
         // Need to convert lines and pages to pixels if we aren't already in pixels
         // There are three delta modes:
         //   * deltaMode 0 is by pixels, nothing to do
         //   * deltaMode 1 is by lines
         //   * deltaMode 2 is by pages
-        if ( orgEvent.deltaMode === 1 ) {
+        if (orgEvent.deltaMode === 1) {
             var lineHeight = $.data(this, 'mousewheel-line-height');
-            delta  *= lineHeight;
+            delta *= lineHeight;
             deltaY *= lineHeight;
             deltaX *= lineHeight;
-        } else if ( orgEvent.deltaMode === 2 ) {
+        } else if (orgEvent.deltaMode === 2) {
             var pageHeight = $.data(this, 'mousewheel-page-height');
-            delta  *= pageHeight;
+            delta *= pageHeight;
             deltaY *= pageHeight;
             deltaX *= pageHeight;
         }
 
         // Store lowest absolute delta to normalize the delta values
-        absDelta = Math.max( Math.abs(deltaY), Math.abs(deltaX) );
+        absDelta = Math.max(Math.abs(deltaY), Math.abs(deltaX));
 
-        if ( !lowestDelta || absDelta < lowestDelta ) {
+        if (!lowestDelta || absDelta < lowestDelta) {
             lowestDelta = absDelta;
 
             // Adjust older deltas if necessary
-            if ( shouldAdjustOldDeltas(orgEvent, absDelta) ) {
+            if (shouldAdjustOldDeltas(orgEvent, absDelta)) {
                 lowestDelta /= 40;
             }
         }
 
         // Adjust older deltas if necessary
-        if ( shouldAdjustOldDeltas(orgEvent, absDelta) ) {
+        if (shouldAdjustOldDeltas(orgEvent, absDelta)) {
             // Divide all the things by 40!
-            delta  /= 40;
+            delta /= 40;
             deltaX /= 40;
             deltaY /= 40;
         }
 
         // Get a whole, normalized value for the deltas
-        delta  = Math[ delta  >= 1 ? 'floor' : 'ceil' ](delta  / lowestDelta);
-        deltaX = Math[ deltaX >= 1 ? 'floor' : 'ceil' ](deltaX / lowestDelta);
-        deltaY = Math[ deltaY >= 1 ? 'floor' : 'ceil' ](deltaY / lowestDelta);
+        delta = Math[delta >= 1 ? 'floor' : 'ceil'](delta / lowestDelta);
+        deltaX = Math[deltaX >= 1 ? 'floor' : 'ceil'](deltaX / lowestDelta);
+        deltaY = Math[deltaY >= 1 ? 'floor' : 'ceil'](deltaY / lowestDelta);
 
         // Add information to the event object
         event.deltaX = deltaX;
@@ -1022,17 +1017,17 @@ if (typeof JSON !== 'object') {
         Date.prototype.toJSON = function () {
 
             return isFinite(this.valueOf())
-                ? this.getUTCFullYear()     + '-' +
-                    f(this.getUTCMonth() + 1) + '-' +
-                    f(this.getUTCDate())      + 'T' +
-                    f(this.getUTCHours())     + ':' +
-                    f(this.getUTCMinutes())   + ':' +
-                    f(this.getUTCSeconds())   + 'Z'
+                ? this.getUTCFullYear() + '-' +
+                f(this.getUTCMonth() + 1) + '-' +
+                f(this.getUTCDate()) + 'T' +
+                f(this.getUTCHours()) + ':' +
+                f(this.getUTCMinutes()) + ':' +
+                f(this.getUTCSeconds()) + 'Z'
                 : null;
         };
 
-        String.prototype.toJSON      =
-            Number.prototype.toJSON  =
+        String.prototype.toJSON =
+            Number.prototype.toJSON =
             Boolean.prototype.toJSON = function () {
                 return this.valueOf();
             };
@@ -1048,10 +1043,10 @@ if (typeof JSON !== 'object') {
 
     function quote(string) {
 
-// If the string contains no control characters, no quote characters, and no
-// backslash characters, then we can safely slap some quotes around it.
-// Otherwise we must also replace the offending characters with safe escape
-// sequences.
+        // If the string contains no control characters, no quote characters, and no
+        // backslash characters, then we can safely slap some quotes around it.
+        // Otherwise we must also replace the offending characters with safe escape
+        // sequences.
 
         escapable.lastIndex = 0;
         return escapable.test(string) ? '"' + string.replace(escapable, function (a) {
@@ -1065,7 +1060,7 @@ if (typeof JSON !== 'object') {
 
     function str(key, holder) {
 
-// Produce a string from holder[key].
+        // Produce a string from holder[key].
 
         var i,          // The loop counter.
             k,          // The member key.
@@ -1075,123 +1070,123 @@ if (typeof JSON !== 'object') {
             partial,
             value = holder[key];
 
-// If the value has a toJSON method, call it to obtain a replacement value.
+        // If the value has a toJSON method, call it to obtain a replacement value.
 
         if (value && typeof value === 'object' &&
-                typeof value.toJSON === 'function') {
+            typeof value.toJSON === 'function') {
             value = value.toJSON(key);
         }
 
-// If we were called with a replacer function, then call the replacer to
-// obtain a replacement value.
+        // If we were called with a replacer function, then call the replacer to
+        // obtain a replacement value.
 
         if (typeof rep === 'function') {
             value = rep.call(holder, key, value);
         }
 
-// What happens next depends on the value's type.
+        // What happens next depends on the value's type.
 
         switch (typeof value) {
-        case 'string':
-            return quote(value);
+            case 'string':
+                return quote(value);
 
-        case 'number':
+            case 'number':
 
-// JSON numbers must be finite. Encode non-finite numbers as null.
+                // JSON numbers must be finite. Encode non-finite numbers as null.
 
-            return isFinite(value) ? String(value) : 'null';
+                return isFinite(value) ? String(value) : 'null';
 
-        case 'boolean':
-        case 'null':
+            case 'boolean':
+            case 'null':
 
-// If the value is a boolean or null, convert it to a string. Note:
-// typeof null does not produce 'null'. The case is included here in
-// the remote chance that this gets fixed someday.
+                // If the value is a boolean or null, convert it to a string. Note:
+                // typeof null does not produce 'null'. The case is included here in
+                // the remote chance that this gets fixed someday.
 
-            return String(value);
+                return String(value);
 
-// If the type is 'object', we might be dealing with an object or an array or
-// null.
+            // If the type is 'object', we might be dealing with an object or an array or
+            // null.
 
-        case 'object':
+            case 'object':
 
-// Due to a specification blunder in ECMAScript, typeof null is 'object',
-// so watch out for that case.
+                // Due to a specification blunder in ECMAScript, typeof null is 'object',
+                // so watch out for that case.
 
-            if (!value) {
-                return 'null';
-            }
-
-// Make an array to hold the partial results of stringifying this object value.
-
-            gap += indent;
-            partial = [];
-
-// Is the value an array?
-
-            if (Object.prototype.toString.apply(value) === '[object Array]') {
-
-// The value is an array. Stringify every element. Use null as a placeholder
-// for non-JSON values.
-
-                length = value.length;
-                for (i = 0; i < length; i += 1) {
-                    partial[i] = str(i, value) || 'null';
+                if (!value) {
+                    return 'null';
                 }
 
-// Join all of the elements together, separated with commas, and wrap them in
-// brackets.
+                // Make an array to hold the partial results of stringifying this object value.
+
+                gap += indent;
+                partial = [];
+
+                // Is the value an array?
+
+                if (Object.prototype.toString.apply(value) === '[object Array]') {
+
+                    // The value is an array. Stringify every element. Use null as a placeholder
+                    // for non-JSON values.
+
+                    length = value.length;
+                    for (i = 0; i < length; i += 1) {
+                        partial[i] = str(i, value) || 'null';
+                    }
+
+                    // Join all of the elements together, separated with commas, and wrap them in
+                    // brackets.
+
+                    v = partial.length === 0
+                        ? '[]'
+                        : gap
+                            ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']'
+                            : '[' + partial.join(',') + ']';
+                    gap = mind;
+                    return v;
+                }
+
+                // If the replacer is an array, use it to select the members to be stringified.
+
+                if (rep && typeof rep === 'object') {
+                    length = rep.length;
+                    for (i = 0; i < length; i += 1) {
+                        if (typeof rep[i] === 'string') {
+                            k = rep[i];
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                } else {
+
+                    // Otherwise, iterate through all of the keys in the object.
+
+                    for (k in value) {
+                        if (Object.prototype.hasOwnProperty.call(value, k)) {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                }
+
+                // Join all of the member texts together, separated with commas,
+                // and wrap them in braces.
 
                 v = partial.length === 0
-                    ? '[]'
+                    ? '{}'
                     : gap
-                    ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']'
-                    : '[' + partial.join(',') + ']';
+                        ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}'
+                        : '{' + partial.join(',') + '}';
                 gap = mind;
                 return v;
-            }
-
-// If the replacer is an array, use it to select the members to be stringified.
-
-            if (rep && typeof rep === 'object') {
-                length = rep.length;
-                for (i = 0; i < length; i += 1) {
-                    if (typeof rep[i] === 'string') {
-                        k = rep[i];
-                        v = str(k, value);
-                        if (v) {
-                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                        }
-                    }
-                }
-            } else {
-
-// Otherwise, iterate through all of the keys in the object.
-
-                for (k in value) {
-                    if (Object.prototype.hasOwnProperty.call(value, k)) {
-                        v = str(k, value);
-                        if (v) {
-                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
-                        }
-                    }
-                }
-            }
-
-// Join all of the member texts together, separated with commas,
-// and wrap them in braces.
-
-            v = partial.length === 0
-                ? '{}'
-                : gap
-                ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}'
-                : '{' + partial.join(',') + '}';
-            gap = mind;
-            return v;
         }
     }
 
-// If the JSON object does not yet have a stringify method, give it one.
+    // If the JSON object does not yet have a stringify method, give it one.
 
     if (typeof JSON.stringify !== 'function') {
         escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
@@ -1201,68 +1196,68 @@ if (typeof JSON !== 'object') {
             '\n': '\\n',
             '\f': '\\f',
             '\r': '\\r',
-            '"' : '\\"',
+            '"': '\\"',
             '\\': '\\\\'
         };
         JSON.stringify = function (value, replacer, space) {
 
-// The stringify method takes a value and an optional replacer, and an optional
-// space parameter, and returns a JSON text. The replacer can be a function
-// that can replace values, or an array of strings that will select the keys.
-// A default replacer method can be provided. Use of the space parameter can
-// produce text that is more easily readable.
+            // The stringify method takes a value and an optional replacer, and an optional
+            // space parameter, and returns a JSON text. The replacer can be a function
+            // that can replace values, or an array of strings that will select the keys.
+            // A default replacer method can be provided. Use of the space parameter can
+            // produce text that is more easily readable.
 
             var i;
             gap = '';
             indent = '';
 
-// If the space parameter is a number, make an indent string containing that
-// many spaces.
+            // If the space parameter is a number, make an indent string containing that
+            // many spaces.
 
             if (typeof space === 'number') {
                 for (i = 0; i < space; i += 1) {
                     indent += ' ';
                 }
 
-// If the space parameter is a string, it will be used as the indent string.
+                // If the space parameter is a string, it will be used as the indent string.
 
             } else if (typeof space === 'string') {
                 indent = space;
             }
 
-// If there is a replacer, it must be a function or an array.
-// Otherwise, throw an error.
+            // If there is a replacer, it must be a function or an array.
+            // Otherwise, throw an error.
 
             rep = replacer;
             if (replacer && typeof replacer !== 'function' &&
-                    (typeof replacer !== 'object' ||
+                (typeof replacer !== 'object' ||
                     typeof replacer.length !== 'number')) {
                 throw new Error('JSON.stringify');
             }
 
-// Make a fake root object containing our value under the key of ''.
-// Return the result of stringifying the value.
+            // Make a fake root object containing our value under the key of ''.
+            // Return the result of stringifying the value.
 
-            return str('', {'': value});
+            return str('', { '': value });
         };
     }
 
 
-// If the JSON object does not yet have a parse method, give it one.
+    // If the JSON object does not yet have a parse method, give it one.
 
     if (typeof JSON.parse !== 'function') {
         cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
         JSON.parse = function (text, reviver) {
 
-// The parse method takes a text and an optional reviver function, and returns
-// a JavaScript value if the text is a valid JSON text.
+            // The parse method takes a text and an optional reviver function, and returns
+            // a JavaScript value if the text is a valid JSON text.
 
             var j;
 
             function walk(holder, key) {
 
-// The walk method is used to recursively walk the resulting structure so
-// that modifications can be made.
+                // The walk method is used to recursively walk the resulting structure so
+                // that modifications can be made.
 
                 var k, v, value = holder[key];
                 if (value && typeof value === 'object') {
@@ -1281,9 +1276,9 @@ if (typeof JSON !== 'object') {
             }
 
 
-// Parsing happens in four stages. In the first stage, we replace certain
-// Unicode characters with escape sequences. JavaScript handles many characters
-// incorrectly, either silently deleting them, or treating them as line endings.
+            // Parsing happens in four stages. In the first stage, we replace certain
+            // Unicode characters with escape sequences. JavaScript handles many characters
+            // incorrectly, either silently deleting them, or treating them as line endings.
 
             text = String(text);
             cx.lastIndex = 0;
@@ -1294,40 +1289,40 @@ if (typeof JSON !== 'object') {
                 });
             }
 
-// In the second stage, we run the text against regular expressions that look
-// for non-JSON patterns. We are especially concerned with '()' and 'new'
-// because they can cause invocation, and '=' because it can cause mutation.
-// But just to be safe, we want to reject all unexpected forms.
+            // In the second stage, we run the text against regular expressions that look
+            // for non-JSON patterns. We are especially concerned with '()' and 'new'
+            // because they can cause invocation, and '=' because it can cause mutation.
+            // But just to be safe, we want to reject all unexpected forms.
 
-// We split the second stage into 4 regexp operations in order to work around
-// crippling inefficiencies in IE's and Safari's regexp engines. First we
-// replace the JSON backslash pairs with '@' (a non-JSON character). Second, we
-// replace all simple value tokens with ']' characters. Third, we delete all
-// open brackets that follow a colon or comma or that begin the text. Finally,
-// we look to see that the remaining characters are only whitespace or ']' or
-// ',' or ':' or '{' or '}'. If that is so, then the text is safe for eval.
+            // We split the second stage into 4 regexp operations in order to work around
+            // crippling inefficiencies in IE's and Safari's regexp engines. First we
+            // replace the JSON backslash pairs with '@' (a non-JSON character). Second, we
+            // replace all simple value tokens with ']' characters. Third, we delete all
+            // open brackets that follow a colon or comma or that begin the text. Finally,
+            // we look to see that the remaining characters are only whitespace or ']' or
+            // ',' or ':' or '{' or '}'. If that is so, then the text is safe for eval.
 
             if (/^[\],:{}\s]*$/
-                    .test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
-                        .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
-                        .replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+                .test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
+                    .replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
+                    .replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
 
-// In the third stage we use the eval function to compile the text into a
-// JavaScript structure. The '{' operator is subject to a syntactic ambiguity
-// in JavaScript: it can begin a block or an object literal. We wrap the text
-// in parens to eliminate the ambiguity.
+                // In the third stage we use the eval function to compile the text into a
+                // JavaScript structure. The '{' operator is subject to a syntactic ambiguity
+                // in JavaScript: it can begin a block or an object literal. We wrap the text
+                // in parens to eliminate the ambiguity.
 
                 j = eval('(' + text + ')');
 
-// In the optional fourth stage, we recursively walk the new structure, passing
-// each name/value pair to a reviver function for possible transformation.
+                // In the optional fourth stage, we recursively walk the new structure, passing
+                // each name/value pair to a reviver function for possible transformation.
 
                 return typeof reviver === 'function'
-                    ? walk({'': j}, '')
+                    ? walk({ '': j }, '')
                     : j;
             }
 
-// If the text is not JSON parseable, then a SyntaxError is thrown.
+            // If the text is not JSON parseable, then a SyntaxError is thrown.
 
             throw new SyntaxError('JSON.parse');
         };
@@ -1348,650 +1343,650 @@ if (typeof JSON !== 'object') {
    Copyright (C) 2017 [Deepak Kumar](https://www.kreatio.com)
  */
 
-(function() {
-  var Byte, Client, Frame, Stomp,
-    hasProp = {}.hasOwnProperty,
-    slice = [].slice;
+(function () {
+    var Byte, Client, Frame, Stomp,
+        hasProp = {}.hasOwnProperty,
+        slice = [].slice;
 
-  Byte = {
-    LF: '\x0A',
-    NULL: '\x00'
-  };
+    Byte = {
+        LF: '\x0A',
+        NULL: '\x00'
+    };
 
-  Frame = (function() {
-    var unmarshallSingle;
+    Frame = (function () {
+        var unmarshallSingle;
 
-    function Frame(command1, headers1, body1, escapeHeaderValues1) {
-      this.command = command1;
-      this.headers = headers1 != null ? headers1 : {};
-      this.body = body1 != null ? body1 : '';
-      this.escapeHeaderValues = escapeHeaderValues1 != null ? escapeHeaderValues1 : false;
-    }
-
-    Frame.prototype.toString = function() {
-      var lines, name, ref, skipContentLength, value;
-      lines = [this.command];
-      skipContentLength = (this.headers['content-length'] === false) ? true : false;
-      if (skipContentLength) {
-        delete this.headers['content-length'];
-      }
-      ref = this.headers;
-      for (name in ref) {
-        if (!hasProp.call(ref, name)) continue;
-        value = ref[name];
-        if (this.escapeHeaderValues && this.command !== 'CONNECT' && this.command !== 'CONNECTED') {
-          lines.push(name + ":" + (Frame.frEscape(value)));
-        } else {
-          lines.push(name + ":" + value);
+        function Frame(command1, headers1, body1, escapeHeaderValues1) {
+            this.command = command1;
+            this.headers = headers1 != null ? headers1 : {};
+            this.body = body1 != null ? body1 : '';
+            this.escapeHeaderValues = escapeHeaderValues1 != null ? escapeHeaderValues1 : false;
         }
-      }
-      if (this.body && !skipContentLength) {
-        lines.push("content-length:" + (Frame.sizeOfUTF8(this.body)));
-      }
-      lines.push(Byte.LF + this.body);
-      return lines.join(Byte.LF);
-    };
 
-    Frame.sizeOfUTF8 = function(s) {
-      if (s) {
-        return encodeURI(s).match(/%..|./g).length;
-      } else {
-        return 0;
-      }
-    };
-
-    unmarshallSingle = function(data, escapeHeaderValues) {
-      var body, chr, command, divider, headerLines, headers, i, idx, j, k, len, len1, line, ref, ref1, ref2, start, trim;
-      if (escapeHeaderValues == null) {
-        escapeHeaderValues = false;
-      }
-      divider = data.search(RegExp("" + Byte.LF + Byte.LF));
-      headerLines = data.substring(0, divider).split(Byte.LF);
-      command = headerLines.shift();
-      headers = {};
-      trim = function(str) {
-        return str.replace(/^\s+|\s+$/g, '');
-      };
-      ref = headerLines.reverse();
-      for (j = 0, len1 = ref.length; j < len1; j++) {
-        line = ref[j];
-        idx = line.indexOf(':');
-        if (escapeHeaderValues && command !== 'CONNECT' && command !== 'CONNECTED') {
-          headers[trim(line.substring(0, idx))] = Frame.frUnEscape(trim(line.substring(idx + 1)));
-        } else {
-          headers[trim(line.substring(0, idx))] = trim(line.substring(idx + 1));
-        }
-      }
-      body = '';
-      start = divider + 2;
-      if (headers['content-length']) {
-        len = parseInt(headers['content-length']);
-        body = ('' + data).substring(start, start + len);
-      } else {
-        chr = null;
-        for (i = k = ref1 = start, ref2 = data.length; ref1 <= ref2 ? k < ref2 : k > ref2; i = ref1 <= ref2 ? ++k : --k) {
-          chr = data.charAt(i);
-          if (chr === Byte.NULL) {
-            break;
-          }
-          body += chr;
-        }
-      }
-      return new Frame(command, headers, body, escapeHeaderValues);
-    };
-
-    Frame.unmarshall = function(datas, escapeHeaderValues) {
-      var frame, frames, last_frame, r;
-      if (escapeHeaderValues == null) {
-        escapeHeaderValues = false;
-      }
-      frames = datas.split(RegExp("" + Byte.NULL + Byte.LF + "*"));
-      r = {
-        frames: [],
-        partial: ''
-      };
-      r.frames = (function() {
-        var j, len1, ref, results;
-        ref = frames.slice(0, -1);
-        results = [];
-        for (j = 0, len1 = ref.length; j < len1; j++) {
-          frame = ref[j];
-          results.push(unmarshallSingle(frame, escapeHeaderValues));
-        }
-        return results;
-      })();
-      last_frame = frames.slice(-1)[0];
-      if (last_frame === Byte.LF || (last_frame.search(RegExp("" + Byte.NULL + Byte.LF + "*$"))) !== -1) {
-        r.frames.push(unmarshallSingle(last_frame, escapeHeaderValues));
-      } else {
-        r.partial = last_frame;
-      }
-      return r;
-    };
-
-    Frame.marshall = function(command, headers, body, escapeHeaderValues) {
-      var frame;
-      frame = new Frame(command, headers, body, escapeHeaderValues);
-      return frame.toString() + Byte.NULL;
-    };
-
-    Frame.frEscape = function(str) {
-      return ("" + str).replace(/\\/g, "\\\\").replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/:/g, "\\c");
-    };
-
-    Frame.frUnEscape = function(str) {
-      return ("" + str).replace(/\\r/g, "\r").replace(/\\n/g, "\n").replace(/\\c/g, ":").replace(/\\\\/g, "\\");
-    };
-
-    return Frame;
-
-  })();
-
-  Client = (function() {
-    var now;
-
-    function Client(ws_fn) {
-      this.ws_fn = function() {
-        var ws;
-        ws = ws_fn();
-        ws.binaryType = "arraybuffer";
-        return ws;
-      };
-      this.reconnect_delay = 0;
-      this.counter = 0;
-      this.connected = false;
-      this.heartbeat = {
-        outgoing: 10000,
-        incoming: 10000
-      };
-      this.maxWebSocketFrameSize = 16 * 1024;
-      this.subscriptions = {};
-      this.partialData = '';
-    }
-
-    Client.prototype.debug = function(message) {
-      var ref;
-      return typeof window !== "undefined" && window !== null ? (ref = window.console) != null ? ref.log(message) : void 0 : void 0;
-    };
-
-    now = function() {
-      if (Date.now) {
-        return Date.now();
-      } else {
-        return new Date().valueOf;
-      }
-    };
-
-    Client.prototype._transmit = function(command, headers, body) {
-      var out;
-      out = Frame.marshall(command, headers, body, this.escapeHeaderValues);
-      if (typeof this.debug === "function") {
-        this.debug(">>> " + out);
-      }
-      while (true) {
-        if (out.length > this.maxWebSocketFrameSize) {
-          this.ws.send(out.substring(0, this.maxWebSocketFrameSize));
-          out = out.substring(this.maxWebSocketFrameSize);
-          if (typeof this.debug === "function") {
-            this.debug("remaining = " + out.length);
-          }
-        } else {
-          return this.ws.send(out);
-        }
-      }
-    };
-
-    Client.prototype._setupHeartbeat = function(headers) {
-      var ref, ref1, serverIncoming, serverOutgoing, ttl, v;
-      if ((ref = headers.version) !== Stomp.VERSIONS.V1_1 && ref !== Stomp.VERSIONS.V1_2) {
-        return;
-      }
-      ref1 = (function() {
-        var j, len1, ref1, results;
-        ref1 = headers['heart-beat'].split(",");
-        results = [];
-        for (j = 0, len1 = ref1.length; j < len1; j++) {
-          v = ref1[j];
-          results.push(parseInt(v));
-        }
-        return results;
-      })(), serverOutgoing = ref1[0], serverIncoming = ref1[1];
-      if (!(this.heartbeat.outgoing === 0 || serverIncoming === 0)) {
-        ttl = Math.max(this.heartbeat.outgoing, serverIncoming);
-        if (typeof this.debug === "function") {
-          this.debug("send PING every " + ttl + "ms");
-        }
-        this.pinger = Stomp.setInterval(ttl, (function(_this) {
-          return function() {
-            _this.ws.send(Byte.LF);
-            return typeof _this.debug === "function" ? _this.debug(">>> PING") : void 0;
-          };
-        })(this));
-      }
-      if (!(this.heartbeat.incoming === 0 || serverOutgoing === 0)) {
-        ttl = Math.max(this.heartbeat.incoming, serverOutgoing);
-        if (typeof this.debug === "function") {
-          this.debug("check PONG every " + ttl + "ms");
-        }
-        return this.ponger = Stomp.setInterval(ttl, (function(_this) {
-          return function() {
-            var delta;
-            delta = now() - _this.serverActivity;
-            if (delta > ttl * 2) {
-              if (typeof _this.debug === "function") {
-                _this.debug("did not receive server activity for the last " + delta + "ms");
-              }
-              return _this.ws.close();
+        Frame.prototype.toString = function () {
+            var lines, name, ref, skipContentLength, value;
+            lines = [this.command];
+            skipContentLength = (this.headers['content-length'] === false) ? true : false;
+            if (skipContentLength) {
+                delete this.headers['content-length'];
             }
-          };
-        })(this));
-      }
-    };
-
-    Client.prototype._parseConnect = function() {
-      var args, closeEventCallback, connectCallback, errorCallback, headers;
-      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      headers = {};
-      if (args.length < 2) {
-        throw "Connect requires at least 2 arguments";
-      }
-      if (typeof args[1] === 'function') {
-        headers = args[0], connectCallback = args[1], errorCallback = args[2], closeEventCallback = args[3];
-      } else {
-        switch (args.length) {
-          case 6:
-            headers.login = args[0], headers.passcode = args[1], connectCallback = args[2], errorCallback = args[3], closeEventCallback = args[4], headers.host = args[5];
-            break;
-          default:
-            headers.login = args[0], headers.passcode = args[1], connectCallback = args[2], errorCallback = args[3], closeEventCallback = args[4];
-        }
-      }
-      return [headers, connectCallback, errorCallback, closeEventCallback];
-    };
-
-    Client.prototype.connect = function() {
-      var args, out;
-      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      this.escapeHeaderValues = false;
-      out = this._parseConnect.apply(this, args);
-      this.headers = out[0], this.connectCallback = out[1], this.errorCallback = out[2], this.closeEventCallback = out[3];
-      this._active = true;
-      return this._connect();
-    };
-
-    Client.prototype._connect = function() {
-      var UTF8ArrayToStr, closeEventCallback, errorCallback, headers;
-      headers = this.headers;
-      errorCallback = this.errorCallback;
-      closeEventCallback = this.closeEventCallback;
-      if (!this._active) {
-        this.debug('Client has been marked inactive, will not attempt to connect');
-        return;
-      }
-      if (typeof this.debug === "function") {
-        this.debug("Opening Web Socket...");
-      }
-      this.ws = this.ws_fn();
-      UTF8ArrayToStr = (function(_this) {
-        return function(array) {
-          var c, char2, char3, i, len, out;
-          out = "";
-          len = array.length;
-          i = 0;
-          while (i < len) {
-            c = array[i++];
-            switch (c >> 4) {
-              case 0:
-              case 1:
-              case 2:
-              case 3:
-              case 4:
-              case 5:
-              case 6:
-              case 7:
-                out += String.fromCharCode(c);
-                break;
-              case 12:
-              case 13:
-                char2 = array[i++];
-                out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
-                break;
-              case 14:
-                char2 = array[i++];
-                char3 = array[i++];
-                out += String.fromCharCode(((c & 0x0F) << 12) | ((char2 & 0x3F) << 6) | ((char3 & 0x3F) << 0));
-            }
-          }
-          return out;
-        };
-      })(this);
-      this.ws.onmessage = (function(_this) {
-        return function(evt) {
-          var arr, client, data, frame, j, len1, messageID, onreceive, ref, subscription, unmarshalledData;
-          data = typeof ArrayBuffer !== 'undefined' && evt.data instanceof ArrayBuffer ? (arr = new Uint8Array(evt.data), typeof _this.debug === "function" ? _this.debug("--- got data length: " + arr.length) : void 0, UTF8ArrayToStr(arr)) : evt.data;
-          _this.serverActivity = now();
-          if (data === Byte.LF) {
-            if (typeof _this.debug === "function") {
-              _this.debug("<<< PONG");
-            }
-            return;
-          }
-          if (typeof _this.debug === "function") {
-            _this.debug("<<< " + data);
-          }
-          unmarshalledData = Frame.unmarshall(_this.partialData + data, _this.escapeHeaderValues);
-          _this.partialData = unmarshalledData.partial;
-          ref = unmarshalledData.frames;
-          for (j = 0, len1 = ref.length; j < len1; j++) {
-            frame = ref[j];
-            switch (frame.command) {
-              case "CONNECTED":
-                if (typeof _this.debug === "function") {
-                  _this.debug("connected to server " + frame.headers.server);
-                }
-                _this.connected = true;
-                _this.version = frame.headers.version;
-                if (_this.version === Stomp.VERSIONS.V1_2) {
-                  _this.escapeHeaderValues = true;
-                }
-                if (!_this._active) {
-                  _this.disconnect();
-                  return;
-                }
-                _this._setupHeartbeat(frame.headers);
-                if (typeof _this.connectCallback === "function") {
-                  _this.connectCallback(frame);
-                }
-                break;
-              case "MESSAGE":
-                subscription = frame.headers.subscription;
-                onreceive = _this.subscriptions[subscription] || _this.onreceive;
-                if (onreceive) {
-                  client = _this;
-                  if (_this.version === Stomp.VERSIONS.V1_2) {
-                    messageID = frame.headers["ack"];
-                  } else {
-                    messageID = frame.headers["message-id"];
-                  }
-                  frame.ack = function(headers) {
-                    if (headers == null) {
-                      headers = {};
-                    }
-                    return client.ack(messageID, subscription, headers);
-                  };
-                  frame.nack = function(headers) {
-                    if (headers == null) {
-                      headers = {};
-                    }
-                    return client.nack(messageID, subscription, headers);
-                  };
-                  onreceive(frame);
+            ref = this.headers;
+            for (name in ref) {
+                if (!hasProp.call(ref, name)) continue;
+                value = ref[name];
+                if (this.escapeHeaderValues && this.command !== 'CONNECT' && this.command !== 'CONNECTED') {
+                    lines.push(name + ":" + (Frame.frEscape(value)));
                 } else {
-                  if (typeof _this.debug === "function") {
-                    _this.debug("Unhandled received MESSAGE: " + frame);
-                  }
-                }
-                break;
-              case "RECEIPT":
-                if (frame.headers["receipt-id"] === _this.closeReceipt) {
-                  _this.ws.onclose = null;
-                  _this.ws.close();
-                  _this._cleanUp();
-                  if (typeof _this._disconnectCallback === "function") {
-                    _this._disconnectCallback();
-                  }
-                } else {
-                  if (typeof _this.onreceipt === "function") {
-                    _this.onreceipt(frame);
-                  }
-                }
-                break;
-              case "ERROR":
-                if (typeof errorCallback === "function") {
-                  errorCallback(frame);
-                }
-                break;
-              default:
-                if (typeof _this.debug === "function") {
-                  _this.debug("Unhandled frame: " + frame);
+                    lines.push(name + ":" + value);
                 }
             }
-          }
+            if (this.body && !skipContentLength) {
+                lines.push("content-length:" + (Frame.sizeOfUTF8(this.body)));
+            }
+            lines.push(Byte.LF + this.body);
+            return lines.join(Byte.LF);
         };
-      })(this);
-      this.ws.onclose = (function(_this) {
-        return function(closeEvent) {
-          var msg;
-          msg = "Whoops! Lost connection to " + _this.ws.url;
-          if (typeof _this.debug === "function") {
-            _this.debug(msg);
-          }
-          if (typeof closeEventCallback === "function") {
-            closeEventCallback(closeEvent);
-          }
-          _this._cleanUp();
-          if (typeof errorCallback === "function") {
-            errorCallback(msg);
-          }
-          return _this._schedule_reconnect();
-        };
-      })(this);
-      return this.ws.onopen = (function(_this) {
-        return function() {
-          if (typeof _this.debug === "function") {
-            _this.debug('Web Socket Opened...');
-          }
-          headers["accept-version"] = Stomp.VERSIONS.supportedVersions();
-          headers["heart-beat"] = [_this.heartbeat.outgoing, _this.heartbeat.incoming].join(',');
-          return _this._transmit("CONNECT", headers);
-        };
-      })(this);
-    };
 
-    Client.prototype._schedule_reconnect = function() {
-      if (this.reconnect_delay > 0) {
-        if (typeof this.debug === "function") {
-          this.debug("STOMP: scheduling reconnection in " + this.reconnect_delay + "ms");
-        }
-        return this._reconnector = setTimeout((function(_this) {
-          return function() {
-            if (_this.connected) {
-              return typeof _this.debug === "function" ? _this.debug('STOMP: already connected') : void 0;
+        Frame.sizeOfUTF8 = function (s) {
+            if (s) {
+                return encodeURI(s).match(/%..|./g).length;
             } else {
-              if (typeof _this.debug === "function") {
-                _this.debug('STOMP: attempting to reconnect');
-              }
-              return _this._connect();
+                return 0;
             }
-          };
-        })(this), this.reconnect_delay);
-      }
-    };
+        };
 
-    Client.prototype.disconnect = function(disconnectCallback, headers) {
-      var error;
-      if (headers == null) {
-        headers = {};
-      }
-      this._disconnectCallback = disconnectCallback;
-      this._active = false;
-      if (this.connected) {
-        if (!headers.receipt) {
-          headers.receipt = "close-" + this.counter++;
+        unmarshallSingle = function (data, escapeHeaderValues) {
+            var body, chr, command, divider, headerLines, headers, i, idx, j, k, len, len1, line, ref, ref1, ref2, start, trim;
+            if (escapeHeaderValues == null) {
+                escapeHeaderValues = false;
+            }
+            divider = data.search(RegExp("" + Byte.LF + Byte.LF));
+            headerLines = data.substring(0, divider).split(Byte.LF);
+            command = headerLines.shift();
+            headers = {};
+            trim = function (str) {
+                return str.replace(/^\s+|\s+$/g, '');
+            };
+            ref = headerLines.reverse();
+            for (j = 0, len1 = ref.length; j < len1; j++) {
+                line = ref[j];
+                idx = line.indexOf(':');
+                if (escapeHeaderValues && command !== 'CONNECT' && command !== 'CONNECTED') {
+                    headers[trim(line.substring(0, idx))] = Frame.frUnEscape(trim(line.substring(idx + 1)));
+                } else {
+                    headers[trim(line.substring(0, idx))] = trim(line.substring(idx + 1));
+                }
+            }
+            body = '';
+            start = divider + 2;
+            if (headers['content-length']) {
+                len = parseInt(headers['content-length']);
+                body = ('' + data).substring(start, start + len);
+            } else {
+                chr = null;
+                for (i = k = ref1 = start, ref2 = data.length; ref1 <= ref2 ? k < ref2 : k > ref2; i = ref1 <= ref2 ? ++k : --k) {
+                    chr = data.charAt(i);
+                    if (chr === Byte.NULL) {
+                        break;
+                    }
+                    body += chr;
+                }
+            }
+            return new Frame(command, headers, body, escapeHeaderValues);
+        };
+
+        Frame.unmarshall = function (datas, escapeHeaderValues) {
+            var frame, frames, last_frame, r;
+            if (escapeHeaderValues == null) {
+                escapeHeaderValues = false;
+            }
+            frames = datas.split(RegExp("" + Byte.NULL + Byte.LF + "*"));
+            r = {
+                frames: [],
+                partial: ''
+            };
+            r.frames = (function () {
+                var j, len1, ref, results;
+                ref = frames.slice(0, -1);
+                results = [];
+                for (j = 0, len1 = ref.length; j < len1; j++) {
+                    frame = ref[j];
+                    results.push(unmarshallSingle(frame, escapeHeaderValues));
+                }
+                return results;
+            })();
+            last_frame = frames.slice(-1)[0];
+            if (last_frame === Byte.LF || (last_frame.search(RegExp("" + Byte.NULL + Byte.LF + "*$"))) !== -1) {
+                r.frames.push(unmarshallSingle(last_frame, escapeHeaderValues));
+            } else {
+                r.partial = last_frame;
+            }
+            return r;
+        };
+
+        Frame.marshall = function (command, headers, body, escapeHeaderValues) {
+            var frame;
+            frame = new Frame(command, headers, body, escapeHeaderValues);
+            return frame.toString() + Byte.NULL;
+        };
+
+        Frame.frEscape = function (str) {
+            return ("" + str).replace(/\\/g, "\\\\").replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/:/g, "\\c");
+        };
+
+        Frame.frUnEscape = function (str) {
+            return ("" + str).replace(/\\r/g, "\r").replace(/\\n/g, "\n").replace(/\\c/g, ":").replace(/\\\\/g, "\\");
+        };
+
+        return Frame;
+
+    })();
+
+    Client = (function () {
+        var now;
+
+        function Client(ws_fn) {
+            this.ws_fn = function () {
+                var ws;
+                ws = ws_fn();
+                ws.binaryType = "arraybuffer";
+                return ws;
+            };
+            this.reconnect_delay = 0;
+            this.counter = 0;
+            this.connected = false;
+            this.heartbeat = {
+                outgoing: 10000,
+                incoming: 10000
+            };
+            this.maxWebSocketFrameSize = 16 * 1024;
+            this.subscriptions = {};
+            this.partialData = '';
         }
-        this.closeReceipt = headers.receipt;
-        try {
-          return this._transmit("DISCONNECT", headers);
-        } catch (error1) {
-          error = error1;
-          return typeof this.debug === "function" ? this.debug('Ignoring error during disconnect', error) : void 0;
-        }
-      }
-    };
 
-    Client.prototype._cleanUp = function() {
-      if (this._reconnector) {
-        clearTimeout(this._reconnector);
-      }
-      this.connected = false;
-      this.subscriptions = {};
-      this.partial = '';
-      if (this.pinger) {
-        Stomp.clearInterval(this.pinger);
-      }
-      if (this.ponger) {
-        return Stomp.clearInterval(this.ponger);
-      }
-    };
+        Client.prototype.debug = function (message) {
+            var ref;
+            return typeof window !== "undefined" && window !== null ? (ref = window.console) != null ? ref.log(message) : void 0 : void 0;
+        };
 
-    Client.prototype.send = function(destination, headers, body) {
-      if (headers == null) {
-        headers = {};
-      }
-      if (body == null) {
-        body = '';
-      }
-      headers.destination = destination;
-      return this._transmit("SEND", headers, body);
-    };
+        now = function () {
+            if (Date.now) {
+                return Date.now();
+            } else {
+                return new Date().valueOf;
+            }
+        };
 
-    Client.prototype.subscribe = function(destination, callback, headers) {
-      var client;
-      if (headers == null) {
-        headers = {};
-      }
-      if (!headers.id) {
-        headers.id = "sub-" + this.counter++;
-      }
-      headers.destination = destination;
-      this.subscriptions[headers.id] = callback;
-      this._transmit("SUBSCRIBE", headers);
-      client = this;
-      return {
-        id: headers.id,
-        unsubscribe: function(hdrs) {
-          return client.unsubscribe(headers.id, hdrs);
-        }
-      };
-    };
+        Client.prototype._transmit = function (command, headers, body) {
+            var out;
+            out = Frame.marshall(command, headers, body, this.escapeHeaderValues);
+            if (typeof this.debug === "function") {
+                this.debug(">>> " + out);
+            }
+            while (true) {
+                if (out.length > this.maxWebSocketFrameSize) {
+                    this.ws.send(out.substring(0, this.maxWebSocketFrameSize));
+                    out = out.substring(this.maxWebSocketFrameSize);
+                    if (typeof this.debug === "function") {
+                        this.debug("remaining = " + out.length);
+                    }
+                } else {
+                    return this.ws.send(out);
+                }
+            }
+        };
 
-    Client.prototype.unsubscribe = function(id, headers) {
-      if (headers == null) {
-        headers = {};
-      }
-      delete this.subscriptions[id];
-      headers.id = id;
-      return this._transmit("UNSUBSCRIBE", headers);
-    };
+        Client.prototype._setupHeartbeat = function (headers) {
+            var ref, ref1, serverIncoming, serverOutgoing, ttl, v;
+            if ((ref = headers.version) !== Stomp.VERSIONS.V1_1 && ref !== Stomp.VERSIONS.V1_2) {
+                return;
+            }
+            ref1 = (function () {
+                var j, len1, ref1, results;
+                ref1 = headers['heart-beat'].split(",");
+                results = [];
+                for (j = 0, len1 = ref1.length; j < len1; j++) {
+                    v = ref1[j];
+                    results.push(parseInt(v));
+                }
+                return results;
+            })(), serverOutgoing = ref1[0], serverIncoming = ref1[1];
+            if (!(this.heartbeat.outgoing === 0 || serverIncoming === 0)) {
+                ttl = Math.max(this.heartbeat.outgoing, serverIncoming);
+                if (typeof this.debug === "function") {
+                    this.debug("send PING every " + ttl + "ms");
+                }
+                this.pinger = Stomp.setInterval(ttl, (function (_this) {
+                    return function () {
+                        _this.ws.send(Byte.LF);
+                        return typeof _this.debug === "function" ? _this.debug(">>> PING") : void 0;
+                    };
+                })(this));
+            }
+            if (!(this.heartbeat.incoming === 0 || serverOutgoing === 0)) {
+                ttl = Math.max(this.heartbeat.incoming, serverOutgoing);
+                if (typeof this.debug === "function") {
+                    this.debug("check PONG every " + ttl + "ms");
+                }
+                return this.ponger = Stomp.setInterval(ttl, (function (_this) {
+                    return function () {
+                        var delta;
+                        delta = now() - _this.serverActivity;
+                        if (delta > ttl * 2) {
+                            if (typeof _this.debug === "function") {
+                                _this.debug("did not receive server activity for the last " + delta + "ms");
+                            }
+                            return _this.ws.close();
+                        }
+                    };
+                })(this));
+            }
+        };
 
-    Client.prototype.begin = function(transaction_id) {
-      var client, txid;
-      txid = transaction_id || "tx-" + this.counter++;
-      this._transmit("BEGIN", {
-        transaction: txid
-      });
-      client = this;
-      return {
-        id: txid,
-        commit: function() {
-          return client.commit(txid);
+        Client.prototype._parseConnect = function () {
+            var args, closeEventCallback, connectCallback, errorCallback, headers;
+            args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+            headers = {};
+            if (args.length < 2) {
+                throw "Connect requires at least 2 arguments";
+            }
+            if (typeof args[1] === 'function') {
+                headers = args[0], connectCallback = args[1], errorCallback = args[2], closeEventCallback = args[3];
+            } else {
+                switch (args.length) {
+                    case 6:
+                        headers.login = args[0], headers.passcode = args[1], connectCallback = args[2], errorCallback = args[3], closeEventCallback = args[4], headers.host = args[5];
+                        break;
+                    default:
+                        headers.login = args[0], headers.passcode = args[1], connectCallback = args[2], errorCallback = args[3], closeEventCallback = args[4];
+                }
+            }
+            return [headers, connectCallback, errorCallback, closeEventCallback];
+        };
+
+        Client.prototype.connect = function () {
+            var args, out;
+            args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+            this.escapeHeaderValues = false;
+            out = this._parseConnect.apply(this, args);
+            this.headers = out[0], this.connectCallback = out[1], this.errorCallback = out[2], this.closeEventCallback = out[3];
+            this._active = true;
+            return this._connect();
+        };
+
+        Client.prototype._connect = function () {
+            var UTF8ArrayToStr, closeEventCallback, errorCallback, headers;
+            headers = this.headers;
+            errorCallback = this.errorCallback;
+            closeEventCallback = this.closeEventCallback;
+            if (!this._active) {
+                this.debug('Client has been marked inactive, will not attempt to connect');
+                return;
+            }
+            if (typeof this.debug === "function") {
+                this.debug("Opening Web Socket...");
+            }
+            this.ws = this.ws_fn();
+            UTF8ArrayToStr = (function (_this) {
+                return function (array) {
+                    var c, char2, char3, i, len, out;
+                    out = "";
+                    len = array.length;
+                    i = 0;
+                    while (i < len) {
+                        c = array[i++];
+                        switch (c >> 4) {
+                            case 0:
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                            case 6:
+                            case 7:
+                                out += String.fromCharCode(c);
+                                break;
+                            case 12:
+                            case 13:
+                                char2 = array[i++];
+                                out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+                                break;
+                            case 14:
+                                char2 = array[i++];
+                                char3 = array[i++];
+                                out += String.fromCharCode(((c & 0x0F) << 12) | ((char2 & 0x3F) << 6) | ((char3 & 0x3F) << 0));
+                        }
+                    }
+                    return out;
+                };
+            })(this);
+            this.ws.onmessage = (function (_this) {
+                return function (evt) {
+                    var arr, client, data, frame, j, len1, messageID, onreceive, ref, subscription, unmarshalledData;
+                    data = typeof ArrayBuffer !== 'undefined' && evt.data instanceof ArrayBuffer ? (arr = new Uint8Array(evt.data), typeof _this.debug === "function" ? _this.debug("--- got data length: " + arr.length) : void 0, UTF8ArrayToStr(arr)) : evt.data;
+                    _this.serverActivity = now();
+                    if (data === Byte.LF) {
+                        if (typeof _this.debug === "function") {
+                            _this.debug("<<< PONG");
+                        }
+                        return;
+                    }
+                    if (typeof _this.debug === "function") {
+                        _this.debug("<<< " + data);
+                    }
+                    unmarshalledData = Frame.unmarshall(_this.partialData + data, _this.escapeHeaderValues);
+                    _this.partialData = unmarshalledData.partial;
+                    ref = unmarshalledData.frames;
+                    for (j = 0, len1 = ref.length; j < len1; j++) {
+                        frame = ref[j];
+                        switch (frame.command) {
+                            case "CONNECTED":
+                                if (typeof _this.debug === "function") {
+                                    _this.debug("connected to server " + frame.headers.server);
+                                }
+                                _this.connected = true;
+                                _this.version = frame.headers.version;
+                                if (_this.version === Stomp.VERSIONS.V1_2) {
+                                    _this.escapeHeaderValues = true;
+                                }
+                                if (!_this._active) {
+                                    _this.disconnect();
+                                    return;
+                                }
+                                _this._setupHeartbeat(frame.headers);
+                                if (typeof _this.connectCallback === "function") {
+                                    _this.connectCallback(frame);
+                                }
+                                break;
+                            case "MESSAGE":
+                                subscription = frame.headers.subscription;
+                                onreceive = _this.subscriptions[subscription] || _this.onreceive;
+                                if (onreceive) {
+                                    client = _this;
+                                    if (_this.version === Stomp.VERSIONS.V1_2) {
+                                        messageID = frame.headers["ack"];
+                                    } else {
+                                        messageID = frame.headers["message-id"];
+                                    }
+                                    frame.ack = function (headers) {
+                                        if (headers == null) {
+                                            headers = {};
+                                        }
+                                        return client.ack(messageID, subscription, headers);
+                                    };
+                                    frame.nack = function (headers) {
+                                        if (headers == null) {
+                                            headers = {};
+                                        }
+                                        return client.nack(messageID, subscription, headers);
+                                    };
+                                    onreceive(frame);
+                                } else {
+                                    if (typeof _this.debug === "function") {
+                                        _this.debug("Unhandled received MESSAGE: " + frame);
+                                    }
+                                }
+                                break;
+                            case "RECEIPT":
+                                if (frame.headers["receipt-id"] === _this.closeReceipt) {
+                                    _this.ws.onclose = null;
+                                    _this.ws.close();
+                                    _this._cleanUp();
+                                    if (typeof _this._disconnectCallback === "function") {
+                                        _this._disconnectCallback();
+                                    }
+                                } else {
+                                    if (typeof _this.onreceipt === "function") {
+                                        _this.onreceipt(frame);
+                                    }
+                                }
+                                break;
+                            case "ERROR":
+                                if (typeof errorCallback === "function") {
+                                    errorCallback(frame);
+                                }
+                                break;
+                            default:
+                                if (typeof _this.debug === "function") {
+                                    _this.debug("Unhandled frame: " + frame);
+                                }
+                        }
+                    }
+                };
+            })(this);
+            this.ws.onclose = (function (_this) {
+                return function (closeEvent) {
+                    var msg;
+                    msg = "Whoops! Lost connection to " + _this.ws.url;
+                    if (typeof _this.debug === "function") {
+                        _this.debug(msg);
+                    }
+                    if (typeof closeEventCallback === "function") {
+                        closeEventCallback(closeEvent);
+                    }
+                    _this._cleanUp();
+                    if (typeof errorCallback === "function") {
+                        errorCallback(msg);
+                    }
+                    return _this._schedule_reconnect();
+                };
+            })(this);
+            return this.ws.onopen = (function (_this) {
+                return function () {
+                    if (typeof _this.debug === "function") {
+                        _this.debug('Web Socket Opened...');
+                    }
+                    headers["accept-version"] = Stomp.VERSIONS.supportedVersions();
+                    headers["heart-beat"] = [_this.heartbeat.outgoing, _this.heartbeat.incoming].join(',');
+                    return _this._transmit("CONNECT", headers);
+                };
+            })(this);
+        };
+
+        Client.prototype._schedule_reconnect = function () {
+            if (this.reconnect_delay > 0) {
+                if (typeof this.debug === "function") {
+                    this.debug("STOMP: scheduling reconnection in " + this.reconnect_delay + "ms");
+                }
+                return this._reconnector = setTimeout((function (_this) {
+                    return function () {
+                        if (_this.connected) {
+                            return typeof _this.debug === "function" ? _this.debug('STOMP: already connected') : void 0;
+                        } else {
+                            if (typeof _this.debug === "function") {
+                                _this.debug('STOMP: attempting to reconnect');
+                            }
+                            return _this._connect();
+                        }
+                    };
+                })(this), this.reconnect_delay);
+            }
+        };
+
+        Client.prototype.disconnect = function (disconnectCallback, headers) {
+            var error;
+            if (headers == null) {
+                headers = {};
+            }
+            this._disconnectCallback = disconnectCallback;
+            this._active = false;
+            if (this.connected) {
+                if (!headers.receipt) {
+                    headers.receipt = "close-" + this.counter++;
+                }
+                this.closeReceipt = headers.receipt;
+                try {
+                    return this._transmit("DISCONNECT", headers);
+                } catch (error1) {
+                    error = error1;
+                    return typeof this.debug === "function" ? this.debug('Ignoring error during disconnect', error) : void 0;
+                }
+            }
+        };
+
+        Client.prototype._cleanUp = function () {
+            if (this._reconnector) {
+                clearTimeout(this._reconnector);
+            }
+            this.connected = false;
+            this.subscriptions = {};
+            this.partial = '';
+            if (this.pinger) {
+                Stomp.clearInterval(this.pinger);
+            }
+            if (this.ponger) {
+                return Stomp.clearInterval(this.ponger);
+            }
+        };
+
+        Client.prototype.send = function (destination, headers, body) {
+            if (headers == null) {
+                headers = {};
+            }
+            if (body == null) {
+                body = '';
+            }
+            headers.destination = destination;
+            return this._transmit("SEND", headers, body);
+        };
+
+        Client.prototype.subscribe = function (destination, callback, headers) {
+            var client;
+            if (headers == null) {
+                headers = {};
+            }
+            if (!headers.id) {
+                headers.id = "sub-" + this.counter++;
+            }
+            headers.destination = destination;
+            this.subscriptions[headers.id] = callback;
+            this._transmit("SUBSCRIBE", headers);
+            client = this;
+            return {
+                id: headers.id,
+                unsubscribe: function (hdrs) {
+                    return client.unsubscribe(headers.id, hdrs);
+                }
+            };
+        };
+
+        Client.prototype.unsubscribe = function (id, headers) {
+            if (headers == null) {
+                headers = {};
+            }
+            delete this.subscriptions[id];
+            headers.id = id;
+            return this._transmit("UNSUBSCRIBE", headers);
+        };
+
+        Client.prototype.begin = function (transaction_id) {
+            var client, txid;
+            txid = transaction_id || "tx-" + this.counter++;
+            this._transmit("BEGIN", {
+                transaction: txid
+            });
+            client = this;
+            return {
+                id: txid,
+                commit: function () {
+                    return client.commit(txid);
+                },
+                abort: function () {
+                    return client.abort(txid);
+                }
+            };
+        };
+
+        Client.prototype.commit = function (transaction_id) {
+            return this._transmit("COMMIT", {
+                transaction: transaction_id
+            });
+        };
+
+        Client.prototype.abort = function (transaction_id) {
+            return this._transmit("ABORT", {
+                transaction: transaction_id
+            });
+        };
+
+        Client.prototype.ack = function (messageID, subscription, headers) {
+            if (headers == null) {
+                headers = {};
+            }
+            if (this.version === Stomp.VERSIONS.V1_2) {
+                headers["id"] = messageID;
+            } else {
+                headers["message-id"] = messageID;
+            }
+            headers.subscription = subscription;
+            return this._transmit("ACK", headers);
+        };
+
+        Client.prototype.nack = function (messageID, subscription, headers) {
+            if (headers == null) {
+                headers = {};
+            }
+            if (this.version === Stomp.VERSIONS.V1_2) {
+                headers["id"] = messageID;
+            } else {
+                headers["message-id"] = messageID;
+            }
+            headers.subscription = subscription;
+            return this._transmit("NACK", headers);
+        };
+
+        return Client;
+
+    })();
+
+    Stomp = {
+        VERSIONS: {
+            V1_0: '1.0',
+            V1_1: '1.1',
+            V1_2: '1.2',
+            supportedVersions: function () {
+                return '1.2,1.1,1.0';
+            }
         },
-        abort: function() {
-          return client.abort(txid);
-        }
-      };
+        client: function (url, protocols) {
+            var ws_fn;
+            if (protocols == null) {
+                protocols = ['v10.stomp', 'v11.stomp', 'v12.stomp'];
+            }
+            ws_fn = function () {
+                var klass;
+                klass = Stomp.WebSocketClass || WebSocket;
+                return new klass(url, protocols);
+            };
+            return new Client(ws_fn);
+        },
+        over: function (ws) {
+            var ws_fn;
+            ws_fn = typeof ws === "function" ? ws : function () {
+                return ws;
+            };
+            return new Client(ws_fn);
+        },
+        Frame: Frame
     };
 
-    Client.prototype.commit = function(transaction_id) {
-      return this._transmit("COMMIT", {
-        transaction: transaction_id
-      });
+    Stomp.setInterval = function (interval, f) {
+        return setInterval(f, interval);
     };
 
-    Client.prototype.abort = function(transaction_id) {
-      return this._transmit("ABORT", {
-        transaction: transaction_id
-      });
+    Stomp.clearInterval = function (id) {
+        return clearInterval(id);
     };
 
-    Client.prototype.ack = function(messageID, subscription, headers) {
-      if (headers == null) {
-        headers = {};
-      }
-      if (this.version === Stomp.VERSIONS.V1_2) {
-        headers["id"] = messageID;
-      } else {
-        headers["message-id"] = messageID;
-      }
-      headers.subscription = subscription;
-      return this._transmit("ACK", headers);
-    };
+    if (typeof exports !== "undefined" && exports !== null) {
+        exports.Stomp = Stomp;
+    }
 
-    Client.prototype.nack = function(messageID, subscription, headers) {
-      if (headers == null) {
-        headers = {};
-      }
-      if (this.version === Stomp.VERSIONS.V1_2) {
-        headers["id"] = messageID;
-      } else {
-        headers["message-id"] = messageID;
-      }
-      headers.subscription = subscription;
-      return this._transmit("NACK", headers);
-    };
-
-    return Client;
-
-  })();
-
-  Stomp = {
-    VERSIONS: {
-      V1_0: '1.0',
-      V1_1: '1.1',
-      V1_2: '1.2',
-      supportedVersions: function() {
-        return '1.2,1.1,1.0';
-      }
-    },
-    client: function(url, protocols) {
-      var ws_fn;
-      if (protocols == null) {
-        protocols = ['v10.stomp', 'v11.stomp', 'v12.stomp'];
-      }
-      ws_fn = function() {
-        var klass;
-        klass = Stomp.WebSocketClass || WebSocket;
-        return new klass(url, protocols);
-      };
-      return new Client(ws_fn);
-    },
-    over: function(ws) {
-      var ws_fn;
-      ws_fn = typeof ws === "function" ? ws : function() {
-        return ws;
-      };
-      return new Client(ws_fn);
-    },
-    Frame: Frame
-  };
-
-  Stomp.setInterval = function(interval, f) {
-    return setInterval(f, interval);
-  };
-
-  Stomp.clearInterval = function(id) {
-    return clearInterval(id);
-  };
-
-  if (typeof exports !== "undefined" && exports !== null) {
-    exports.Stomp = Stomp;
-  }
-
-  if (typeof window !== "undefined" && window !== null) {
-    window.Stomp = Stomp;
-  } else if (!exports) {
-    self.Stomp = Stomp;
-  }
+    if (typeof window !== "undefined" && window !== null) {
+        window.Stomp = Stomp;
+    } else if (!exports) {
+        self.Stomp = Stomp;
+    }
 
 }).call(this);
 
@@ -2002,1344 +1997,1344 @@ if (typeof JSON !== 'object') {
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 //     Underscore may be freely distributed under the MIT license.
 
-(function() {
+(function () {
 
-  // Baseline setup
-  // --------------
+    // Baseline setup
+    // --------------
 
-  // Establish the root object, `window` in the browser, or `exports` on the server.
-  var root = this;
+    // Establish the root object, `window` in the browser, or `exports` on the server.
+    var root = this;
 
-  // Save the previous value of the `_` variable.
-  var previousUnderscore = root._;
+    // Save the previous value of the `_` variable.
+    var previousUnderscore = root._;
 
-  // Establish the object that gets returned to break out of a loop iteration.
-  var breaker = {};
+    // Establish the object that gets returned to break out of a loop iteration.
+    var breaker = {};
 
-  // Save bytes in the minified (but not gzipped) version:
-  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
+    // Save bytes in the minified (but not gzipped) version:
+    var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
 
-  // Create quick reference variables for speed access to core prototypes.
-  var
-    push             = ArrayProto.push,
-    slice            = ArrayProto.slice,
-    concat           = ArrayProto.concat,
-    toString         = ObjProto.toString,
-    hasOwnProperty   = ObjProto.hasOwnProperty;
+    // Create quick reference variables for speed access to core prototypes.
+    var
+        push = ArrayProto.push,
+        slice = ArrayProto.slice,
+        concat = ArrayProto.concat,
+        toString = ObjProto.toString,
+        hasOwnProperty = ObjProto.hasOwnProperty;
 
-  // All **ECMAScript 5** native function implementations that we hope to use
-  // are declared here.
-  var
-    nativeForEach      = ArrayProto.forEach,
-    nativeMap          = ArrayProto.map,
-    nativeReduce       = ArrayProto.reduce,
-    nativeReduceRight  = ArrayProto.reduceRight,
-    nativeFilter       = ArrayProto.filter,
-    nativeEvery        = ArrayProto.every,
-    nativeSome         = ArrayProto.some,
-    nativeIndexOf      = ArrayProto.indexOf,
-    nativeLastIndexOf  = ArrayProto.lastIndexOf,
-    nativeIsArray      = Array.isArray,
-    nativeKeys         = Object.keys,
-    nativeBind         = FuncProto.bind;
+    // All **ECMAScript 5** native function implementations that we hope to use
+    // are declared here.
+    var
+        nativeForEach = ArrayProto.forEach,
+        nativeMap = ArrayProto.map,
+        nativeReduce = ArrayProto.reduce,
+        nativeReduceRight = ArrayProto.reduceRight,
+        nativeFilter = ArrayProto.filter,
+        nativeEvery = ArrayProto.every,
+        nativeSome = ArrayProto.some,
+        nativeIndexOf = ArrayProto.indexOf,
+        nativeLastIndexOf = ArrayProto.lastIndexOf,
+        nativeIsArray = Array.isArray,
+        nativeKeys = Object.keys,
+        nativeBind = FuncProto.bind;
 
-  // Create a safe reference to the Underscore object for use below.
-  var _ = function(obj) {
-    if (obj instanceof _) return obj;
-    if (!(this instanceof _)) return new _(obj);
-    this._wrapped = obj;
-  };
+    // Create a safe reference to the Underscore object for use below.
+    var _ = function (obj) {
+        if (obj instanceof _) return obj;
+        if (!(this instanceof _)) return new _(obj);
+        this._wrapped = obj;
+    };
 
-  // Export the Underscore object for **Node.js**, with
-  // backwards-compatibility for the old `require()` API. If we're in
-  // the browser, add `_` as a global object via a string identifier,
-  // for Closure Compiler "advanced" mode.
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = _;
-    }
-    exports._ = _;
-  } else {
-    root._ = _;
-  }
-
-  // Current version.
-  _.VERSION = '1.6.0';
-
-  // Collection Functions
-  // --------------------
-
-  // The cornerstone, an `each` implementation, aka `forEach`.
-  // Handles objects with the built-in `forEach`, arrays, and raw objects.
-  // Delegates to **ECMAScript 5**'s native `forEach` if available.
-  var each = _.each = _.forEach = function(obj, iterator, context) {
-    if (obj == null) return obj;
-    if (nativeForEach && obj.forEach === nativeForEach) {
-      obj.forEach(iterator, context);
-    } else if (obj.length === +obj.length) {
-      for (var i = 0, length = obj.length; i < length; i++) {
-        if (iterator.call(context, obj[i], i, obj) === breaker) return;
-      }
+    // Export the Underscore object for **Node.js**, with
+    // backwards-compatibility for the old `require()` API. If we're in
+    // the browser, add `_` as a global object via a string identifier,
+    // for Closure Compiler "advanced" mode.
+    if (typeof exports !== 'undefined') {
+        if (typeof module !== 'undefined' && module.exports) {
+            exports = module.exports = _;
+        }
+        exports._ = _;
     } else {
-      var keys = _.keys(obj);
-      for (var i = 0, length = keys.length; i < length; i++) {
-        if (iterator.call(context, obj[keys[i]], keys[i], obj) === breaker) return;
-      }
+        root._ = _;
     }
-    return obj;
-  };
 
-  // Return the results of applying the iterator to each element.
-  // Delegates to **ECMAScript 5**'s native `map` if available.
-  _.map = _.collect = function(obj, iterator, context) {
-    var results = [];
-    if (obj == null) return results;
-    if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
-    each(obj, function(value, index, list) {
-      results.push(iterator.call(context, value, index, list));
+    // Current version.
+    _.VERSION = '1.6.0';
+
+    // Collection Functions
+    // --------------------
+
+    // The cornerstone, an `each` implementation, aka `forEach`.
+    // Handles objects with the built-in `forEach`, arrays, and raw objects.
+    // Delegates to **ECMAScript 5**'s native `forEach` if available.
+    var each = _.each = _.forEach = function (obj, iterator, context) {
+        if (obj == null) return obj;
+        if (nativeForEach && obj.forEach === nativeForEach) {
+            obj.forEach(iterator, context);
+        } else if (obj.length === +obj.length) {
+            for (var i = 0, length = obj.length; i < length; i++) {
+                if (iterator.call(context, obj[i], i, obj) === breaker) return;
+            }
+        } else {
+            var keys = _.keys(obj);
+            for (var i = 0, length = keys.length; i < length; i++) {
+                if (iterator.call(context, obj[keys[i]], keys[i], obj) === breaker) return;
+            }
+        }
+        return obj;
+    };
+
+    // Return the results of applying the iterator to each element.
+    // Delegates to **ECMAScript 5**'s native `map` if available.
+    _.map = _.collect = function (obj, iterator, context) {
+        var results = [];
+        if (obj == null) return results;
+        if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
+        each(obj, function (value, index, list) {
+            results.push(iterator.call(context, value, index, list));
+        });
+        return results;
+    };
+
+    var reduceError = 'Reduce of empty array with no initial value';
+
+    // **Reduce** builds up a single result from a list of values, aka `inject`,
+    // or `foldl`. Delegates to **ECMAScript 5**'s native `reduce` if available.
+    _.reduce = _.foldl = _.inject = function (obj, iterator, memo, context) {
+        var initial = arguments.length > 2;
+        if (obj == null) obj = [];
+        if (nativeReduce && obj.reduce === nativeReduce) {
+            if (context) iterator = _.bind(iterator, context);
+            return initial ? obj.reduce(iterator, memo) : obj.reduce(iterator);
+        }
+        each(obj, function (value, index, list) {
+            if (!initial) {
+                memo = value;
+                initial = true;
+            } else {
+                memo = iterator.call(context, memo, value, index, list);
+            }
+        });
+        if (!initial) throw new TypeError(reduceError);
+        return memo;
+    };
+
+    // The right-associative version of reduce, also known as `foldr`.
+    // Delegates to **ECMAScript 5**'s native `reduceRight` if available.
+    _.reduceRight = _.foldr = function (obj, iterator, memo, context) {
+        var initial = arguments.length > 2;
+        if (obj == null) obj = [];
+        if (nativeReduceRight && obj.reduceRight === nativeReduceRight) {
+            if (context) iterator = _.bind(iterator, context);
+            return initial ? obj.reduceRight(iterator, memo) : obj.reduceRight(iterator);
+        }
+        var length = obj.length;
+        if (length !== +length) {
+            var keys = _.keys(obj);
+            length = keys.length;
+        }
+        each(obj, function (value, index, list) {
+            index = keys ? keys[--length] : --length;
+            if (!initial) {
+                memo = obj[index];
+                initial = true;
+            } else {
+                memo = iterator.call(context, memo, obj[index], index, list);
+            }
+        });
+        if (!initial) throw new TypeError(reduceError);
+        return memo;
+    };
+
+    // Return the first value which passes a truth test. Aliased as `detect`.
+    _.find = _.detect = function (obj, predicate, context) {
+        var result;
+        any(obj, function (value, index, list) {
+            if (predicate.call(context, value, index, list)) {
+                result = value;
+                return true;
+            }
+        });
+        return result;
+    };
+
+    // Return all the elements that pass a truth test.
+    // Delegates to **ECMAScript 5**'s native `filter` if available.
+    // Aliased as `select`.
+    _.filter = _.select = function (obj, predicate, context) {
+        var results = [];
+        if (obj == null) return results;
+        if (nativeFilter && obj.filter === nativeFilter) return obj.filter(predicate, context);
+        each(obj, function (value, index, list) {
+            if (predicate.call(context, value, index, list)) results.push(value);
+        });
+        return results;
+    };
+
+    // Return all the elements for which a truth test fails.
+    _.reject = function (obj, predicate, context) {
+        return _.filter(obj, function (value, index, list) {
+            return !predicate.call(context, value, index, list);
+        }, context);
+    };
+
+    // Determine whether all of the elements match a truth test.
+    // Delegates to **ECMAScript 5**'s native `every` if available.
+    // Aliased as `all`.
+    _.every = _.all = function (obj, predicate, context) {
+        predicate || (predicate = _.identity);
+        var result = true;
+        if (obj == null) return result;
+        if (nativeEvery && obj.every === nativeEvery) return obj.every(predicate, context);
+        each(obj, function (value, index, list) {
+            if (!(result = result && predicate.call(context, value, index, list))) return breaker;
+        });
+        return !!result;
+    };
+
+    // Determine if at least one element in the object matches a truth test.
+    // Delegates to **ECMAScript 5**'s native `some` if available.
+    // Aliased as `any`.
+    var any = _.some = _.any = function (obj, predicate, context) {
+        predicate || (predicate = _.identity);
+        var result = false;
+        if (obj == null) return result;
+        if (nativeSome && obj.some === nativeSome) return obj.some(predicate, context);
+        each(obj, function (value, index, list) {
+            if (result || (result = predicate.call(context, value, index, list))) return breaker;
+        });
+        return !!result;
+    };
+
+    // Determine if the array or object contains a given value (using `===`).
+    // Aliased as `include`.
+    _.contains = _.include = function (obj, target) {
+        if (obj == null) return false;
+        if (nativeIndexOf && obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
+        return any(obj, function (value) {
+            return value === target;
+        });
+    };
+
+    // Invoke a method (with arguments) on every item in a collection.
+    _.invoke = function (obj, method) {
+        var args = slice.call(arguments, 2);
+        var isFunc = _.isFunction(method);
+        return _.map(obj, function (value) {
+            return (isFunc ? method : value[method]).apply(value, args);
+        });
+    };
+
+    // Convenience version of a common use case of `map`: fetching a property.
+    _.pluck = function (obj, key) {
+        return _.map(obj, _.property(key));
+    };
+
+    // Convenience version of a common use case of `filter`: selecting only objects
+    // containing specific `key:value` pairs.
+    _.where = function (obj, attrs) {
+        return _.filter(obj, _.matches(attrs));
+    };
+
+    // Convenience version of a common use case of `find`: getting the first object
+    // containing specific `key:value` pairs.
+    _.findWhere = function (obj, attrs) {
+        return _.find(obj, _.matches(attrs));
+    };
+
+    // Return the maximum element or (element-based computation).
+    // Can't optimize arrays of integers longer than 65,535 elements.
+    // See [WebKit Bug 80797](https://bugs.webkit.org/show_bug.cgi?id=80797)
+    _.max = function (obj, iterator, context) {
+        if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+            return Math.max.apply(Math, obj);
+        }
+        var result = -Infinity, lastComputed = -Infinity;
+        each(obj, function (value, index, list) {
+            var computed = iterator ? iterator.call(context, value, index, list) : value;
+            if (computed > lastComputed) {
+                result = value;
+                lastComputed = computed;
+            }
+        });
+        return result;
+    };
+
+    // Return the minimum element (or element-based computation).
+    _.min = function (obj, iterator, context) {
+        if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
+            return Math.min.apply(Math, obj);
+        }
+        var result = Infinity, lastComputed = Infinity;
+        each(obj, function (value, index, list) {
+            var computed = iterator ? iterator.call(context, value, index, list) : value;
+            if (computed < lastComputed) {
+                result = value;
+                lastComputed = computed;
+            }
+        });
+        return result;
+    };
+
+    // Shuffle an array, using the modern version of the
+    // [Fisher-Yates shuffle](http://en.wikipedia.org/wiki/Fisherâ€“Yates_shuffle).
+    _.shuffle = function (obj) {
+        var rand;
+        var index = 0;
+        var shuffled = [];
+        each(obj, function (value) {
+            rand = _.random(index++);
+            shuffled[index - 1] = shuffled[rand];
+            shuffled[rand] = value;
+        });
+        return shuffled;
+    };
+
+    // Sample **n** random values from a collection.
+    // If **n** is not specified, returns a single random element.
+    // The internal `guard` argument allows it to work with `map`.
+    _.sample = function (obj, n, guard) {
+        if (n == null || guard) {
+            if (obj.length !== +obj.length) obj = _.values(obj);
+            return obj[_.random(obj.length - 1)];
+        }
+        return _.shuffle(obj).slice(0, Math.max(0, n));
+    };
+
+    // An internal function to generate lookup iterators.
+    var lookupIterator = function (value) {
+        if (value == null) return _.identity;
+        if (_.isFunction(value)) return value;
+        return _.property(value);
+    };
+
+    // Sort the object's values by a criterion produced by an iterator.
+    _.sortBy = function (obj, iterator, context) {
+        iterator = lookupIterator(iterator);
+        return _.pluck(_.map(obj, function (value, index, list) {
+            return {
+                value: value,
+                index: index,
+                criteria: iterator.call(context, value, index, list)
+            };
+        }).sort(function (left, right) {
+            var a = left.criteria;
+            var b = right.criteria;
+            if (a !== b) {
+                if (a > b || a === void 0) return 1;
+                if (a < b || b === void 0) return -1;
+            }
+            return left.index - right.index;
+        }), 'value');
+    };
+
+    // An internal function used for aggregate "group by" operations.
+    var group = function (behavior) {
+        return function (obj, iterator, context) {
+            var result = {};
+            iterator = lookupIterator(iterator);
+            each(obj, function (value, index) {
+                var key = iterator.call(context, value, index, obj);
+                behavior(result, key, value);
+            });
+            return result;
+        };
+    };
+
+    // Groups the object's values by a criterion. Pass either a string attribute
+    // to group by, or a function that returns the criterion.
+    _.groupBy = group(function (result, key, value) {
+        _.has(result, key) ? result[key].push(value) : result[key] = [value];
     });
-    return results;
-  };
 
-  var reduceError = 'Reduce of empty array with no initial value';
-
-  // **Reduce** builds up a single result from a list of values, aka `inject`,
-  // or `foldl`. Delegates to **ECMAScript 5**'s native `reduce` if available.
-  _.reduce = _.foldl = _.inject = function(obj, iterator, memo, context) {
-    var initial = arguments.length > 2;
-    if (obj == null) obj = [];
-    if (nativeReduce && obj.reduce === nativeReduce) {
-      if (context) iterator = _.bind(iterator, context);
-      return initial ? obj.reduce(iterator, memo) : obj.reduce(iterator);
-    }
-    each(obj, function(value, index, list) {
-      if (!initial) {
-        memo = value;
-        initial = true;
-      } else {
-        memo = iterator.call(context, memo, value, index, list);
-      }
+    // Indexes the object's values by a criterion, similar to `groupBy`, but for
+    // when you know that your index values will be unique.
+    _.indexBy = group(function (result, key, value) {
+        result[key] = value;
     });
-    if (!initial) throw new TypeError(reduceError);
-    return memo;
-  };
 
-  // The right-associative version of reduce, also known as `foldr`.
-  // Delegates to **ECMAScript 5**'s native `reduceRight` if available.
-  _.reduceRight = _.foldr = function(obj, iterator, memo, context) {
-    var initial = arguments.length > 2;
-    if (obj == null) obj = [];
-    if (nativeReduceRight && obj.reduceRight === nativeReduceRight) {
-      if (context) iterator = _.bind(iterator, context);
-      return initial ? obj.reduceRight(iterator, memo) : obj.reduceRight(iterator);
-    }
-    var length = obj.length;
-    if (length !== +length) {
-      var keys = _.keys(obj);
-      length = keys.length;
-    }
-    each(obj, function(value, index, list) {
-      index = keys ? keys[--length] : --length;
-      if (!initial) {
-        memo = obj[index];
-        initial = true;
-      } else {
-        memo = iterator.call(context, memo, obj[index], index, list);
-      }
+    // Counts instances of an object that group by a certain criterion. Pass
+    // either a string attribute to count by, or a function that returns the
+    // criterion.
+    _.countBy = group(function (result, key) {
+        _.has(result, key) ? result[key]++ : result[key] = 1;
     });
-    if (!initial) throw new TypeError(reduceError);
-    return memo;
-  };
 
-  // Return the first value which passes a truth test. Aliased as `detect`.
-  _.find = _.detect = function(obj, predicate, context) {
-    var result;
-    any(obj, function(value, index, list) {
-      if (predicate.call(context, value, index, list)) {
-        result = value;
+    // Use a comparator function to figure out the smallest index at which
+    // an object should be inserted so as to maintain order. Uses binary search.
+    _.sortedIndex = function (array, obj, iterator, context) {
+        iterator = lookupIterator(iterator);
+        var value = iterator.call(context, obj);
+        var low = 0, high = array.length;
+        while (low < high) {
+            var mid = (low + high) >>> 1;
+            iterator.call(context, array[mid]) < value ? low = mid + 1 : high = mid;
+        }
+        return low;
+    };
+
+    // Safely create a real, live array from anything iterable.
+    _.toArray = function (obj) {
+        if (!obj) return [];
+        if (_.isArray(obj)) return slice.call(obj);
+        if (obj.length === +obj.length) return _.map(obj, _.identity);
+        return _.values(obj);
+    };
+
+    // Return the number of elements in an object.
+    _.size = function (obj) {
+        if (obj == null) return 0;
+        return (obj.length === +obj.length) ? obj.length : _.keys(obj).length;
+    };
+
+    // Array Functions
+    // ---------------
+
+    // Get the first element of an array. Passing **n** will return the first N
+    // values in the array. Aliased as `head` and `take`. The **guard** check
+    // allows it to work with `_.map`.
+    _.first = _.head = _.take = function (array, n, guard) {
+        if (array == null) return void 0;
+        if ((n == null) || guard) return array[0];
+        if (n < 0) return [];
+        return slice.call(array, 0, n);
+    };
+
+    // Returns everything but the last entry of the array. Especially useful on
+    // the arguments object. Passing **n** will return all the values in
+    // the array, excluding the last N. The **guard** check allows it to work with
+    // `_.map`.
+    _.initial = function (array, n, guard) {
+        return slice.call(array, 0, array.length - ((n == null) || guard ? 1 : n));
+    };
+
+    // Get the last element of an array. Passing **n** will return the last N
+    // values in the array. The **guard** check allows it to work with `_.map`.
+    _.last = function (array, n, guard) {
+        if (array == null) return void 0;
+        if ((n == null) || guard) return array[array.length - 1];
+        return slice.call(array, Math.max(array.length - n, 0));
+    };
+
+    // Returns everything but the first entry of the array. Aliased as `tail` and `drop`.
+    // Especially useful on the arguments object. Passing an **n** will return
+    // the rest N values in the array. The **guard**
+    // check allows it to work with `_.map`.
+    _.rest = _.tail = _.drop = function (array, n, guard) {
+        return slice.call(array, (n == null) || guard ? 1 : n);
+    };
+
+    // Trim out all falsy values from an array.
+    _.compact = function (array) {
+        return _.filter(array, _.identity);
+    };
+
+    // Internal implementation of a recursive `flatten` function.
+    var flatten = function (input, shallow, output) {
+        if (shallow && _.every(input, _.isArray)) {
+            return concat.apply(output, input);
+        }
+        each(input, function (value) {
+            if (_.isArray(value) || _.isArguments(value)) {
+                shallow ? push.apply(output, value) : flatten(value, shallow, output);
+            } else {
+                output.push(value);
+            }
+        });
+        return output;
+    };
+
+    // Flatten out an array, either recursively (by default), or just one level.
+    _.flatten = function (array, shallow) {
+        return flatten(array, shallow, []);
+    };
+
+    // Return a version of the array that does not contain the specified value(s).
+    _.without = function (array) {
+        return _.difference(array, slice.call(arguments, 1));
+    };
+
+    // Split an array into two arrays: one whose elements all satisfy the given
+    // predicate, and one whose elements all do not satisfy the predicate.
+    _.partition = function (array, predicate, context) {
+        predicate = lookupIterator(predicate);
+        var pass = [], fail = [];
+        each(array, function (elem) {
+            (predicate.call(context, elem) ? pass : fail).push(elem);
+        });
+        return [pass, fail];
+    };
+
+    // Produce a duplicate-free version of the array. If the array has already
+    // been sorted, you have the option of using a faster algorithm.
+    // Aliased as `unique`.
+    _.uniq = _.unique = function (array, isSorted, iterator, context) {
+        if (_.isFunction(isSorted)) {
+            context = iterator;
+            iterator = isSorted;
+            isSorted = false;
+        }
+        var initial = iterator ? _.map(array, iterator, context) : array;
+        var results = [];
+        var seen = [];
+        each(initial, function (value, index) {
+            if (isSorted ? (!index || seen[seen.length - 1] !== value) : !_.contains(seen, value)) {
+                seen.push(value);
+                results.push(array[index]);
+            }
+        });
+        return results;
+    };
+
+    // Produce an array that contains the union: each distinct element from all of
+    // the passed-in arrays.
+    _.union = function () {
+        return _.uniq(_.flatten(arguments, true));
+    };
+
+    // Produce an array that contains every item shared between all the
+    // passed-in arrays.
+    _.intersection = function (array) {
+        var rest = slice.call(arguments, 1);
+        return _.filter(_.uniq(array), function (item) {
+            return _.every(rest, function (other) {
+                return _.contains(other, item);
+            });
+        });
+    };
+
+    // Take the difference between one array and a number of other arrays.
+    // Only the elements present in just the first array will remain.
+    _.difference = function (array) {
+        var rest = concat.apply(ArrayProto, slice.call(arguments, 1));
+        return _.filter(array, function (value) { return !_.contains(rest, value); });
+    };
+
+    // Zip together multiple lists into a single array -- elements that share
+    // an index go together.
+    _.zip = function () {
+        var length = _.max(_.pluck(arguments, 'length').concat(0));
+        var results = new Array(length);
+        for (var i = 0; i < length; i++) {
+            results[i] = _.pluck(arguments, '' + i);
+        }
+        return results;
+    };
+
+    // Converts lists into objects. Pass either a single array of `[key, value]`
+    // pairs, or two parallel arrays of the same length -- one of keys, and one of
+    // the corresponding values.
+    _.object = function (list, values) {
+        if (list == null) return {};
+        var result = {};
+        for (var i = 0, length = list.length; i < length; i++) {
+            if (values) {
+                result[list[i]] = values[i];
+            } else {
+                result[list[i][0]] = list[i][1];
+            }
+        }
+        return result;
+    };
+
+    // If the browser doesn't supply us with indexOf (I'm looking at you, **MSIE**),
+    // we need this function. Return the position of the first occurrence of an
+    // item in an array, or -1 if the item is not included in the array.
+    // Delegates to **ECMAScript 5**'s native `indexOf` if available.
+    // If the array is large and already in sort order, pass `true`
+    // for **isSorted** to use binary search.
+    _.indexOf = function (array, item, isSorted) {
+        if (array == null) return -1;
+        var i = 0, length = array.length;
+        if (isSorted) {
+            if (typeof isSorted == 'number') {
+                i = (isSorted < 0 ? Math.max(0, length + isSorted) : isSorted);
+            } else {
+                i = _.sortedIndex(array, item);
+                return array[i] === item ? i : -1;
+            }
+        }
+        if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item, isSorted);
+        for (; i < length; i++) if (array[i] === item) return i;
+        return -1;
+    };
+
+    // Delegates to **ECMAScript 5**'s native `lastIndexOf` if available.
+    _.lastIndexOf = function (array, item, from) {
+        if (array == null) return -1;
+        var hasIndex = from != null;
+        if (nativeLastIndexOf && array.lastIndexOf === nativeLastIndexOf) {
+            return hasIndex ? array.lastIndexOf(item, from) : array.lastIndexOf(item);
+        }
+        var i = (hasIndex ? from : array.length);
+        while (i--) if (array[i] === item) return i;
+        return -1;
+    };
+
+    // Generate an integer Array containing an arithmetic progression. A port of
+    // the native Python `range()` function. See
+    // [the Python documentation](http://docs.python.org/library/functions.html#range).
+    _.range = function (start, stop, step) {
+        if (arguments.length <= 1) {
+            stop = start || 0;
+            start = 0;
+        }
+        step = arguments[2] || 1;
+
+        var length = Math.max(Math.ceil((stop - start) / step), 0);
+        var idx = 0;
+        var range = new Array(length);
+
+        while (idx < length) {
+            range[idx++] = start;
+            start += step;
+        }
+
+        return range;
+    };
+
+    // Function (ahem) Functions
+    // ------------------
+
+    // Reusable constructor function for prototype setting.
+    var ctor = function () { };
+
+    // Create a function bound to a given object (assigning `this`, and arguments,
+    // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
+    // available.
+    _.bind = function (func, context) {
+        var args, bound;
+        if (nativeBind && func.bind === nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
+        if (!_.isFunction(func)) throw new TypeError;
+        args = slice.call(arguments, 2);
+        return bound = function () {
+            if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
+            ctor.prototype = func.prototype;
+            var self = new ctor;
+            ctor.prototype = null;
+            var result = func.apply(self, args.concat(slice.call(arguments)));
+            if (Object(result) === result) return result;
+            return self;
+        };
+    };
+
+    // Partially apply a function by creating a version that has had some of its
+    // arguments pre-filled, without changing its dynamic `this` context. _ acts
+    // as a placeholder, allowing any combination of arguments to be pre-filled.
+    _.partial = function (func) {
+        var boundArgs = slice.call(arguments, 1);
+        return function () {
+            var position = 0;
+            var args = boundArgs.slice();
+            for (var i = 0, length = args.length; i < length; i++) {
+                if (args[i] === _) args[i] = arguments[position++];
+            }
+            while (position < arguments.length) args.push(arguments[position++]);
+            return func.apply(this, args);
+        };
+    };
+
+    // Bind a number of an object's methods to that object. Remaining arguments
+    // are the method names to be bound. Useful for ensuring that all callbacks
+    // defined on an object belong to it.
+    _.bindAll = function (obj) {
+        var funcs = slice.call(arguments, 1);
+        if (funcs.length === 0) throw new Error('bindAll must be passed function names');
+        each(funcs, function (f) { obj[f] = _.bind(obj[f], obj); });
+        return obj;
+    };
+
+    // Memoize an expensive function by storing its results.
+    _.memoize = function (func, hasher) {
+        var memo = {};
+        hasher || (hasher = _.identity);
+        return function () {
+            var key = hasher.apply(this, arguments);
+            return _.has(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
+        };
+    };
+
+    // Delays a function for the given number of milliseconds, and then calls
+    // it with the arguments supplied.
+    _.delay = function (func, wait) {
+        var args = slice.call(arguments, 2);
+        return setTimeout(function () { return func.apply(null, args); }, wait);
+    };
+
+    // Defers a function, scheduling it to run after the current call stack has
+    // cleared.
+    _.defer = function (func) {
+        return _.delay.apply(_, [func, 1].concat(slice.call(arguments, 1)));
+    };
+
+    // Returns a function, that, when invoked, will only be triggered at most once
+    // during a given window of time. Normally, the throttled function will run
+    // as much as it can, without ever going more than once per `wait` duration;
+    // but if you'd like to disable the execution on the leading edge, pass
+    // `{leading: false}`. To disable execution on the trailing edge, ditto.
+    _.throttle = function (func, wait, options) {
+        var context, args, result;
+        var timeout = null;
+        var previous = 0;
+        options || (options = {});
+        var later = function () {
+            previous = options.leading === false ? 0 : _.now();
+            timeout = null;
+            result = func.apply(context, args);
+            context = args = null;
+        };
+        return function () {
+            var now = _.now();
+            if (!previous && options.leading === false) previous = now;
+            var remaining = wait - (now - previous);
+            context = this;
+            args = arguments;
+            if (remaining <= 0) {
+                clearTimeout(timeout);
+                timeout = null;
+                previous = now;
+                result = func.apply(context, args);
+                context = args = null;
+            } else if (!timeout && options.trailing !== false) {
+                timeout = setTimeout(later, remaining);
+            }
+            return result;
+        };
+    };
+
+    // Returns a function, that, as long as it continues to be invoked, will not
+    // be triggered. The function will be called after it stops being called for
+    // N milliseconds. If `immediate` is passed, trigger the function on the
+    // leading edge, instead of the trailing.
+    _.debounce = function (func, wait, immediate) {
+        var timeout, args, context, timestamp, result;
+
+        var later = function () {
+            var last = _.now() - timestamp;
+            if (last < wait) {
+                timeout = setTimeout(later, wait - last);
+            } else {
+                timeout = null;
+                if (!immediate) {
+                    result = func.apply(context, args);
+                    context = args = null;
+                }
+            }
+        };
+
+        return function () {
+            context = this;
+            args = arguments;
+            timestamp = _.now();
+            var callNow = immediate && !timeout;
+            if (!timeout) {
+                timeout = setTimeout(later, wait);
+            }
+            if (callNow) {
+                result = func.apply(context, args);
+                context = args = null;
+            }
+
+            return result;
+        };
+    };
+
+    // Returns a function that will be executed at most one time, no matter how
+    // often you call it. Useful for lazy initialization.
+    _.once = function (func) {
+        var ran = false, memo;
+        return function () {
+            if (ran) return memo;
+            ran = true;
+            memo = func.apply(this, arguments);
+            func = null;
+            return memo;
+        };
+    };
+
+    // Returns the first function passed as an argument to the second,
+    // allowing you to adjust arguments, run code before and after, and
+    // conditionally execute the original function.
+    _.wrap = function (func, wrapper) {
+        return _.partial(wrapper, func);
+    };
+
+    // Returns a function that is the composition of a list of functions, each
+    // consuming the return value of the function that follows.
+    _.compose = function () {
+        var funcs = arguments;
+        return function () {
+            var args = arguments;
+            for (var i = funcs.length - 1; i >= 0; i--) {
+                args = [funcs[i].apply(this, args)];
+            }
+            return args[0];
+        };
+    };
+
+    // Returns a function that will only be executed after being called N times.
+    _.after = function (times, func) {
+        return function () {
+            if (--times < 1) {
+                return func.apply(this, arguments);
+            }
+        };
+    };
+
+    // Object Functions
+    // ----------------
+
+    // Retrieve the names of an object's properties.
+    // Delegates to **ECMAScript 5**'s native `Object.keys`
+    _.keys = function (obj) {
+        if (!_.isObject(obj)) return [];
+        if (nativeKeys) return nativeKeys(obj);
+        var keys = [];
+        for (var key in obj) if (_.has(obj, key)) keys.push(key);
+        return keys;
+    };
+
+    // Retrieve the values of an object's properties.
+    _.values = function (obj) {
+        var keys = _.keys(obj);
+        var length = keys.length;
+        var values = new Array(length);
+        for (var i = 0; i < length; i++) {
+            values[i] = obj[keys[i]];
+        }
+        return values;
+    };
+
+    // Convert an object into a list of `[key, value]` pairs.
+    _.pairs = function (obj) {
+        var keys = _.keys(obj);
+        var length = keys.length;
+        var pairs = new Array(length);
+        for (var i = 0; i < length; i++) {
+            pairs[i] = [keys[i], obj[keys[i]]];
+        }
+        return pairs;
+    };
+
+    // Invert the keys and values of an object. The values must be serializable.
+    _.invert = function (obj) {
+        var result = {};
+        var keys = _.keys(obj);
+        for (var i = 0, length = keys.length; i < length; i++) {
+            result[obj[keys[i]]] = keys[i];
+        }
+        return result;
+    };
+
+    // Return a sorted list of the function names available on the object.
+    // Aliased as `methods`
+    _.functions = _.methods = function (obj) {
+        var names = [];
+        for (var key in obj) {
+            if (_.isFunction(obj[key])) names.push(key);
+        }
+        return names.sort();
+    };
+
+    // Extend a given object with all the properties in passed-in object(s).
+    _.extend = function (obj) {
+        each(slice.call(arguments, 1), function (source) {
+            if (source) {
+                for (var prop in source) {
+                    obj[prop] = source[prop];
+                }
+            }
+        });
+        return obj;
+    };
+
+    // Return a copy of the object only containing the whitelisted properties.
+    _.pick = function (obj) {
+        var copy = {};
+        var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
+        each(keys, function (key) {
+            if (key in obj) copy[key] = obj[key];
+        });
+        return copy;
+    };
+
+    // Return a copy of the object without the blacklisted properties.
+    _.omit = function (obj) {
+        var copy = {};
+        var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
+        for (var key in obj) {
+            if (!_.contains(keys, key)) copy[key] = obj[key];
+        }
+        return copy;
+    };
+
+    // Fill in a given object with default properties.
+    _.defaults = function (obj) {
+        each(slice.call(arguments, 1), function (source) {
+            if (source) {
+                for (var prop in source) {
+                    if (obj[prop] === void 0) obj[prop] = source[prop];
+                }
+            }
+        });
+        return obj;
+    };
+
+    // Create a (shallow-cloned) duplicate of an object.
+    _.clone = function (obj) {
+        if (!_.isObject(obj)) return obj;
+        return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+    };
+
+    // Invokes interceptor with the obj, and then returns obj.
+    // The primary purpose of this method is to "tap into" a method chain, in
+    // order to perform operations on intermediate results within the chain.
+    _.tap = function (obj, interceptor) {
+        interceptor(obj);
+        return obj;
+    };
+
+    // Internal recursive comparison function for `isEqual`.
+    var eq = function (a, b, aStack, bStack) {
+        // Identical objects are equal. `0 === -0`, but they aren't identical.
+        // See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
+        if (a === b) return a !== 0 || 1 / a == 1 / b;
+        // A strict comparison is necessary because `null == undefined`.
+        if (a == null || b == null) return a === b;
+        // Unwrap any wrapped objects.
+        if (a instanceof _) a = a._wrapped;
+        if (b instanceof _) b = b._wrapped;
+        // Compare `[[Class]]` names.
+        var className = toString.call(a);
+        if (className != toString.call(b)) return false;
+        switch (className) {
+            // Strings, numbers, dates, and booleans are compared by value.
+            case '[object String]':
+                // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
+                // equivalent to `new String("5")`.
+                return a == String(b);
+            case '[object Number]':
+                // `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
+                // other numeric values.
+                return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
+            case '[object Date]':
+            case '[object Boolean]':
+                // Coerce dates and booleans to numeric primitive values. Dates are compared by their
+                // millisecond representations. Note that invalid dates with millisecond representations
+                // of `NaN` are not equivalent.
+                return +a == +b;
+            // RegExps are compared by their source patterns and flags.
+            case '[object RegExp]':
+                return a.source == b.source &&
+                    a.global == b.global &&
+                    a.multiline == b.multiline &&
+                    a.ignoreCase == b.ignoreCase;
+        }
+        if (typeof a != 'object' || typeof b != 'object') return false;
+        // Assume equality for cyclic structures. The algorithm for detecting cyclic
+        // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
+        var length = aStack.length;
+        while (length--) {
+            // Linear search. Performance is inversely proportional to the number of
+            // unique nested structures.
+            if (aStack[length] == a) return bStack[length] == b;
+        }
+        // Objects with different constructors are not equivalent, but `Object`s
+        // from different frames are.
+        var aCtor = a.constructor, bCtor = b.constructor;
+        if (aCtor !== bCtor && !(_.isFunction(aCtor) && (aCtor instanceof aCtor) &&
+            _.isFunction(bCtor) && (bCtor instanceof bCtor))
+            && ('constructor' in a && 'constructor' in b)) {
+            return false;
+        }
+        // Add the first object to the stack of traversed objects.
+        aStack.push(a);
+        bStack.push(b);
+        var size = 0, result = true;
+        // Recursively compare objects and arrays.
+        if (className == '[object Array]') {
+            // Compare array lengths to determine if a deep comparison is necessary.
+            size = a.length;
+            result = size == b.length;
+            if (result) {
+                // Deep compare the contents, ignoring non-numeric properties.
+                while (size--) {
+                    if (!(result = eq(a[size], b[size], aStack, bStack))) break;
+                }
+            }
+        } else {
+            // Deep compare objects.
+            for (var key in a) {
+                if (_.has(a, key)) {
+                    // Count the expected number of properties.
+                    size++;
+                    // Deep compare each member.
+                    if (!(result = _.has(b, key) && eq(a[key], b[key], aStack, bStack))) break;
+                }
+            }
+            // Ensure that both objects contain the same number of properties.
+            if (result) {
+                for (key in b) {
+                    if (_.has(b, key) && !(size--)) break;
+                }
+                result = !size;
+            }
+        }
+        // Remove the first object from the stack of traversed objects.
+        aStack.pop();
+        bStack.pop();
+        return result;
+    };
+
+    // Perform a deep comparison to check if two objects are equal.
+    _.isEqual = function (a, b) {
+        return eq(a, b, [], []);
+    };
+
+    // Is a given array, string, or object empty?
+    // An "empty" object has no enumerable own-properties.
+    _.isEmpty = function (obj) {
+        if (obj == null) return true;
+        if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
+        for (var key in obj) if (_.has(obj, key)) return false;
         return true;
-      }
-    });
-    return result;
-  };
-
-  // Return all the elements that pass a truth test.
-  // Delegates to **ECMAScript 5**'s native `filter` if available.
-  // Aliased as `select`.
-  _.filter = _.select = function(obj, predicate, context) {
-    var results = [];
-    if (obj == null) return results;
-    if (nativeFilter && obj.filter === nativeFilter) return obj.filter(predicate, context);
-    each(obj, function(value, index, list) {
-      if (predicate.call(context, value, index, list)) results.push(value);
-    });
-    return results;
-  };
-
-  // Return all the elements for which a truth test fails.
-  _.reject = function(obj, predicate, context) {
-    return _.filter(obj, function(value, index, list) {
-      return !predicate.call(context, value, index, list);
-    }, context);
-  };
-
-  // Determine whether all of the elements match a truth test.
-  // Delegates to **ECMAScript 5**'s native `every` if available.
-  // Aliased as `all`.
-  _.every = _.all = function(obj, predicate, context) {
-    predicate || (predicate = _.identity);
-    var result = true;
-    if (obj == null) return result;
-    if (nativeEvery && obj.every === nativeEvery) return obj.every(predicate, context);
-    each(obj, function(value, index, list) {
-      if (!(result = result && predicate.call(context, value, index, list))) return breaker;
-    });
-    return !!result;
-  };
-
-  // Determine if at least one element in the object matches a truth test.
-  // Delegates to **ECMAScript 5**'s native `some` if available.
-  // Aliased as `any`.
-  var any = _.some = _.any = function(obj, predicate, context) {
-    predicate || (predicate = _.identity);
-    var result = false;
-    if (obj == null) return result;
-    if (nativeSome && obj.some === nativeSome) return obj.some(predicate, context);
-    each(obj, function(value, index, list) {
-      if (result || (result = predicate.call(context, value, index, list))) return breaker;
-    });
-    return !!result;
-  };
-
-  // Determine if the array or object contains a given value (using `===`).
-  // Aliased as `include`.
-  _.contains = _.include = function(obj, target) {
-    if (obj == null) return false;
-    if (nativeIndexOf && obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
-    return any(obj, function(value) {
-      return value === target;
-    });
-  };
-
-  // Invoke a method (with arguments) on every item in a collection.
-  _.invoke = function(obj, method) {
-    var args = slice.call(arguments, 2);
-    var isFunc = _.isFunction(method);
-    return _.map(obj, function(value) {
-      return (isFunc ? method : value[method]).apply(value, args);
-    });
-  };
-
-  // Convenience version of a common use case of `map`: fetching a property.
-  _.pluck = function(obj, key) {
-    return _.map(obj, _.property(key));
-  };
-
-  // Convenience version of a common use case of `filter`: selecting only objects
-  // containing specific `key:value` pairs.
-  _.where = function(obj, attrs) {
-    return _.filter(obj, _.matches(attrs));
-  };
-
-  // Convenience version of a common use case of `find`: getting the first object
-  // containing specific `key:value` pairs.
-  _.findWhere = function(obj, attrs) {
-    return _.find(obj, _.matches(attrs));
-  };
-
-  // Return the maximum element or (element-based computation).
-  // Can't optimize arrays of integers longer than 65,535 elements.
-  // See [WebKit Bug 80797](https://bugs.webkit.org/show_bug.cgi?id=80797)
-  _.max = function(obj, iterator, context) {
-    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
-      return Math.max.apply(Math, obj);
-    }
-    var result = -Infinity, lastComputed = -Infinity;
-    each(obj, function(value, index, list) {
-      var computed = iterator ? iterator.call(context, value, index, list) : value;
-      if (computed > lastComputed) {
-        result = value;
-        lastComputed = computed;
-      }
-    });
-    return result;
-  };
-
-  // Return the minimum element (or element-based computation).
-  _.min = function(obj, iterator, context) {
-    if (!iterator && _.isArray(obj) && obj[0] === +obj[0] && obj.length < 65535) {
-      return Math.min.apply(Math, obj);
-    }
-    var result = Infinity, lastComputed = Infinity;
-    each(obj, function(value, index, list) {
-      var computed = iterator ? iterator.call(context, value, index, list) : value;
-      if (computed < lastComputed) {
-        result = value;
-        lastComputed = computed;
-      }
-    });
-    return result;
-  };
-
-  // Shuffle an array, using the modern version of the
-  // [Fisher-Yates shuffle](http://en.wikipedia.org/wiki/Fisherâ€“Yates_shuffle).
-  _.shuffle = function(obj) {
-    var rand;
-    var index = 0;
-    var shuffled = [];
-    each(obj, function(value) {
-      rand = _.random(index++);
-      shuffled[index - 1] = shuffled[rand];
-      shuffled[rand] = value;
-    });
-    return shuffled;
-  };
-
-  // Sample **n** random values from a collection.
-  // If **n** is not specified, returns a single random element.
-  // The internal `guard` argument allows it to work with `map`.
-  _.sample = function(obj, n, guard) {
-    if (n == null || guard) {
-      if (obj.length !== +obj.length) obj = _.values(obj);
-      return obj[_.random(obj.length - 1)];
-    }
-    return _.shuffle(obj).slice(0, Math.max(0, n));
-  };
-
-  // An internal function to generate lookup iterators.
-  var lookupIterator = function(value) {
-    if (value == null) return _.identity;
-    if (_.isFunction(value)) return value;
-    return _.property(value);
-  };
-
-  // Sort the object's values by a criterion produced by an iterator.
-  _.sortBy = function(obj, iterator, context) {
-    iterator = lookupIterator(iterator);
-    return _.pluck(_.map(obj, function(value, index, list) {
-      return {
-        value: value,
-        index: index,
-        criteria: iterator.call(context, value, index, list)
-      };
-    }).sort(function(left, right) {
-      var a = left.criteria;
-      var b = right.criteria;
-      if (a !== b) {
-        if (a > b || a === void 0) return 1;
-        if (a < b || b === void 0) return -1;
-      }
-      return left.index - right.index;
-    }), 'value');
-  };
-
-  // An internal function used for aggregate "group by" operations.
-  var group = function(behavior) {
-    return function(obj, iterator, context) {
-      var result = {};
-      iterator = lookupIterator(iterator);
-      each(obj, function(value, index) {
-        var key = iterator.call(context, value, index, obj);
-        behavior(result, key, value);
-      });
-      return result;
     };
-  };
 
-  // Groups the object's values by a criterion. Pass either a string attribute
-  // to group by, or a function that returns the criterion.
-  _.groupBy = group(function(result, key, value) {
-    _.has(result, key) ? result[key].push(value) : result[key] = [value];
-  });
+    // Is a given value a DOM element?
+    _.isElement = function (obj) {
+        return !!(obj && obj.nodeType === 1);
+    };
 
-  // Indexes the object's values by a criterion, similar to `groupBy`, but for
-  // when you know that your index values will be unique.
-  _.indexBy = group(function(result, key, value) {
-    result[key] = value;
-  });
+    // Is a given value an array?
+    // Delegates to ECMA5's native Array.isArray
+    _.isArray = nativeIsArray || function (obj) {
+        return toString.call(obj) == '[object Array]';
+    };
 
-  // Counts instances of an object that group by a certain criterion. Pass
-  // either a string attribute to count by, or a function that returns the
-  // criterion.
-  _.countBy = group(function(result, key) {
-    _.has(result, key) ? result[key]++ : result[key] = 1;
-  });
+    // Is a given variable an object?
+    _.isObject = function (obj) {
+        return obj === Object(obj);
+    };
 
-  // Use a comparator function to figure out the smallest index at which
-  // an object should be inserted so as to maintain order. Uses binary search.
-  _.sortedIndex = function(array, obj, iterator, context) {
-    iterator = lookupIterator(iterator);
-    var value = iterator.call(context, obj);
-    var low = 0, high = array.length;
-    while (low < high) {
-      var mid = (low + high) >>> 1;
-      iterator.call(context, array[mid]) < value ? low = mid + 1 : high = mid;
-    }
-    return low;
-  };
-
-  // Safely create a real, live array from anything iterable.
-  _.toArray = function(obj) {
-    if (!obj) return [];
-    if (_.isArray(obj)) return slice.call(obj);
-    if (obj.length === +obj.length) return _.map(obj, _.identity);
-    return _.values(obj);
-  };
-
-  // Return the number of elements in an object.
-  _.size = function(obj) {
-    if (obj == null) return 0;
-    return (obj.length === +obj.length) ? obj.length : _.keys(obj).length;
-  };
-
-  // Array Functions
-  // ---------------
-
-  // Get the first element of an array. Passing **n** will return the first N
-  // values in the array. Aliased as `head` and `take`. The **guard** check
-  // allows it to work with `_.map`.
-  _.first = _.head = _.take = function(array, n, guard) {
-    if (array == null) return void 0;
-    if ((n == null) || guard) return array[0];
-    if (n < 0) return [];
-    return slice.call(array, 0, n);
-  };
-
-  // Returns everything but the last entry of the array. Especially useful on
-  // the arguments object. Passing **n** will return all the values in
-  // the array, excluding the last N. The **guard** check allows it to work with
-  // `_.map`.
-  _.initial = function(array, n, guard) {
-    return slice.call(array, 0, array.length - ((n == null) || guard ? 1 : n));
-  };
-
-  // Get the last element of an array. Passing **n** will return the last N
-  // values in the array. The **guard** check allows it to work with `_.map`.
-  _.last = function(array, n, guard) {
-    if (array == null) return void 0;
-    if ((n == null) || guard) return array[array.length - 1];
-    return slice.call(array, Math.max(array.length - n, 0));
-  };
-
-  // Returns everything but the first entry of the array. Aliased as `tail` and `drop`.
-  // Especially useful on the arguments object. Passing an **n** will return
-  // the rest N values in the array. The **guard**
-  // check allows it to work with `_.map`.
-  _.rest = _.tail = _.drop = function(array, n, guard) {
-    return slice.call(array, (n == null) || guard ? 1 : n);
-  };
-
-  // Trim out all falsy values from an array.
-  _.compact = function(array) {
-    return _.filter(array, _.identity);
-  };
-
-  // Internal implementation of a recursive `flatten` function.
-  var flatten = function(input, shallow, output) {
-    if (shallow && _.every(input, _.isArray)) {
-      return concat.apply(output, input);
-    }
-    each(input, function(value) {
-      if (_.isArray(value) || _.isArguments(value)) {
-        shallow ? push.apply(output, value) : flatten(value, shallow, output);
-      } else {
-        output.push(value);
-      }
+    // Add some isType methods: isArguments, isFunction, isString, isNumber, isDate, isRegExp.
+    each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp'], function (name) {
+        _['is' + name] = function (obj) {
+            return toString.call(obj) == '[object ' + name + ']';
+        };
     });
-    return output;
-  };
 
-  // Flatten out an array, either recursively (by default), or just one level.
-  _.flatten = function(array, shallow) {
-    return flatten(array, shallow, []);
-  };
-
-  // Return a version of the array that does not contain the specified value(s).
-  _.without = function(array) {
-    return _.difference(array, slice.call(arguments, 1));
-  };
-
-  // Split an array into two arrays: one whose elements all satisfy the given
-  // predicate, and one whose elements all do not satisfy the predicate.
-  _.partition = function(array, predicate, context) {
-    predicate = lookupIterator(predicate);
-    var pass = [], fail = [];
-    each(array, function(elem) {
-      (predicate.call(context, elem) ? pass : fail).push(elem);
-    });
-    return [pass, fail];
-  };
-
-  // Produce a duplicate-free version of the array. If the array has already
-  // been sorted, you have the option of using a faster algorithm.
-  // Aliased as `unique`.
-  _.uniq = _.unique = function(array, isSorted, iterator, context) {
-    if (_.isFunction(isSorted)) {
-      context = iterator;
-      iterator = isSorted;
-      isSorted = false;
-    }
-    var initial = iterator ? _.map(array, iterator, context) : array;
-    var results = [];
-    var seen = [];
-    each(initial, function(value, index) {
-      if (isSorted ? (!index || seen[seen.length - 1] !== value) : !_.contains(seen, value)) {
-        seen.push(value);
-        results.push(array[index]);
-      }
-    });
-    return results;
-  };
-
-  // Produce an array that contains the union: each distinct element from all of
-  // the passed-in arrays.
-  _.union = function() {
-    return _.uniq(_.flatten(arguments, true));
-  };
-
-  // Produce an array that contains every item shared between all the
-  // passed-in arrays.
-  _.intersection = function(array) {
-    var rest = slice.call(arguments, 1);
-    return _.filter(_.uniq(array), function(item) {
-      return _.every(rest, function(other) {
-        return _.contains(other, item);
-      });
-    });
-  };
-
-  // Take the difference between one array and a number of other arrays.
-  // Only the elements present in just the first array will remain.
-  _.difference = function(array) {
-    var rest = concat.apply(ArrayProto, slice.call(arguments, 1));
-    return _.filter(array, function(value){ return !_.contains(rest, value); });
-  };
-
-  // Zip together multiple lists into a single array -- elements that share
-  // an index go together.
-  _.zip = function() {
-    var length = _.max(_.pluck(arguments, 'length').concat(0));
-    var results = new Array(length);
-    for (var i = 0; i < length; i++) {
-      results[i] = _.pluck(arguments, '' + i);
-    }
-    return results;
-  };
-
-  // Converts lists into objects. Pass either a single array of `[key, value]`
-  // pairs, or two parallel arrays of the same length -- one of keys, and one of
-  // the corresponding values.
-  _.object = function(list, values) {
-    if (list == null) return {};
-    var result = {};
-    for (var i = 0, length = list.length; i < length; i++) {
-      if (values) {
-        result[list[i]] = values[i];
-      } else {
-        result[list[i][0]] = list[i][1];
-      }
-    }
-    return result;
-  };
-
-  // If the browser doesn't supply us with indexOf (I'm looking at you, **MSIE**),
-  // we need this function. Return the position of the first occurrence of an
-  // item in an array, or -1 if the item is not included in the array.
-  // Delegates to **ECMAScript 5**'s native `indexOf` if available.
-  // If the array is large and already in sort order, pass `true`
-  // for **isSorted** to use binary search.
-  _.indexOf = function(array, item, isSorted) {
-    if (array == null) return -1;
-    var i = 0, length = array.length;
-    if (isSorted) {
-      if (typeof isSorted == 'number') {
-        i = (isSorted < 0 ? Math.max(0, length + isSorted) : isSorted);
-      } else {
-        i = _.sortedIndex(array, item);
-        return array[i] === item ? i : -1;
-      }
-    }
-    if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item, isSorted);
-    for (; i < length; i++) if (array[i] === item) return i;
-    return -1;
-  };
-
-  // Delegates to **ECMAScript 5**'s native `lastIndexOf` if available.
-  _.lastIndexOf = function(array, item, from) {
-    if (array == null) return -1;
-    var hasIndex = from != null;
-    if (nativeLastIndexOf && array.lastIndexOf === nativeLastIndexOf) {
-      return hasIndex ? array.lastIndexOf(item, from) : array.lastIndexOf(item);
-    }
-    var i = (hasIndex ? from : array.length);
-    while (i--) if (array[i] === item) return i;
-    return -1;
-  };
-
-  // Generate an integer Array containing an arithmetic progression. A port of
-  // the native Python `range()` function. See
-  // [the Python documentation](http://docs.python.org/library/functions.html#range).
-  _.range = function(start, stop, step) {
-    if (arguments.length <= 1) {
-      stop = start || 0;
-      start = 0;
-    }
-    step = arguments[2] || 1;
-
-    var length = Math.max(Math.ceil((stop - start) / step), 0);
-    var idx = 0;
-    var range = new Array(length);
-
-    while(idx < length) {
-      range[idx++] = start;
-      start += step;
+    // Define a fallback version of the method in browsers (ahem, IE), where
+    // there isn't any inspectable "Arguments" type.
+    if (!_.isArguments(arguments)) {
+        _.isArguments = function (obj) {
+            return !!(obj && _.has(obj, 'callee'));
+        };
     }
 
-    return range;
-  };
+    // Optimize `isFunction` if appropriate.
+    if (typeof (/./) !== 'function') {
+        _.isFunction = function (obj) {
+            return typeof obj === 'function';
+        };
+    }
 
-  // Function (ahem) Functions
-  // ------------------
-
-  // Reusable constructor function for prototype setting.
-  var ctor = function(){};
-
-  // Create a function bound to a given object (assigning `this`, and arguments,
-  // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
-  // available.
-  _.bind = function(func, context) {
-    var args, bound;
-    if (nativeBind && func.bind === nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
-    if (!_.isFunction(func)) throw new TypeError;
-    args = slice.call(arguments, 2);
-    return bound = function() {
-      if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
-      ctor.prototype = func.prototype;
-      var self = new ctor;
-      ctor.prototype = null;
-      var result = func.apply(self, args.concat(slice.call(arguments)));
-      if (Object(result) === result) return result;
-      return self;
+    // Is a given object a finite number?
+    _.isFinite = function (obj) {
+        return isFinite(obj) && !isNaN(parseFloat(obj));
     };
-  };
 
-  // Partially apply a function by creating a version that has had some of its
-  // arguments pre-filled, without changing its dynamic `this` context. _ acts
-  // as a placeholder, allowing any combination of arguments to be pre-filled.
-  _.partial = function(func) {
-    var boundArgs = slice.call(arguments, 1);
-    return function() {
-      var position = 0;
-      var args = boundArgs.slice();
-      for (var i = 0, length = args.length; i < length; i++) {
-        if (args[i] === _) args[i] = arguments[position++];
-      }
-      while (position < arguments.length) args.push(arguments[position++]);
-      return func.apply(this, args);
+    // Is the given value `NaN`? (NaN is the only number which does not equal itself).
+    _.isNaN = function (obj) {
+        return _.isNumber(obj) && obj != +obj;
     };
-  };
 
-  // Bind a number of an object's methods to that object. Remaining arguments
-  // are the method names to be bound. Useful for ensuring that all callbacks
-  // defined on an object belong to it.
-  _.bindAll = function(obj) {
-    var funcs = slice.call(arguments, 1);
-    if (funcs.length === 0) throw new Error('bindAll must be passed function names');
-    each(funcs, function(f) { obj[f] = _.bind(obj[f], obj); });
-    return obj;
-  };
-
-  // Memoize an expensive function by storing its results.
-  _.memoize = function(func, hasher) {
-    var memo = {};
-    hasher || (hasher = _.identity);
-    return function() {
-      var key = hasher.apply(this, arguments);
-      return _.has(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
+    // Is a given value a boolean?
+    _.isBoolean = function (obj) {
+        return obj === true || obj === false || toString.call(obj) == '[object Boolean]';
     };
-  };
 
-  // Delays a function for the given number of milliseconds, and then calls
-  // it with the arguments supplied.
-  _.delay = function(func, wait) {
-    var args = slice.call(arguments, 2);
-    return setTimeout(function(){ return func.apply(null, args); }, wait);
-  };
-
-  // Defers a function, scheduling it to run after the current call stack has
-  // cleared.
-  _.defer = function(func) {
-    return _.delay.apply(_, [func, 1].concat(slice.call(arguments, 1)));
-  };
-
-  // Returns a function, that, when invoked, will only be triggered at most once
-  // during a given window of time. Normally, the throttled function will run
-  // as much as it can, without ever going more than once per `wait` duration;
-  // but if you'd like to disable the execution on the leading edge, pass
-  // `{leading: false}`. To disable execution on the trailing edge, ditto.
-  _.throttle = function(func, wait, options) {
-    var context, args, result;
-    var timeout = null;
-    var previous = 0;
-    options || (options = {});
-    var later = function() {
-      previous = options.leading === false ? 0 : _.now();
-      timeout = null;
-      result = func.apply(context, args);
-      context = args = null;
+    // Is a given value equal to null?
+    _.isNull = function (obj) {
+        return obj === null;
     };
-    return function() {
-      var now = _.now();
-      if (!previous && options.leading === false) previous = now;
-      var remaining = wait - (now - previous);
-      context = this;
-      args = arguments;
-      if (remaining <= 0) {
-        clearTimeout(timeout);
-        timeout = null;
-        previous = now;
-        result = func.apply(context, args);
-        context = args = null;
-      } else if (!timeout && options.trailing !== false) {
-        timeout = setTimeout(later, remaining);
-      }
-      return result;
+
+    // Is a given variable undefined?
+    _.isUndefined = function (obj) {
+        return obj === void 0;
     };
-  };
 
-  // Returns a function, that, as long as it continues to be invoked, will not
-  // be triggered. The function will be called after it stops being called for
-  // N milliseconds. If `immediate` is passed, trigger the function on the
-  // leading edge, instead of the trailing.
-  _.debounce = function(func, wait, immediate) {
-    var timeout, args, context, timestamp, result;
+    // Shortcut function for checking if an object has a given property directly
+    // on itself (in other words, not on a prototype).
+    _.has = function (obj, key) {
+        return hasOwnProperty.call(obj, key);
+    };
 
-    var later = function() {
-      var last = _.now() - timestamp;
-      if (last < wait) {
-        timeout = setTimeout(later, wait - last);
-      } else {
-        timeout = null;
-        if (!immediate) {
-          result = func.apply(context, args);
-          context = args = null;
+    // Utility Functions
+    // -----------------
+
+    // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
+    // previous owner. Returns a reference to the Underscore object.
+    _.noConflict = function () {
+        root._ = previousUnderscore;
+        return this;
+    };
+
+    // Keep the identity function around for default iterators.
+    _.identity = function (value) {
+        return value;
+    };
+
+    _.constant = function (value) {
+        return function () {
+            return value;
+        };
+    };
+
+    _.property = function (key) {
+        return function (obj) {
+            return obj[key];
+        };
+    };
+
+    // Returns a predicate for checking whether an object has a given set of `key:value` pairs.
+    _.matches = function (attrs) {
+        return function (obj) {
+            if (obj === attrs) return true; //avoid comparing an object to itself.
+            for (var key in attrs) {
+                if (attrs[key] !== obj[key])
+                    return false;
+            }
+            return true;
         }
-      }
     };
 
-    return function() {
-      context = this;
-      args = arguments;
-      timestamp = _.now();
-      var callNow = immediate && !timeout;
-      if (!timeout) {
-        timeout = setTimeout(later, wait);
-      }
-      if (callNow) {
-        result = func.apply(context, args);
-        context = args = null;
-      }
-
-      return result;
+    // Run a function **n** times.
+    _.times = function (n, iterator, context) {
+        var accum = Array(Math.max(0, n));
+        for (var i = 0; i < n; i++) accum[i] = iterator.call(context, i);
+        return accum;
     };
-  };
 
-  // Returns a function that will be executed at most one time, no matter how
-  // often you call it. Useful for lazy initialization.
-  _.once = function(func) {
-    var ran = false, memo;
-    return function() {
-      if (ran) return memo;
-      ran = true;
-      memo = func.apply(this, arguments);
-      func = null;
-      return memo;
-    };
-  };
-
-  // Returns the first function passed as an argument to the second,
-  // allowing you to adjust arguments, run code before and after, and
-  // conditionally execute the original function.
-  _.wrap = function(func, wrapper) {
-    return _.partial(wrapper, func);
-  };
-
-  // Returns a function that is the composition of a list of functions, each
-  // consuming the return value of the function that follows.
-  _.compose = function() {
-    var funcs = arguments;
-    return function() {
-      var args = arguments;
-      for (var i = funcs.length - 1; i >= 0; i--) {
-        args = [funcs[i].apply(this, args)];
-      }
-      return args[0];
-    };
-  };
-
-  // Returns a function that will only be executed after being called N times.
-  _.after = function(times, func) {
-    return function() {
-      if (--times < 1) {
-        return func.apply(this, arguments);
-      }
-    };
-  };
-
-  // Object Functions
-  // ----------------
-
-  // Retrieve the names of an object's properties.
-  // Delegates to **ECMAScript 5**'s native `Object.keys`
-  _.keys = function(obj) {
-    if (!_.isObject(obj)) return [];
-    if (nativeKeys) return nativeKeys(obj);
-    var keys = [];
-    for (var key in obj) if (_.has(obj, key)) keys.push(key);
-    return keys;
-  };
-
-  // Retrieve the values of an object's properties.
-  _.values = function(obj) {
-    var keys = _.keys(obj);
-    var length = keys.length;
-    var values = new Array(length);
-    for (var i = 0; i < length; i++) {
-      values[i] = obj[keys[i]];
-    }
-    return values;
-  };
-
-  // Convert an object into a list of `[key, value]` pairs.
-  _.pairs = function(obj) {
-    var keys = _.keys(obj);
-    var length = keys.length;
-    var pairs = new Array(length);
-    for (var i = 0; i < length; i++) {
-      pairs[i] = [keys[i], obj[keys[i]]];
-    }
-    return pairs;
-  };
-
-  // Invert the keys and values of an object. The values must be serializable.
-  _.invert = function(obj) {
-    var result = {};
-    var keys = _.keys(obj);
-    for (var i = 0, length = keys.length; i < length; i++) {
-      result[obj[keys[i]]] = keys[i];
-    }
-    return result;
-  };
-
-  // Return a sorted list of the function names available on the object.
-  // Aliased as `methods`
-  _.functions = _.methods = function(obj) {
-    var names = [];
-    for (var key in obj) {
-      if (_.isFunction(obj[key])) names.push(key);
-    }
-    return names.sort();
-  };
-
-  // Extend a given object with all the properties in passed-in object(s).
-  _.extend = function(obj) {
-    each(slice.call(arguments, 1), function(source) {
-      if (source) {
-        for (var prop in source) {
-          obj[prop] = source[prop];
+    // Return a random integer between min and max (inclusive).
+    _.random = function (min, max) {
+        if (max == null) {
+            max = min;
+            min = 0;
         }
-      }
-    });
-    return obj;
-  };
+        return min + Math.floor(Math.random() * (max - min + 1));
+    };
 
-  // Return a copy of the object only containing the whitelisted properties.
-  _.pick = function(obj) {
-    var copy = {};
-    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
-    each(keys, function(key) {
-      if (key in obj) copy[key] = obj[key];
-    });
-    return copy;
-  };
+    // A (possibly faster) way to get the current timestamp as an integer.
+    _.now = Date.now || function () { return new Date().getTime(); };
 
-   // Return a copy of the object without the blacklisted properties.
-  _.omit = function(obj) {
-    var copy = {};
-    var keys = concat.apply(ArrayProto, slice.call(arguments, 1));
-    for (var key in obj) {
-      if (!_.contains(keys, key)) copy[key] = obj[key];
-    }
-    return copy;
-  };
-
-  // Fill in a given object with default properties.
-  _.defaults = function(obj) {
-    each(slice.call(arguments, 1), function(source) {
-      if (source) {
-        for (var prop in source) {
-          if (obj[prop] === void 0) obj[prop] = source[prop];
+    // List of HTML entities for escaping.
+    var entityMap = {
+        escape: {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;'
         }
-      }
+    };
+    entityMap.unescape = _.invert(entityMap.escape);
+
+    // Regexes containing the keys and values listed immediately above.
+    var entityRegexes = {
+        escape: new RegExp('[' + _.keys(entityMap.escape).join('') + ']', 'g'),
+        unescape: new RegExp('(' + _.keys(entityMap.unescape).join('|') + ')', 'g')
+    };
+
+    // Functions for escaping and unescaping strings to/from HTML interpolation.
+    _.each(['escape', 'unescape'], function (method) {
+        _[method] = function (string) {
+            if (string == null) return '';
+            return ('' + string).replace(entityRegexes[method], function (match) {
+                return entityMap[method][match];
+            });
+        };
     });
-    return obj;
-  };
 
-  // Create a (shallow-cloned) duplicate of an object.
-  _.clone = function(obj) {
-    if (!_.isObject(obj)) return obj;
-    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
-  };
+    // If the value of the named `property` is a function then invoke it with the
+    // `object` as context; otherwise, return it.
+    _.result = function (object, property) {
+        if (object == null) return void 0;
+        var value = object[property];
+        return _.isFunction(value) ? value.call(object) : value;
+    };
 
-  // Invokes interceptor with the obj, and then returns obj.
-  // The primary purpose of this method is to "tap into" a method chain, in
-  // order to perform operations on intermediate results within the chain.
-  _.tap = function(obj, interceptor) {
-    interceptor(obj);
-    return obj;
-  };
+    // Add your own custom functions to the Underscore object.
+    _.mixin = function (obj) {
+        each(_.functions(obj), function (name) {
+            var func = _[name] = obj[name];
+            _.prototype[name] = function () {
+                var args = [this._wrapped];
+                push.apply(args, arguments);
+                return result.call(this, func.apply(_, args));
+            };
+        });
+    };
 
-  // Internal recursive comparison function for `isEqual`.
-  var eq = function(a, b, aStack, bStack) {
-    // Identical objects are equal. `0 === -0`, but they aren't identical.
-    // See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
-    if (a === b) return a !== 0 || 1 / a == 1 / b;
-    // A strict comparison is necessary because `null == undefined`.
-    if (a == null || b == null) return a === b;
-    // Unwrap any wrapped objects.
-    if (a instanceof _) a = a._wrapped;
-    if (b instanceof _) b = b._wrapped;
-    // Compare `[[Class]]` names.
-    var className = toString.call(a);
-    if (className != toString.call(b)) return false;
-    switch (className) {
-      // Strings, numbers, dates, and booleans are compared by value.
-      case '[object String]':
-        // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
-        // equivalent to `new String("5")`.
-        return a == String(b);
-      case '[object Number]':
-        // `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
-        // other numeric values.
-        return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
-      case '[object Date]':
-      case '[object Boolean]':
-        // Coerce dates and booleans to numeric primitive values. Dates are compared by their
-        // millisecond representations. Note that invalid dates with millisecond representations
-        // of `NaN` are not equivalent.
-        return +a == +b;
-      // RegExps are compared by their source patterns and flags.
-      case '[object RegExp]':
-        return a.source == b.source &&
-               a.global == b.global &&
-               a.multiline == b.multiline &&
-               a.ignoreCase == b.ignoreCase;
-    }
-    if (typeof a != 'object' || typeof b != 'object') return false;
-    // Assume equality for cyclic structures. The algorithm for detecting cyclic
-    // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
-    var length = aStack.length;
-    while (length--) {
-      // Linear search. Performance is inversely proportional to the number of
-      // unique nested structures.
-      if (aStack[length] == a) return bStack[length] == b;
-    }
-    // Objects with different constructors are not equivalent, but `Object`s
-    // from different frames are.
-    var aCtor = a.constructor, bCtor = b.constructor;
-    if (aCtor !== bCtor && !(_.isFunction(aCtor) && (aCtor instanceof aCtor) &&
-                             _.isFunction(bCtor) && (bCtor instanceof bCtor))
-                        && ('constructor' in a && 'constructor' in b)) {
-      return false;
-    }
-    // Add the first object to the stack of traversed objects.
-    aStack.push(a);
-    bStack.push(b);
-    var size = 0, result = true;
-    // Recursively compare objects and arrays.
-    if (className == '[object Array]') {
-      // Compare array lengths to determine if a deep comparison is necessary.
-      size = a.length;
-      result = size == b.length;
-      if (result) {
-        // Deep compare the contents, ignoring non-numeric properties.
-        while (size--) {
-          if (!(result = eq(a[size], b[size], aStack, bStack))) break;
+    // Generate a unique integer id (unique within the entire client session).
+    // Useful for temporary DOM ids.
+    var idCounter = 0;
+    _.uniqueId = function (prefix) {
+        var id = ++idCounter + '';
+        return prefix ? prefix + id : id;
+    };
+
+    // By default, Underscore uses ERB-style template delimiters, change the
+    // following template settings to use alternative delimiters.
+    _.templateSettings = {
+        evaluate: /<%([\s\S]+?)%>/g,
+        interpolate: /<%=([\s\S]+?)%>/g,
+        escape: /<%-([\s\S]+?)%>/g
+    };
+
+    // When customizing `templateSettings`, if you don't want to define an
+    // interpolation, evaluation or escaping regex, we need one that is
+    // guaranteed not to match.
+    var noMatch = /(.)^/;
+
+    // Certain characters need to be escaped so that they can be put into a
+    // string literal.
+    var escapes = {
+        "'": "'",
+        '\\': '\\',
+        '\r': 'r',
+        '\n': 'n',
+        '\t': 't',
+        '\u2028': 'u2028',
+        '\u2029': 'u2029'
+    };
+
+    var escaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
+
+    // JavaScript micro-templating, similar to John Resig's implementation.
+    // Underscore templating handles arbitrary delimiters, preserves whitespace,
+    // and correctly escapes quotes within interpolated code.
+    _.template = function (text, data, settings) {
+        var render;
+        settings = _.defaults({}, settings, _.templateSettings);
+
+        // Combine delimiters into one regular expression via alternation.
+        var matcher = new RegExp([
+            (settings.escape || noMatch).source,
+            (settings.interpolate || noMatch).source,
+            (settings.evaluate || noMatch).source
+        ].join('|') + '|$', 'g');
+
+        // Compile the template source, escaping string literals appropriately.
+        var index = 0;
+        var source = "__p+='";
+        text.replace(matcher, function (match, escape, interpolate, evaluate, offset) {
+            source += text.slice(index, offset)
+                .replace(escaper, function (match) { return '\\' + escapes[match]; });
+
+            if (escape) {
+                source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
+            }
+            if (interpolate) {
+                source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+            }
+            if (evaluate) {
+                source += "';\n" + evaluate + "\n__p+='";
+            }
+            index = offset + match.length;
+            return match;
+        });
+        source += "';\n";
+
+        // If a variable is not specified, place data values in local scope.
+        if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
+
+        source = "var __t,__p='',__j=Array.prototype.join," +
+            "print=function(){__p+=__j.call(arguments,'');};\n" +
+            source + "return __p;\n";
+
+        try {
+            render = new Function(settings.variable || 'obj', '_', source);
+        } catch (e) {
+            e.source = source;
+            throw e;
         }
-      }
-    } else {
-      // Deep compare objects.
-      for (var key in a) {
-        if (_.has(a, key)) {
-          // Count the expected number of properties.
-          size++;
-          // Deep compare each member.
-          if (!(result = _.has(b, key) && eq(a[key], b[key], aStack, bStack))) break;
+
+        if (data) return render(data, _);
+        var template = function (data) {
+            return render.call(this, data, _);
+        };
+
+        // Provide the compiled function source as a convenience for precompilation.
+        template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
+
+        return template;
+    };
+
+    // Add a "chain" function, which will delegate to the wrapper.
+    _.chain = function (obj) {
+        return _(obj).chain();
+    };
+
+    // OOP
+    // ---------------
+    // If Underscore is called as a function, it returns a wrapped object that
+    // can be used OO-style. This wrapper holds altered versions of all the
+    // underscore functions. Wrapped objects may be chained.
+
+    // Helper function to continue chaining intermediate results.
+    var result = function (obj) {
+        return this._chain ? _(obj).chain() : obj;
+    };
+
+    // Add all of the Underscore functions to the wrapper object.
+    _.mixin(_);
+
+    // Add all mutator Array functions to the wrapper.
+    each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function (name) {
+        var method = ArrayProto[name];
+        _.prototype[name] = function () {
+            var obj = this._wrapped;
+            method.apply(obj, arguments);
+            if ((name == 'shift' || name == 'splice') && obj.length === 0) delete obj[0];
+            return result.call(this, obj);
+        };
+    });
+
+    // Add all accessor Array functions to the wrapper.
+    each(['concat', 'join', 'slice'], function (name) {
+        var method = ArrayProto[name];
+        _.prototype[name] = function () {
+            return result.call(this, method.apply(this._wrapped, arguments));
+        };
+    });
+
+    _.extend(_.prototype, {
+
+        // Start chaining a wrapped Underscore object.
+        chain: function () {
+            this._chain = true;
+            return this;
+        },
+
+        // Extracts the result from a wrapped and chained object.
+        value: function () {
+            return this._wrapped;
         }
-      }
-      // Ensure that both objects contain the same number of properties.
-      if (result) {
-        for (key in b) {
-          if (_.has(b, key) && !(size--)) break;
-        }
-        result = !size;
-      }
-    }
-    // Remove the first object from the stack of traversed objects.
-    aStack.pop();
-    bStack.pop();
-    return result;
-  };
 
-  // Perform a deep comparison to check if two objects are equal.
-  _.isEqual = function(a, b) {
-    return eq(a, b, [], []);
-  };
-
-  // Is a given array, string, or object empty?
-  // An "empty" object has no enumerable own-properties.
-  _.isEmpty = function(obj) {
-    if (obj == null) return true;
-    if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
-    for (var key in obj) if (_.has(obj, key)) return false;
-    return true;
-  };
-
-  // Is a given value a DOM element?
-  _.isElement = function(obj) {
-    return !!(obj && obj.nodeType === 1);
-  };
-
-  // Is a given value an array?
-  // Delegates to ECMA5's native Array.isArray
-  _.isArray = nativeIsArray || function(obj) {
-    return toString.call(obj) == '[object Array]';
-  };
-
-  // Is a given variable an object?
-  _.isObject = function(obj) {
-    return obj === Object(obj);
-  };
-
-  // Add some isType methods: isArguments, isFunction, isString, isNumber, isDate, isRegExp.
-  each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp'], function(name) {
-    _['is' + name] = function(obj) {
-      return toString.call(obj) == '[object ' + name + ']';
-    };
-  });
-
-  // Define a fallback version of the method in browsers (ahem, IE), where
-  // there isn't any inspectable "Arguments" type.
-  if (!_.isArguments(arguments)) {
-    _.isArguments = function(obj) {
-      return !!(obj && _.has(obj, 'callee'));
-    };
-  }
-
-  // Optimize `isFunction` if appropriate.
-  if (typeof (/./) !== 'function') {
-    _.isFunction = function(obj) {
-      return typeof obj === 'function';
-    };
-  }
-
-  // Is a given object a finite number?
-  _.isFinite = function(obj) {
-    return isFinite(obj) && !isNaN(parseFloat(obj));
-  };
-
-  // Is the given value `NaN`? (NaN is the only number which does not equal itself).
-  _.isNaN = function(obj) {
-    return _.isNumber(obj) && obj != +obj;
-  };
-
-  // Is a given value a boolean?
-  _.isBoolean = function(obj) {
-    return obj === true || obj === false || toString.call(obj) == '[object Boolean]';
-  };
-
-  // Is a given value equal to null?
-  _.isNull = function(obj) {
-    return obj === null;
-  };
-
-  // Is a given variable undefined?
-  _.isUndefined = function(obj) {
-    return obj === void 0;
-  };
-
-  // Shortcut function for checking if an object has a given property directly
-  // on itself (in other words, not on a prototype).
-  _.has = function(obj, key) {
-    return hasOwnProperty.call(obj, key);
-  };
-
-  // Utility Functions
-  // -----------------
-
-  // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
-  // previous owner. Returns a reference to the Underscore object.
-  _.noConflict = function() {
-    root._ = previousUnderscore;
-    return this;
-  };
-
-  // Keep the identity function around for default iterators.
-  _.identity = function(value) {
-    return value;
-  };
-
-  _.constant = function(value) {
-    return function () {
-      return value;
-    };
-  };
-
-  _.property = function(key) {
-    return function(obj) {
-      return obj[key];
-    };
-  };
-
-  // Returns a predicate for checking whether an object has a given set of `key:value` pairs.
-  _.matches = function(attrs) {
-    return function(obj) {
-      if (obj === attrs) return true; //avoid comparing an object to itself.
-      for (var key in attrs) {
-        if (attrs[key] !== obj[key])
-          return false;
-      }
-      return true;
-    }
-  };
-
-  // Run a function **n** times.
-  _.times = function(n, iterator, context) {
-    var accum = Array(Math.max(0, n));
-    for (var i = 0; i < n; i++) accum[i] = iterator.call(context, i);
-    return accum;
-  };
-
-  // Return a random integer between min and max (inclusive).
-  _.random = function(min, max) {
-    if (max == null) {
-      max = min;
-      min = 0;
-    }
-    return min + Math.floor(Math.random() * (max - min + 1));
-  };
-
-  // A (possibly faster) way to get the current timestamp as an integer.
-  _.now = Date.now || function() { return new Date().getTime(); };
-
-  // List of HTML entities for escaping.
-  var entityMap = {
-    escape: {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#x27;'
-    }
-  };
-  entityMap.unescape = _.invert(entityMap.escape);
-
-  // Regexes containing the keys and values listed immediately above.
-  var entityRegexes = {
-    escape:   new RegExp('[' + _.keys(entityMap.escape).join('') + ']', 'g'),
-    unescape: new RegExp('(' + _.keys(entityMap.unescape).join('|') + ')', 'g')
-  };
-
-  // Functions for escaping and unescaping strings to/from HTML interpolation.
-  _.each(['escape', 'unescape'], function(method) {
-    _[method] = function(string) {
-      if (string == null) return '';
-      return ('' + string).replace(entityRegexes[method], function(match) {
-        return entityMap[method][match];
-      });
-    };
-  });
-
-  // If the value of the named `property` is a function then invoke it with the
-  // `object` as context; otherwise, return it.
-  _.result = function(object, property) {
-    if (object == null) return void 0;
-    var value = object[property];
-    return _.isFunction(value) ? value.call(object) : value;
-  };
-
-  // Add your own custom functions to the Underscore object.
-  _.mixin = function(obj) {
-    each(_.functions(obj), function(name) {
-      var func = _[name] = obj[name];
-      _.prototype[name] = function() {
-        var args = [this._wrapped];
-        push.apply(args, arguments);
-        return result.call(this, func.apply(_, args));
-      };
     });
-  };
 
-  // Generate a unique integer id (unique within the entire client session).
-  // Useful for temporary DOM ids.
-  var idCounter = 0;
-  _.uniqueId = function(prefix) {
-    var id = ++idCounter + '';
-    return prefix ? prefix + id : id;
-  };
-
-  // By default, Underscore uses ERB-style template delimiters, change the
-  // following template settings to use alternative delimiters.
-  _.templateSettings = {
-    evaluate    : /<%([\s\S]+?)%>/g,
-    interpolate : /<%=([\s\S]+?)%>/g,
-    escape      : /<%-([\s\S]+?)%>/g
-  };
-
-  // When customizing `templateSettings`, if you don't want to define an
-  // interpolation, evaluation or escaping regex, we need one that is
-  // guaranteed not to match.
-  var noMatch = /(.)^/;
-
-  // Certain characters need to be escaped so that they can be put into a
-  // string literal.
-  var escapes = {
-    "'":      "'",
-    '\\':     '\\',
-    '\r':     'r',
-    '\n':     'n',
-    '\t':     't',
-    '\u2028': 'u2028',
-    '\u2029': 'u2029'
-  };
-
-  var escaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
-
-  // JavaScript micro-templating, similar to John Resig's implementation.
-  // Underscore templating handles arbitrary delimiters, preserves whitespace,
-  // and correctly escapes quotes within interpolated code.
-  _.template = function(text, data, settings) {
-    var render;
-    settings = _.defaults({}, settings, _.templateSettings);
-
-    // Combine delimiters into one regular expression via alternation.
-    var matcher = new RegExp([
-      (settings.escape || noMatch).source,
-      (settings.interpolate || noMatch).source,
-      (settings.evaluate || noMatch).source
-    ].join('|') + '|$', 'g');
-
-    // Compile the template source, escaping string literals appropriately.
-    var index = 0;
-    var source = "__p+='";
-    text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
-      source += text.slice(index, offset)
-        .replace(escaper, function(match) { return '\\' + escapes[match]; });
-
-      if (escape) {
-        source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
-      }
-      if (interpolate) {
-        source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
-      }
-      if (evaluate) {
-        source += "';\n" + evaluate + "\n__p+='";
-      }
-      index = offset + match.length;
-      return match;
-    });
-    source += "';\n";
-
-    // If a variable is not specified, place data values in local scope.
-    if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
-
-    source = "var __t,__p='',__j=Array.prototype.join," +
-      "print=function(){__p+=__j.call(arguments,'');};\n" +
-      source + "return __p;\n";
-
-    try {
-      render = new Function(settings.variable || 'obj', '_', source);
-    } catch (e) {
-      e.source = source;
-      throw e;
+    // AMD registration happens at the end for compatibility with AMD loaders
+    // that may not enforce next-turn semantics on modules. Even though general
+    // practice for AMD registration is to be anonymous, underscore registers
+    // as a named module because, like jQuery, it is a base library that is
+    // popular enough to be bundled in a third party lib, but not be part of
+    // an AMD load request. Those cases could generate an error when an
+    // anonymous define() is called outside of a loader request.
+    if (typeof define === 'function' && define.amd) {
+        define('underscore', [], function () {
+            return _;
+        });
     }
-
-    if (data) return render(data, _);
-    var template = function(data) {
-      return render.call(this, data, _);
-    };
-
-    // Provide the compiled function source as a convenience for precompilation.
-    template.source = 'function(' + (settings.variable || 'obj') + '){\n' + source + '}';
-
-    return template;
-  };
-
-  // Add a "chain" function, which will delegate to the wrapper.
-  _.chain = function(obj) {
-    return _(obj).chain();
-  };
-
-  // OOP
-  // ---------------
-  // If Underscore is called as a function, it returns a wrapped object that
-  // can be used OO-style. This wrapper holds altered versions of all the
-  // underscore functions. Wrapped objects may be chained.
-
-  // Helper function to continue chaining intermediate results.
-  var result = function(obj) {
-    return this._chain ? _(obj).chain() : obj;
-  };
-
-  // Add all of the Underscore functions to the wrapper object.
-  _.mixin(_);
-
-  // Add all mutator Array functions to the wrapper.
-  each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
-    var method = ArrayProto[name];
-    _.prototype[name] = function() {
-      var obj = this._wrapped;
-      method.apply(obj, arguments);
-      if ((name == 'shift' || name == 'splice') && obj.length === 0) delete obj[0];
-      return result.call(this, obj);
-    };
-  });
-
-  // Add all accessor Array functions to the wrapper.
-  each(['concat', 'join', 'slice'], function(name) {
-    var method = ArrayProto[name];
-    _.prototype[name] = function() {
-      return result.call(this, method.apply(this._wrapped, arguments));
-    };
-  });
-
-  _.extend(_.prototype, {
-
-    // Start chaining a wrapped Underscore object.
-    chain: function() {
-      this._chain = true;
-      return this;
-    },
-
-    // Extracts the result from a wrapped and chained object.
-    value: function() {
-      return this._wrapped;
-    }
-
-  });
-
-  // AMD registration happens at the end for compatibility with AMD loaders
-  // that may not enforce next-turn semantics on modules. Even though general
-  // practice for AMD registration is to be anonymous, underscore registers
-  // as a named module because, like jQuery, it is a base library that is
-  // popular enough to be bundled in a third party lib, but not be part of
-  // an AMD load request. Those cases could generate an error when an
-  // anonymous define() is called outside of a loader request.
-  if (typeof define === 'function' && define.amd) {
-    define('underscore', [], function() {
-      return _;
-    });
-  }
 }).call(this);
 
 
@@ -3352,85 +3347,85 @@ if (typeof JSON !== 'object') {
 
 var uuid;
 
-(function() {
-  var _global = this;
+(function () {
+    var _global = this;
 
-  // Unique ID creation requires a high quality random # generator.  We feature
-  // detect to determine the best RNG source, normalizing to a function that
-  // returns 128-bits of randomness, since that's what's usually required
-  var _rng;
+    // Unique ID creation requires a high quality random # generator.  We feature
+    // detect to determine the best RNG source, normalizing to a function that
+    // returns 128-bits of randomness, since that's what's usually required
+    var _rng;
 
-  // Node.js crypto-based RNG - http://nodejs.org/docs/v0.6.2/api/crypto.html
-  //
-  // Moderately fast, high quality
-  if (typeof(_global.require) == 'function') {
-    try {
-      var _rb = _global.require('crypto').randomBytes;
-      _rng = _rb && function() {return _rb(16);};
-    } catch(e) {}
-  }
-
-  if (!_rng && _global.crypto && crypto.getRandomValues) {
-    // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
+    // Node.js crypto-based RNG - http://nodejs.org/docs/v0.6.2/api/crypto.html
     //
     // Moderately fast, high quality
-    var _rnds8 = new Uint8Array(16);
-    _rng = function whatwgRNG() {
-      crypto.getRandomValues(_rnds8);
-      return _rnds8;
-    };
-  }
-
-  if (!_rng) {
-    // Math.random()-based (RNG)
-    //
-    // If all else fails, use Math.random().  It's fast, but is of unspecified
-    // quality.
-    var  _rnds = new Array(16);
-    _rng = function() {
-      for (var i = 0, r; i < 16; i++) {
-        if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
-        _rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
-      }
-
-      return _rnds;
-    };
-  }
-
-  // Buffer class to use
-  var BufferClass = typeof(_global.Buffer) == 'function' ? _global.Buffer : Array;
-
-  // Maps for number <-> hex string conversion
-  var _byteToHex = [];
-  var _hexToByte = {};
-  for (var i = 0; i < 256; i++) {
-    _byteToHex[i] = (i + 0x100).toString(16).substr(1);
-    _hexToByte[_byteToHex[i]] = i;
-  }
-
-  // **`parse()` - Parse a UUID into it's component bytes**
-  function parse(s, buf, offset) {
-    var i = (buf && offset) || 0, ii = 0;
-
-    buf = buf || [];
-    s.toLowerCase().replace(/[0-9a-f]{2}/g, function(oct) {
-      if (ii < 16) { // Don't overflow!
-        buf[i + ii++] = _hexToByte[oct];
-      }
-    });
-
-    // Zero out remaining bytes if string was short
-    while (ii < 16) {
-      buf[i + ii++] = 0;
+    if (typeof (_global.require) == 'function') {
+        try {
+            var _rb = _global.require('crypto').randomBytes;
+            _rng = _rb && function () { return _rb(16); };
+        } catch (e) { }
     }
 
-    return buf;
-  }
+    if (!_rng && _global.crypto && crypto.getRandomValues) {
+        // WHATWG crypto-based RNG - http://wiki.whatwg.org/wiki/Crypto
+        //
+        // Moderately fast, high quality
+        var _rnds8 = new Uint8Array(16);
+        _rng = function whatwgRNG() {
+            crypto.getRandomValues(_rnds8);
+            return _rnds8;
+        };
+    }
 
-  // **`unparse()` - Convert UUID byte array (ala parse()) into a string**
-  function unparse(buf, offset) {
-    var i = offset || 0, bth = _byteToHex;
-    return  bth[buf[i++]] + bth[buf[i++]] +
+    if (!_rng) {
+        // Math.random()-based (RNG)
+        //
+        // If all else fails, use Math.random().  It's fast, but is of unspecified
+        // quality.
+        var _rnds = new Array(16);
+        _rng = function () {
+            for (var i = 0, r; i < 16; i++) {
+                if ((i & 0x03) === 0) r = Math.random() * 0x100000000;
+                _rnds[i] = r >>> ((i & 0x03) << 3) & 0xff;
+            }
+
+            return _rnds;
+        };
+    }
+
+    // Buffer class to use
+    var BufferClass = typeof (_global.Buffer) == 'function' ? _global.Buffer : Array;
+
+    // Maps for number <-> hex string conversion
+    var _byteToHex = [];
+    var _hexToByte = {};
+    for (var i = 0; i < 256; i++) {
+        _byteToHex[i] = (i + 0x100).toString(16).substr(1);
+        _hexToByte[_byteToHex[i]] = i;
+    }
+
+    // **`parse()` - Parse a UUID into it's component bytes**
+    function parse(s, buf, offset) {
+        var i = (buf && offset) || 0, ii = 0;
+
+        buf = buf || [];
+        s.toLowerCase().replace(/[0-9a-f]{2}/g, function (oct) {
+            if (ii < 16) { // Don't overflow!
+                buf[i + ii++] = _hexToByte[oct];
+            }
+        });
+
+        // Zero out remaining bytes if string was short
+        while (ii < 16) {
+            buf[i + ii++] = 0;
+        }
+
+        return buf;
+    }
+
+    // **`unparse()` - Convert UUID byte array (ala parse()) into a string**
+    function unparse(buf, offset) {
+        var i = offset || 0, bth = _byteToHex;
+        return bth[buf[i++]] + bth[buf[i++]] +
             bth[buf[i++]] + bth[buf[i++]] + '-' +
             bth[buf[i++]] + bth[buf[i++]] + '-' +
             bth[buf[i++]] + bth[buf[i++]] + '-' +
@@ -3438,159 +3433,159 @@ var uuid;
             bth[buf[i++]] + bth[buf[i++]] +
             bth[buf[i++]] + bth[buf[i++]] +
             bth[buf[i++]] + bth[buf[i++]];
-  }
-
-  // **`v1()` - Generate time-based UUID**
-  //
-  // Inspired by https://github.com/LiosK/UUID.js
-  // and http://docs.python.org/library/uuid.html
-
-  // random #'s we need to init node and clockseq
-  var _seedBytes = _rng();
-
-  // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-  var _nodeId = [
-    _seedBytes[0] | 0x01,
-    _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
-  ];
-
-  // Per 4.2.2, randomize (14 bit) clockseq
-  var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
-
-  // Previous uuid creation time
-  var _lastMSecs = 0, _lastNSecs = 0;
-
-  // See https://github.com/broofa/node-uuid for API details
-  function v1(options, buf, offset) {
-    var i = buf && offset || 0;
-    var b = buf || [];
-
-    options = options || {};
-
-    var clockseq = options.clockseq != null ? options.clockseq : _clockseq;
-
-    // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-    // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-    // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-    // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-    var msecs = options.msecs != null ? options.msecs : new Date().getTime();
-
-    // Per 4.2.1.2, use count of uuid's generated during the current clock
-    // cycle to simulate higher resolution clock
-    var nsecs = options.nsecs != null ? options.nsecs : _lastNSecs + 1;
-
-    // Time since last uuid creation (in msecs)
-    var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs)/10000;
-
-    // Per 4.2.1.2, Bump clockseq on clock regression
-    if (dt < 0 && options.clockseq == null) {
-      clockseq = clockseq + 1 & 0x3fff;
     }
 
-    // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-    // time interval
-    if ((dt < 0 || msecs > _lastMSecs) && options.nsecs == null) {
-      nsecs = 0;
+    // **`v1()` - Generate time-based UUID**
+    //
+    // Inspired by https://github.com/LiosK/UUID.js
+    // and http://docs.python.org/library/uuid.html
+
+    // random #'s we need to init node and clockseq
+    var _seedBytes = _rng();
+
+    // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+    var _nodeId = [
+        _seedBytes[0] | 0x01,
+        _seedBytes[1], _seedBytes[2], _seedBytes[3], _seedBytes[4], _seedBytes[5]
+    ];
+
+    // Per 4.2.2, randomize (14 bit) clockseq
+    var _clockseq = (_seedBytes[6] << 8 | _seedBytes[7]) & 0x3fff;
+
+    // Previous uuid creation time
+    var _lastMSecs = 0, _lastNSecs = 0;
+
+    // See https://github.com/broofa/node-uuid for API details
+    function v1(options, buf, offset) {
+        var i = buf && offset || 0;
+        var b = buf || [];
+
+        options = options || {};
+
+        var clockseq = options.clockseq != null ? options.clockseq : _clockseq;
+
+        // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+        // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+        // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+        // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+        var msecs = options.msecs != null ? options.msecs : new Date().getTime();
+
+        // Per 4.2.1.2, use count of uuid's generated during the current clock
+        // cycle to simulate higher resolution clock
+        var nsecs = options.nsecs != null ? options.nsecs : _lastNSecs + 1;
+
+        // Time since last uuid creation (in msecs)
+        var dt = (msecs - _lastMSecs) + (nsecs - _lastNSecs) / 10000;
+
+        // Per 4.2.1.2, Bump clockseq on clock regression
+        if (dt < 0 && options.clockseq == null) {
+            clockseq = clockseq + 1 & 0x3fff;
+        }
+
+        // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+        // time interval
+        if ((dt < 0 || msecs > _lastMSecs) && options.nsecs == null) {
+            nsecs = 0;
+        }
+
+        // Per 4.2.1.2 Throw error if too many uuids are requested
+        if (nsecs >= 10000) {
+            throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+        }
+
+        _lastMSecs = msecs;
+        _lastNSecs = nsecs;
+        _clockseq = clockseq;
+
+        // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+        msecs += 12219292800000;
+
+        // `time_low`
+        var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+        b[i++] = tl >>> 24 & 0xff;
+        b[i++] = tl >>> 16 & 0xff;
+        b[i++] = tl >>> 8 & 0xff;
+        b[i++] = tl & 0xff;
+
+        // `time_mid`
+        var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
+        b[i++] = tmh >>> 8 & 0xff;
+        b[i++] = tmh & 0xff;
+
+        // `time_high_and_version`
+        b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+        b[i++] = tmh >>> 16 & 0xff;
+
+        // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+        b[i++] = clockseq >>> 8 | 0x80;
+
+        // `clock_seq_low`
+        b[i++] = clockseq & 0xff;
+
+        // `node`
+        var node = options.node || _nodeId;
+        for (var n = 0; n < 6; n++) {
+            b[i + n] = node[n];
+        }
+
+        return buf ? buf : unparse(b);
     }
 
-    // Per 4.2.1.2 Throw error if too many uuids are requested
-    if (nsecs >= 10000) {
-      throw new Error('uuid.v1(): Can\'t create more than 10M uuids/sec');
+    // **`v4()` - Generate random UUID**
+
+    // See https://github.com/broofa/node-uuid for API details
+    function v4(options, buf, offset) {
+        // Deprecated - 'format' argument, as supported in v1.2
+        var i = buf && offset || 0;
+
+        if (typeof (options) == 'string') {
+            buf = options == 'binary' ? new BufferClass(16) : null;
+            options = null;
+        }
+        options = options || {};
+
+        var rnds = options.random || (options.rng || _rng)();
+
+        // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+        rnds[6] = (rnds[6] & 0x0f) | 0x40;
+        rnds[8] = (rnds[8] & 0x3f) | 0x80;
+
+        // Copy bytes to buffer, if provided
+        if (buf) {
+            for (var ii = 0; ii < 16; ii++) {
+                buf[i + ii] = rnds[ii];
+            }
+        }
+
+        return buf || unparse(rnds);
     }
 
-    _lastMSecs = msecs;
-    _lastNSecs = nsecs;
-    _clockseq = clockseq;
+    // Export public API
+    uuid = v4;
+    uuid.v1 = v1;
+    uuid.v4 = v4;
+    uuid.parse = parse;
+    uuid.unparse = unparse;
+    uuid.BufferClass = BufferClass;
 
-    // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-    msecs += 12219292800000;
+    if (typeof define === 'function' && define.amd) {
+        // Publish as AMD module
+        define('uuid', [], function () { return uuid; });
+    } else if (typeof (module) != 'undefined' && module.exports) {
+        // Publish as node.js module
+        module.exports = uuid;
+    } else {
+        // Publish as global (in browsers)
+        var _previousRoot = _global.uuid;
 
-    // `time_low`
-    var tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-    b[i++] = tl >>> 24 & 0xff;
-    b[i++] = tl >>> 16 & 0xff;
-    b[i++] = tl >>> 8 & 0xff;
-    b[i++] = tl & 0xff;
+        // **`noConflict()` - (browser only) to reset global 'uuid' var**
+        uuid.noConflict = function () {
+            _global.uuid = _previousRoot;
+            return uuid;
+        };
 
-    // `time_mid`
-    var tmh = (msecs / 0x100000000 * 10000) & 0xfffffff;
-    b[i++] = tmh >>> 8 & 0xff;
-    b[i++] = tmh & 0xff;
-
-    // `time_high_and_version`
-    b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-    b[i++] = tmh >>> 16 & 0xff;
-
-    // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-    b[i++] = clockseq >>> 8 | 0x80;
-
-    // `clock_seq_low`
-    b[i++] = clockseq & 0xff;
-
-    // `node`
-    var node = options.node || _nodeId;
-    for (var n = 0; n < 6; n++) {
-      b[i + n] = node[n];
+        _global.uuid = uuid;
     }
-
-    return buf ? buf : unparse(b);
-  }
-
-  // **`v4()` - Generate random UUID**
-
-  // See https://github.com/broofa/node-uuid for API details
-  function v4(options, buf, offset) {
-    // Deprecated - 'format' argument, as supported in v1.2
-    var i = buf && offset || 0;
-
-    if (typeof(options) == 'string') {
-      buf = options == 'binary' ? new BufferClass(16) : null;
-      options = null;
-    }
-    options = options || {};
-
-    var rnds = options.random || (options.rng || _rng)();
-
-    // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-    rnds[6] = (rnds[6] & 0x0f) | 0x40;
-    rnds[8] = (rnds[8] & 0x3f) | 0x80;
-
-    // Copy bytes to buffer, if provided
-    if (buf) {
-      for (var ii = 0; ii < 16; ii++) {
-        buf[i + ii] = rnds[ii];
-      }
-    }
-
-    return buf || unparse(rnds);
-  }
-
-  // Export public API
-  uuid = v4;
-  uuid.v1 = v1;
-  uuid.v4 = v4;
-  uuid.parse = parse;
-  uuid.unparse = unparse;
-  uuid.BufferClass = BufferClass;
-
-  if (typeof define === 'function' && define.amd) {
-    // Publish as AMD module
-    define('uuid', [], function(){return uuid;});
-  } else if (typeof(module) != 'undefined' && module.exports) {
-    // Publish as node.js module
-    module.exports = uuid;
-  } else {
-    // Publish as global (in browsers)
-    var _previousRoot = _global.uuid;
-
-    // **`noConflict()` - (browser only) to reset global 'uuid' var**
-    uuid.noConflict = function() {
-      _global.uuid = _previousRoot;
-      return uuid;
-    };
-
-    _global.uuid = uuid;
-  }
 }).call(this);
 
 
@@ -3612,23 +3607,23 @@ var uuid;
     /////////////
 
 
-    var LIBVERSION  = '0.7.1',
-        EMPTY       = '',
-        UNKNOWN     = '?',
-        FUNC_TYPE   = 'function',
-        UNDEF_TYPE  = 'undefined',
-        OBJ_TYPE    = 'object',
-        MAJOR       = 'major',
-        MODEL       = 'model',
-        NAME        = 'name',
-        TYPE        = 'type',
-        VENDOR      = 'vendor',
-        VERSION     = 'version',
-        ARCHITECTURE= 'architecture',
-        CONSOLE     = 'console',
-        MOBILE      = 'mobile',
-        TABLET      = 'tablet',
-        SMARTTV     = 'smarttv';
+    var LIBVERSION = '0.7.1',
+        EMPTY = '',
+        UNKNOWN = '?',
+        FUNC_TYPE = 'function',
+        UNDEF_TYPE = 'undefined',
+        OBJ_TYPE = 'object',
+        MAJOR = 'major',
+        MODEL = 'model',
+        NAME = 'name',
+        TYPE = 'type',
+        VENDOR = 'vendor',
+        VERSION = 'version',
+        ARCHITECTURE = 'architecture',
+        CONSOLE = 'console',
+        MOBILE = 'mobile',
+        TABLET = 'tablet',
+        SMARTTV = 'smarttv';
 
 
     ///////////
@@ -3637,7 +3632,7 @@ var uuid;
 
 
     var util = {
-        extend : function (regexes, extensions) {
+        extend: function (regexes, extensions) {
             for (var i in extensions) {
                 if ("browser cpu device engine os".indexOf(i) !== -1 && extensions[i].length % 2 === 0) {
                     regexes[i] = extensions[i].concat(regexes[i]);
@@ -3645,12 +3640,12 @@ var uuid;
             }
             return regexes;
         },
-        has : function (str1, str2) {
-          if (typeof str1 === "string") {
-            return str2.toLowerCase().indexOf(str1.toLowerCase()) !== -1;
-          }
+        has: function (str1, str2) {
+            if (typeof str1 === "string") {
+                return str2.toLowerCase().indexOf(str1.toLowerCase()) !== -1;
+            }
         },
-        lowerize : function (str) {
+        lowerize: function (str) {
             return str.toLowerCase();
         }
     };
@@ -3663,7 +3658,7 @@ var uuid;
 
     var mapper = {
 
-        rgx : function () {
+        rgx: function () {
 
             // loop through all regexes maps
             for (var result, i = 0, j, k, p, q, matches, match, args = arguments; i < args.length; i += 2) {
@@ -3672,11 +3667,11 @@ var uuid;
                     props = args[i + 1];   // odd sequence (1,3,5,..)
 
                 // construct object barebones
-                if (typeof(result) === UNDEF_TYPE) {
+                if (typeof (result) === UNDEF_TYPE) {
                     result = {};
                     for (p in props) {
                         q = props[p];
-                        if (typeof(q) === OBJ_TYPE) {
+                        if (typeof (q) === OBJ_TYPE) {
                             result[q[0]] = undefined;
                         } else {
                             result[q] = undefined;
@@ -3692,9 +3687,9 @@ var uuid;
                             match = matches[++k];
                             q = props[p];
                             // check if given property is actually array
-                            if (typeof(q) === OBJ_TYPE && q.length > 0) {
+                            if (typeof (q) === OBJ_TYPE && q.length > 0) {
                                 if (q.length == 2) {
-                                    if (typeof(q[1]) == FUNC_TYPE) {
+                                    if (typeof (q[1]) == FUNC_TYPE) {
                                         // assign modified match
                                         result[q[0]] = q[1].call(this, match);
                                     } else {
@@ -3703,7 +3698,7 @@ var uuid;
                                     }
                                 } else if (q.length == 3) {
                                     // check whether function or regex
-                                    if (typeof(q[1]) === FUNC_TYPE && !(q[1].exec && q[1].test)) {
+                                    if (typeof (q[1]) === FUNC_TYPE && !(q[1].exec && q[1].test)) {
                                         // call function (usually string mapper)
                                         result[q[0]] = match ? q[1].call(this, match, q[2]) : undefined;
                                     } else {
@@ -3711,7 +3706,7 @@ var uuid;
                                         result[q[0]] = match ? match.replace(q[1], q[2]) : undefined;
                                     }
                                 } else if (q.length == 4) {
-                                        result[q[0]] = match ? q[3].call(this, match.replace(q[1], q[2])) : undefined;
+                                    result[q[0]] = match ? q[3].call(this, match.replace(q[1], q[2])) : undefined;
                                 }
                             } else {
                                 result[q] = match ? match : undefined;
@@ -3721,16 +3716,16 @@ var uuid;
                     }
                 }
 
-                if(!!matches) break; // break the loop immediately if match found
+                if (!!matches) break; // break the loop immediately if match found
             }
             return result;
         },
 
-        str : function (str, map) {
+        str: function (str, map) {
 
             for (var i in map) {
                 // check if array
-                if (typeof(map[i]) === OBJ_TYPE && map[i].length > 0) {
+                if (typeof (map[i]) === OBJ_TYPE && map[i].length > 0) {
                     for (var j = 0; j < map[i].length; j++) {
                         if (util.has(map[i][j], str)) {
                             return (i === UNKNOWN) ? undefined : i;
@@ -3752,56 +3747,56 @@ var uuid;
 
     var maps = {
 
-        browser : {
-            oldsafari : {
-                major : {
-                    '1' : ['/8', '/1', '/3'],
-                    '2' : '/4',
-                    '?' : '/'
+        browser: {
+            oldsafari: {
+                major: {
+                    '1': ['/8', '/1', '/3'],
+                    '2': '/4',
+                    '?': '/'
                 },
-                version : {
-                    '1.0'   : '/8',
-                    '1.2'   : '/1',
-                    '1.3'   : '/3',
-                    '2.0'   : '/412',
-                    '2.0.2' : '/416',
-                    '2.0.3' : '/417',
-                    '2.0.4' : '/419',
-                    '?'     : '/'
+                version: {
+                    '1.0': '/8',
+                    '1.2': '/1',
+                    '1.3': '/3',
+                    '2.0': '/412',
+                    '2.0.2': '/416',
+                    '2.0.3': '/417',
+                    '2.0.4': '/419',
+                    '?': '/'
                 }
             }
         },
 
-        device : {
-            amazon : {
-                model : {
-                    'Fire Phone' : ['SD', 'KF']
+        device: {
+            amazon: {
+                model: {
+                    'Fire Phone': ['SD', 'KF']
                 }
             },
-            sprint : {
-                model : {
-                    'Evo Shift 4G' : '7373KT'
+            sprint: {
+                model: {
+                    'Evo Shift 4G': '7373KT'
                 },
-                vendor : {
-                    'HTC'       : 'APA',
-                    'Sprint'    : 'Sprint'
+                vendor: {
+                    'HTC': 'APA',
+                    'Sprint': 'Sprint'
                 }
             }
         },
 
-        os : {
-            windows : {
-                version : {
-                    'ME'        : '4.90',
-                    'NT 3.11'   : 'NT3.51',
-                    'NT 4.0'    : 'NT4.0',
-                    '2000'      : 'NT 5.0',
-                    'XP'        : ['NT 5.1', 'NT 5.2'],
-                    'Vista'     : 'NT 6.0',
-                    '7'         : 'NT 6.1',
-                    '8'         : 'NT 6.2',
-                    '8.1'       : 'NT 6.3',
-                    'RT'        : 'ARM'
+        os: {
+            windows: {
+                version: {
+                    'ME': '4.90',
+                    'NT 3.11': 'NT3.51',
+                    'NT 4.0': 'NT4.0',
+                    '2000': 'NT 5.0',
+                    'XP': ['NT 5.1', 'NT 5.2'],
+                    'Vista': 'NT 6.0',
+                    '7': 'NT 6.1',
+                    '8': 'NT 6.2',
+                    '8.1': 'NT 6.3',
+                    'RT': 'ARM'
                 }
             }
         }
@@ -3815,7 +3810,7 @@ var uuid;
 
     var regexes = {
 
-        browser : [[
+        browser: [[
 
             // Presto based
             /(opera\smini)\/((\d+)?[\w\.-]+)/i,                                 // Opera Mini
@@ -3823,79 +3818,79 @@ var uuid;
             /(opera).+version\/((\d+)?[\w\.]+)/i,                               // Opera > 9.80
             /(opera)[\/\s]+((\d+)?[\w\.]+)/i                                    // Opera < 9.80
 
-            ], [NAME, VERSION, MAJOR], [
+        ], [NAME, VERSION, MAJOR], [
 
             /\s(opr)\/((\d+)?[\w\.]+)/i                                         // Opera Webkit
-            ], [[NAME, 'Opera'], VERSION, MAJOR], [
+        ], [[NAME, 'Opera'], VERSION, MAJOR], [
 
             // Mixed
             /(kindle)\/((\d+)?[\w\.]+)/i,                                       // Kindle
             /(lunascape|maxthon|netfront|jasmine|blazer)[\/\s]?((\d+)?[\w\.]+)*/i,
-                                                                                // Lunascape/Maxthon/Netfront/Jasmine/Blazer
+            // Lunascape/Maxthon/Netfront/Jasmine/Blazer
 
             // Trident based
             /(avant\s|iemobile|slim|baidu)(?:browser)?[\/\s]?((\d+)?[\w\.]*)/i,
-                                                                                // Avant/IEMobile/SlimBrowser/Baidu
+            // Avant/IEMobile/SlimBrowser/Baidu
             /(?:ms|\()(ie)\s((\d+)?[\w\.]+)/i,                                  // Internet Explorer
 
             // Webkit/KHTML based
             /(rekonq)((?:\/)[\w\.]+)*/i,                                        // Rekonq
             /(chromium|flock|rockmelt|midori|epiphany|silk|skyfire|ovibrowser|bolt|iron)\/((\d+)?[\w\.-]+)/i
-                                                                                // Chromium/Flock/RockMelt/Midori/Epiphany/Silk/Skyfire/Bolt/Iron
-            ], [NAME, VERSION, MAJOR], [
+            // Chromium/Flock/RockMelt/Midori/Epiphany/Silk/Skyfire/Bolt/Iron
+        ], [NAME, VERSION, MAJOR], [
 
             /(trident).+rv[:\s]((\d+)?[\w\.]+).+like\sgecko/i                   // IE11
-            ], [[NAME, 'IE'], VERSION, MAJOR], [
+        ], [[NAME, 'IE'], VERSION, MAJOR], [
 
             /(yabrowser)\/((\d+)?[\w\.]+)/i                                     // Yandex
-            ], [[NAME, 'Yandex'], VERSION, MAJOR], [
+        ], [[NAME, 'Yandex'], VERSION, MAJOR], [
 
             /(comodo_dragon)\/((\d+)?[\w\.]+)/i                                 // Comodo Dragon
-            ], [[NAME, /_/g, ' '], VERSION, MAJOR], [
+        ], [[NAME, /_/g, ' '], VERSION, MAJOR], [
 
             /(chrome|omniweb|arora|[tizenoka]{5}\s?browser)\/v?((\d+)?[\w\.]+)/i,
-                                                                                // Chrome/OmniWeb/Arora/Tizen/Nokia
+            // Chrome/OmniWeb/Arora/Tizen/Nokia
             /(uc\s?browser|qqbrowser)[\/\s]?((\d+)?[\w\.]+)/i
-                                                                                //UCBrowser/QQBrowser
-            ], [NAME, VERSION, MAJOR], [
+            //UCBrowser/QQBrowser
+        ], [NAME, VERSION, MAJOR], [
 
             /(dolfin)\/((\d+)?[\w\.]+)/i                                        // Dolphin
-            ], [[NAME, 'Dolphin'], VERSION, MAJOR], [
+        ], [[NAME, 'Dolphin'], VERSION, MAJOR], [
 
             /((?:android.+)crmo|crios)\/((\d+)?[\w\.]+)/i                       // Chrome for Android/iOS
-            ], [[NAME, 'Chrome'], VERSION, MAJOR], [
+        ], [[NAME, 'Chrome'], VERSION, MAJOR], [
 
             /version\/((\d+)?[\w\.]+).+?mobile\/\w+\s(safari)/i                 // Mobile Safari
-            ], [VERSION, MAJOR, [NAME, 'Mobile Safari']], [
+        ], [VERSION, MAJOR, [NAME, 'Mobile Safari']], [
 
             /version\/((\d+)?[\w\.]+).+?(mobile\s?safari|safari)/i              // Safari & Safari Mobile
-            ], [VERSION, MAJOR, NAME], [
+        ], [VERSION, MAJOR, NAME], [
 
             /webkit.+?(mobile\s?safari|safari)((\/[\w\.]+))/i                   // Safari < 3.0
-            ], [NAME, [MAJOR, mapper.str, maps.browser.oldsafari.major], [VERSION, mapper.str, maps.browser.oldsafari.version]], [
+        ], [NAME, [MAJOR, mapper.str, maps.browser.oldsafari.major], [VERSION, mapper.str, maps.browser.oldsafari.version]], [
 
             /(konqueror)\/((\d+)?[\w\.]+)/i,                                    // Konqueror
             /(webkit|khtml)\/((\d+)?[\w\.]+)/i
-            ], [NAME, VERSION, MAJOR], [
+        ], [NAME, VERSION, MAJOR], [
 
             // Gecko based
             /(navigator|netscape)\/((\d+)?[\w\.-]+)/i                           // Netscape
-            ], [[NAME, 'Netscape'], VERSION, MAJOR], [
+        ], [[NAME, 'Netscape'], VERSION, MAJOR], [
             /(swiftfox)/i,                                                      // Swiftfox
             /(icedragon|iceweasel|camino|chimera|fennec|maemo\sbrowser|minimo|conkeror)[\/\s]?((\d+)?[\w\.\+]+)/i,
-                                                                                // IceDragon/Iceweasel/Camino/Chimera/Fennec/Maemo/Minimo/Conkeror
+            // IceDragon/Iceweasel/Camino/Chimera/Fennec/Maemo/Minimo/Conkeror
             /(firefox|seamonkey|k-meleon|icecat|iceape|firebird|phoenix)\/((\d+)?[\w\.-]+)/i,
-                                                                                // Firefox/SeaMonkey/K-Meleon/IceCat/IceApe/Firebird/Phoenix
+            // Firefox/SeaMonkey/K-Meleon/IceCat/IceApe/Firebird/Phoenix
             /(mozilla)\/((\d+)?[\w\.]+).+rv\:.+gecko\/\d+/i,                    // Mozilla
 
             // Other
             /(polaris|lynx|dillo|icab|doris|amaya|w3m|netsurf)[\/\s]?((\d+)?[\w\.]+)/i,
-                                                                                // Polaris/Lynx/Dillo/iCab/Doris/Amaya/w3m/NetSurf
+            // Polaris/Lynx/Dillo/iCab/Doris/Amaya/w3m/NetSurf
             /(links)\s\(((\d+)?[\w\.]+)/i,                                      // Links
             /(gobrowser)\/?((\d+)?[\w\.]+)*/i,                                  // GoBrowser
             /(ice\s?browser)\/v?((\d+)?[\w\._]+)/i,                             // ICE Browser
             /(mosaic)[\/\s]((\d+)?[\w\.]+)/i                                    // Mosaic
-            ], [NAME, VERSION, MAJOR]
+        ], [NAME, VERSION, MAJOR]
 
             /* /////////////////////
             // Media players BEGIN
@@ -4009,172 +4004,172 @@ var uuid;
 
         ],
 
-        cpu : [[
+        cpu: [[
 
             /(?:(amd|x(?:(?:86|64)[_-])?|wow|win)64)[;\)]/i                     // AMD64
-            ], [[ARCHITECTURE, 'amd64']], [
+        ], [[ARCHITECTURE, 'amd64']], [
 
             /(ia32(?=;))/i                                                      // IA32 (quicktime)
-            ], [[ARCHITECTURE, util.lowerize]], [
+        ], [[ARCHITECTURE, util.lowerize]], [
 
             /((?:i[346]|x)86)[;\)]/i                                            // IA32
-            ], [[ARCHITECTURE, 'ia32']], [
+        ], [[ARCHITECTURE, 'ia32']], [
 
             // PocketPC mistakenly identified as PowerPC
             /windows\s(ce|mobile);\sppc;/i
-            ], [[ARCHITECTURE, 'arm']], [
+        ], [[ARCHITECTURE, 'arm']], [
 
             /((?:ppc|powerpc)(?:64)?)(?:\smac|;|\))/i                           // PowerPC
-            ], [[ARCHITECTURE, /ower/, '', util.lowerize]], [
+        ], [[ARCHITECTURE, /ower/, '', util.lowerize]], [
 
             /(sun4\w)[;\)]/i                                                    // SPARC
-            ], [[ARCHITECTURE, 'sparc']], [
+        ], [[ARCHITECTURE, 'sparc']], [
 
             /(ia64(?=;)|68k(?=\))|arm(?=v\d+;)|(?:irix|mips|sparc)(?:64)?(?=;)|pa-risc)/i
-                                                                                // IA64, 68K, ARM, IRIX, MIPS, SPARC, PA-RISC
-            ], [[ARCHITECTURE, util.lowerize]]
+            // IA64, 68K, ARM, IRIX, MIPS, SPARC, PA-RISC
+        ], [[ARCHITECTURE, util.lowerize]]
         ],
 
-        device : [[
+        device: [[
 
             /\((ipad|playbook);[\w\s\);-]+(rim|apple)/i                         // iPad/PlayBook
-            ], [MODEL, VENDOR, [TYPE, TABLET]], [
+        ], [MODEL, VENDOR, [TYPE, TABLET]], [
 
             /applecoremedia\/[\w\.]+ \((ipad)/                                  // iPad
-            ], [MODEL, [VENDOR, 'Apple'], [TYPE, TABLET]], [
+        ], [MODEL, [VENDOR, 'Apple'], [TYPE, TABLET]], [
 
             /(apple\s{0,1}tv)/i                                                 // Apple TV
-            ], [[MODEL, 'Apple TV'], [VENDOR, 'Apple']], [
+        ], [[MODEL, 'Apple TV'], [VENDOR, 'Apple']], [
 
             /(hp).+(touchpad)/i,                                                // HP TouchPad
             /(kindle)\/([\w\.]+)/i,                                             // Kindle
             /\s(nook)[\w\s]+build\/(\w+)/i,                                     // Nook
             /(dell)\s(strea[kpr\s\d]*[\dko])/i                                  // Dell Streak
-            ], [VENDOR, MODEL, [TYPE, TABLET]], [
+        ], [VENDOR, MODEL, [TYPE, TABLET]], [
 
             /(kf[A-z]+)\sbuild\/[\w\.]+.*silk\//i                               // Kindle Fire HD
-            ], [MODEL, [VENDOR, 'Amazon'], [TYPE, TABLET]], [
+        ], [MODEL, [VENDOR, 'Amazon'], [TYPE, TABLET]], [
             /(sd|kf)[0349hijorstuw]+\sbuild\/[\w\.]+.*silk\//i                  // Fire Phone
-            ], [[MODEL, mapper.str, maps.device.amazon.model], [VENDOR, 'Amazon'], [TYPE, MOBILE]], [
+        ], [[MODEL, mapper.str, maps.device.amazon.model], [VENDOR, 'Amazon'], [TYPE, MOBILE]], [
 
             /\((ip[honed|\s\w*]+);.+(apple)/i                                   // iPod/iPhone
-            ], [MODEL, VENDOR, [TYPE, MOBILE]], [
+        ], [MODEL, VENDOR, [TYPE, MOBILE]], [
             /\((ip[honed|\s\w*]+);/i                                            // iPod/iPhone
-            ], [MODEL, [VENDOR, 'Apple'], [TYPE, MOBILE]], [
+        ], [MODEL, [VENDOR, 'Apple'], [TYPE, MOBILE]], [
 
             /(blackberry)[\s-]?(\w+)/i,                                         // BlackBerry
             /(blackberry|benq|palm(?=\-)|sonyericsson|acer|asus|dell|huawei|meizu|motorola|polytron)[\s_-]?([\w-]+)*/i,
-                                                                                // BenQ/Palm/Sony-Ericsson/Acer/Asus/Dell/Huawei/Meizu/Motorola/Polytron
+            // BenQ/Palm/Sony-Ericsson/Acer/Asus/Dell/Huawei/Meizu/Motorola/Polytron
             /(hp)\s([\w\s]+\w)/i,                                               // HP iPAQ
             /(asus)-?(\w+)/i                                                    // Asus
-            ], [VENDOR, MODEL, [TYPE, MOBILE]], [
+        ], [VENDOR, MODEL, [TYPE, MOBILE]], [
             /\((bb10);\s(\w+)/i                                                 // BlackBerry 10
-            ], [[VENDOR, 'BlackBerry'], MODEL, [TYPE, MOBILE]], [
-                                                                                // Asus Tablets
+        ], [[VENDOR, 'BlackBerry'], MODEL, [TYPE, MOBILE]], [
+            // Asus Tablets
             /android.+((transfo[prime\s]{4,10}\s\w+|eeepc|slider\s\w+|nexus 7))/i
-            ], [[VENDOR, 'Asus'], MODEL, [TYPE, TABLET]], [
+        ], [[VENDOR, 'Asus'], MODEL, [TYPE, TABLET]], [
 
             /(sony)\s(tablet\s[ps])/i                                           // Sony Tablets
-            ], [VENDOR, MODEL, [TYPE, TABLET]], [
+        ], [VENDOR, MODEL, [TYPE, TABLET]], [
 
             /(nintendo)\s([wids3u]+)/i                                          // Nintendo
-            ], [VENDOR, MODEL, [TYPE, CONSOLE]], [
+        ], [VENDOR, MODEL, [TYPE, CONSOLE]], [
 
             /((playstation)\s[3portablevi]+)/i                                  // Playstation
-            ], [[VENDOR, 'Sony'], MODEL, [TYPE, CONSOLE]], [
+        ], [[VENDOR, 'Sony'], MODEL, [TYPE, CONSOLE]], [
 
             /(sprint\s(\w+))/i                                                  // Sprint Phones
-            ], [[VENDOR, mapper.str, maps.device.sprint.vendor], [MODEL, mapper.str, maps.device.sprint.model], [TYPE, MOBILE]], [
+        ], [[VENDOR, mapper.str, maps.device.sprint.vendor], [MODEL, mapper.str, maps.device.sprint.model], [TYPE, MOBILE]], [
 
             /(Lenovo)\s?(S(?:5000|6000)+(?:[-][\w+]))/i                         // Lenovo tablets
-            ], [[VENDOR, 'Lenovo'], MODEL, [TYPE, TABLET]], [
+        ], [[VENDOR, 'Lenovo'], MODEL, [TYPE, TABLET]], [
 
             /(htc)[;_\s-]+([\w\s]+(?=\))|\w+)*/i,                               // HTC
             /(zte)-(\w+)*/i,                                                    // ZTE
             /(alcatel|geeksphone|huawei|lenovo|nexian|panasonic|(?=;\s)sony)[_\s-]?([\w-]+)*/i
-                                                                                // Alcatel/GeeksPhone/Huawei/Lenovo/Nexian/Panasonic/Sony
-            ], [VENDOR, [MODEL, /_/g, ' '], [TYPE, MOBILE]], [
+            // Alcatel/GeeksPhone/Huawei/Lenovo/Nexian/Panasonic/Sony
+        ], [VENDOR, [MODEL, /_/g, ' '], [TYPE, MOBILE]], [
 
-                                                                                // Motorola
+            // Motorola
             /\s((milestone|droid(?:[2-4x]|\s(?:bionic|x2|pro|razr))?(:?\s4g)?))[\w\s]+build\//i,
             /(mot)[\s-]?(\w+)*/i
-            ], [[VENDOR, 'Motorola'], MODEL, [TYPE, MOBILE]], [
+        ], [[VENDOR, 'Motorola'], MODEL, [TYPE, MOBILE]], [
             /android.+\s((mz60\d|xoom[\s2]{0,2}))\sbuild\//i
-            ], [[VENDOR, 'Motorola'], MODEL, [TYPE, TABLET]], [
+        ], [[VENDOR, 'Motorola'], MODEL, [TYPE, TABLET]], [
 
             /android.+((sch-i[89]0\d|shw-m380s|gt-p\d{4}|gt-n8000|sgh-t8[56]9|nexus 10))/i,
             /((SM-T\w+))/i
-            ], [[VENDOR, 'Samsung'], MODEL, [TYPE, TABLET]], [                  // Samsung
+        ], [[VENDOR, 'Samsung'], MODEL, [TYPE, TABLET]], [                  // Samsung
             /((s[cgp]h-\w+|gt-\w+|galaxy\snexus|sm-n900))/i,
             /(sam[sung]*)[\s-]*(\w+-?[\w-]*)*/i,
             /sec-((sgh\w+))/i
-            ], [[VENDOR, 'Samsung'], MODEL, [TYPE, MOBILE]], [
+        ], [[VENDOR, 'Samsung'], MODEL, [TYPE, MOBILE]], [
             /(sie)-(\w+)*/i                                                     // Siemens
-            ], [[VENDOR, 'Siemens'], MODEL, [TYPE, MOBILE]], [
+        ], [[VENDOR, 'Siemens'], MODEL, [TYPE, MOBILE]], [
 
             /(maemo|nokia).*(n900|lumia\s\d+)/i,                                // Nokia
             /(nokia)[\s_-]?([\w-]+)*/i
-            ], [[VENDOR, 'Nokia'], MODEL, [TYPE, MOBILE]], [
+        ], [[VENDOR, 'Nokia'], MODEL, [TYPE, MOBILE]], [
 
             /android\s3\.[\s\w-;]{10}((a\d{3}))/i                               // Acer
-            ], [[VENDOR, 'Acer'], MODEL, [TYPE, TABLET]], [
+        ], [[VENDOR, 'Acer'], MODEL, [TYPE, TABLET]], [
 
             /android\s3\.[\s\w-;]{10}(lg?)-([06cv9]{3,4})/i                     // LG Tablet
-            ], [[VENDOR, 'LG'], MODEL, [TYPE, TABLET]], [
+        ], [[VENDOR, 'LG'], MODEL, [TYPE, TABLET]], [
             /(lg) netcast\.tv/i                                                 // LG SmartTV
-            ], [VENDOR, [TYPE, SMARTTV]], [
+        ], [VENDOR, [TYPE, SMARTTV]], [
             /((nexus\s[45]))/i,                                                 // LG
             /(lg)[e;\s\/-]+(\w+)*/i
-            ], [[VENDOR, 'LG'], MODEL, [TYPE, MOBILE]], [
+        ], [[VENDOR, 'LG'], MODEL, [TYPE, MOBILE]], [
 
             /android.+((ideatab[a-z0-9\-\s]+))/i                                // Lenovo
-            ], [[VENDOR, 'Lenovo'], MODEL, [TYPE, TABLET]], [
+        ], [[VENDOR, 'Lenovo'], MODEL, [TYPE, TABLET]], [
 
             /linux;.+((jolla));/i                                               // Jolla
-            ], [VENDOR, MODEL, [TYPE, MOBILE]], [
+        ], [VENDOR, MODEL, [TYPE, MOBILE]], [
 
             /(mobile|tablet);.+rv\:.+gecko\//i                                  // Unidentifiable
-            ], [[TYPE, util.lowerize], VENDOR, MODEL]
+        ], [[TYPE, util.lowerize], VENDOR, MODEL]
         ],
 
-        engine : [[
+        engine: [[
 
             /(presto)\/([\w\.]+)/i,                                             // Presto
             /(webkit|trident|netfront|netsurf|amaya|lynx|w3m)\/([\w\.]+)/i,     // WebKit/Trident/NetFront/NetSurf/Amaya/Lynx/w3m
             /(khtml|tasman|links)[\/\s]\(?([\w\.]+)/i,                          // KHTML/Tasman/Links
             /(icab)[\/\s]([23]\.[\d\.]+)/i                                      // iCab
-            ], [NAME, VERSION], [
+        ], [NAME, VERSION], [
 
             /rv\:([\w\.]+).*(gecko)/i                                           // Gecko
-            ], [VERSION, NAME]
+        ], [VERSION, NAME]
         ],
 
-        os : [[
+        os: [[
 
             // Windows based
             /microsoft\s(windows)\s(vista|xp)/i                                 // Windows (iTunes)
-            ], [NAME, VERSION], [
+        ], [NAME, VERSION], [
             /(windows)\snt\s6\.2;\s(arm)/i,                                     // Windows RT
             /(windows\sphone(?:\sos)*|windows\smobile|windows)[\s\/]?([ntce\d\.\s]+\w)/i
-            ], [NAME, [VERSION, mapper.str, maps.os.windows.version]], [
+        ], [NAME, [VERSION, mapper.str, maps.os.windows.version]], [
             /(win(?=3|9|n)|win\s9x\s)([nt\d\.]+)/i
-            ], [[NAME, 'Windows'], [VERSION, mapper.str, maps.os.windows.version]], [
+        ], [[NAME, 'Windows'], [VERSION, mapper.str, maps.os.windows.version]], [
 
             // Mobile/Embedded OS
             /\((bb)(10);/i                                                      // BlackBerry 10
-            ], [[NAME, 'BlackBerry'], VERSION], [
+        ], [[NAME, 'BlackBerry'], VERSION], [
             /(blackberry)\w*\/?([\w\.]+)*/i,                                    // Blackberry
             /(tizen)\/([\w\.]+)/i,                                              // Tizen
             /(android|webos|palm\os|qnx|bada|rim\stablet\sos|meego)[\/\s-]?([\w\.]+)*/i,
-                                                                                // Android/WebOS/Palm/QNX/Bada/RIM/MeeGo
+            // Android/WebOS/Palm/QNX/Bada/RIM/MeeGo
             /linux;.+(sailfish);/i                                              // Sailfish OS
-            ], [NAME, VERSION], [
+        ], [NAME, VERSION], [
             /(symbian\s?os|symbos|s60(?=;))[\/\s-]?([\w\.]+)*/i                 // Symbian
-            ], [[NAME, 'Symbian'], VERSION], [
+        ], [[NAME, 'Symbian'], VERSION], [
             /\((series40);/i                                                    // Series 40
-            ], [NAME], [
+        ], [NAME], [
             /mozilla.+\(mobile;.+gecko.+firefox/i                               // Firefox OS
-            ], [[NAME, 'Firefox OS'], VERSION], [
+        ], [[NAME, 'Firefox OS'], VERSION], [
 
             // Console
             /(nintendo|playstation)\s([wids3portablevu]+)/i,                    // Nintendo/Playstation
@@ -4182,36 +4177,36 @@ var uuid;
             // GNU/Linux based
             /(mint)[\/\s\(]?(\w+)*/i,                                           // Mint
             /(joli|[kxln]?ubuntu|debian|[open]*suse|gentoo|arch|slackware|fedora|mandriva|centos|pclinuxos|redhat|zenwalk)[\/\s-]?([\w\.-]+)*/i,
-                                                                                // Joli/Ubuntu/Debian/SUSE/Gentoo/Arch/Slackware
-                                                                                // Fedora/Mandriva/CentOS/PCLinuxOS/RedHat/Zenwalk
+            // Joli/Ubuntu/Debian/SUSE/Gentoo/Arch/Slackware
+            // Fedora/Mandriva/CentOS/PCLinuxOS/RedHat/Zenwalk
             /(hurd|linux)\s?([\w\.]+)*/i,                                       // Hurd/Linux
             /(gnu)\s?([\w\.]+)*/i                                               // GNU
-            ], [NAME, VERSION], [
+        ], [NAME, VERSION], [
 
             /(cros)\s[\w]+\s([\w\.]+\w)/i                                       // Chromium OS
-            ], [[NAME, 'Chromium OS'], VERSION],[
+        ], [[NAME, 'Chromium OS'], VERSION], [
 
             // Solaris
             /(sunos)\s?([\w\.]+\d)*/i                                           // Solaris
-            ], [[NAME, 'Solaris'], VERSION], [
+        ], [[NAME, 'Solaris'], VERSION], [
 
             // BSD based
             /\s([frentopc-]{0,4}bsd|dragonfly)\s?([\w\.]+)*/i                   // FreeBSD/NetBSD/OpenBSD/PC-BSD/DragonFly
-            ], [NAME, VERSION],[
+        ], [NAME, VERSION], [
 
             /(ip[honead]+)(?:.*os\s*([\w]+)*\slike\smac|;\sopera)/i             // iOS
-            ], [[NAME, 'iOS'], [VERSION, /_/g, '.']], [
+        ], [[NAME, 'iOS'], [VERSION, /_/g, '.']], [
 
             /(mac\sos\sx)\s?([\w\s\.]+\w)*/i                                    // Mac OS
-            ], [NAME, [VERSION, /_/g, '.']], [
+        ], [NAME, [VERSION, /_/g, '.']], [
 
             // Other
             /(haiku)\s(\w+)/i,                                                  // Haiku
             /(aix)\s((\d)(?=\.|\)|\s)[\w\.]*)*/i,                               // AIX
             /(macintosh|mac(?=_powerpc)|plan\s9|minix|beos|os\/2|amigaos|morphos|risc\sos)/i,
-                                                                                // Plan9/Minix/BeOS/OS2/AmigaOS/MorphOS/RISCOS
+            // Plan9/Minix/BeOS/OS2/AmigaOS/MorphOS/RISCOS
             /(unix)\s?([\w\.]+)*/i                                              // UNIX
-            ], [NAME, VERSION]
+        ], [NAME, VERSION]
         ]
     };
 
@@ -4245,14 +4240,14 @@ var uuid;
         this.getOS = function () {
             return mapper.rgx.apply(this, rgxmap.os);
         };
-        this.getResult = function() {
+        this.getResult = function () {
             return {
-                ua      : this.getUA(),
-                browser : this.getBrowser(),
-                engine  : this.getEngine(),
-                os      : this.getOS(),
-                device  : this.getDevice(),
-                cpu     : this.getCPU()
+                ua: this.getUA(),
+                browser: this.getBrowser(),
+                engine: this.getEngine(),
+                os: this.getOS(),
+                device: this.getDevice(),
+                cpu: this.getCPU()
             };
         };
         this.getUA = function () {
@@ -4267,29 +4262,29 @@ var uuid;
 
     UAParser.VERSION = LIBVERSION;
     UAParser.BROWSER = {
-        NAME    : NAME,
-        MAJOR   : MAJOR,
-        VERSION : VERSION
+        NAME: NAME,
+        MAJOR: MAJOR,
+        VERSION: VERSION
     };
     UAParser.CPU = {
-        ARCHITECTURE : ARCHITECTURE
+        ARCHITECTURE: ARCHITECTURE
     };
     UAParser.DEVICE = {
-        MODEL   : MODEL,
-        VENDOR  : VENDOR,
-        TYPE    : TYPE,
-        CONSOLE : CONSOLE,
-        MOBILE  : MOBILE,
-        SMARTTV : SMARTTV,
-        TABLET  : TABLET
+        MODEL: MODEL,
+        VENDOR: VENDOR,
+        TYPE: TYPE,
+        CONSOLE: CONSOLE,
+        MOBILE: MOBILE,
+        SMARTTV: SMARTTV,
+        TABLET: TABLET
     };
     UAParser.ENGINE = {
-        NAME    : NAME,
-        VERSION : VERSION
+        NAME: NAME,
+        VERSION: VERSION
     };
     UAParser.OS = {
-        NAME    : NAME,
-        VERSION : VERSION
+        NAME: NAME,
+        VERSION: VERSION
     };
 
 
@@ -4299,9 +4294,9 @@ var uuid;
 
 
     // check js environment
-    if (typeof(exports) !== UNDEF_TYPE) {
+    if (typeof (exports) !== UNDEF_TYPE) {
         // nodejs env
-        if (typeof(module) !== UNDEF_TYPE && module.exports) {
+        if (typeof (module) !== UNDEF_TYPE && module.exports) {
             exports = module.exports = UAParser;
         }
         exports.UAParser = UAParser;
@@ -4309,17 +4304,17 @@ var uuid;
         // browser env
         window.UAParser = UAParser;
         // requirejs env (optional)
-        if (typeof(define) === FUNC_TYPE && define.amd) {
+        if (typeof (define) === FUNC_TYPE && define.amd) {
             define('UAParser', [], function () {
                 return UAParser;
             });
         }
         // jQuery/Zepto specific (optional)
         var $ = window.jQuery || window.Zepto;
-        if (typeof($) !== UNDEF_TYPE) {
+        if (typeof ($) !== UNDEF_TYPE) {
             var parser = new UAParser();
             $.ua = parser.getResult();
-            $.ua.get = function() {
+            $.ua.get = function () {
                 return parser.getUA();
             };
             $.ua.set = function (uastring) {
@@ -4342,8 +4337,8 @@ var uuid;
  */
 'use strict';
 var max = max || {};
-(function(jq) {
-    var views = function() {
+(function (jq) {
+    var views = function () {
         /** MaxPredictive.
          * Provides a dropdown list with autocompletion results
          * on top of a input, triggering events
@@ -4358,25 +4353,25 @@ var max = max || {};
             self.requests = {};
             self.$el = jq(options.list);
             self.$list = self.$el.find('ul');
-            self.$el.on('click', '.maxui-prediction', function(event) {
+            self.$el.on('click', '.maxui-prediction', function (event) {
                 var $clicked = jq(event.currentTarget);
                 self.select($clicked);
                 self.choose(event);
             });
         }
-        MaxPredictive.prototype.select = function($element) {
+        MaxPredictive.prototype.select = function ($element) {
             var self = this;
             var $selected = self.$list.find('.maxui-prediction.selected');
             $selected.removeClass('selected');
             $element.addClass('selected');
         };
-        MaxPredictive.prototype.choose = function(event) {
+        MaxPredictive.prototype.choose = function (event) {
             var self = this;
             var $selected = self.$list.find('.maxui-prediction.selected');
             this.action.apply(self, [$selected]);
             self.hide();
         };
-        MaxPredictive.prototype.moveup = function(event) {
+        MaxPredictive.prototype.moveup = function (event) {
             var self = this;
             var $selected = self.$list.find('.maxui-prediction.selected');
             var $prev = $selected.prev();
@@ -4386,7 +4381,7 @@ var max = max || {};
                 self.select($selected.siblings(':last'));
             }
         };
-        MaxPredictive.prototype.movedown = function(event) {
+        MaxPredictive.prototype.movedown = function (event) {
             var self = this;
             var $selected = self.$list.find('.maxui-prediction.selected');
             var $next = $selected.next();
@@ -4397,11 +4392,11 @@ var max = max || {};
                 self.select($selected.siblings(':first'));
             }
         };
-        MaxPredictive.prototype.matchingRequest = function(text) {
+        MaxPredictive.prototype.matchingRequest = function (text) {
             var self = this;
             var previous_request;
             var previous_text = text.substr(0, text.length - 1);
-            jq.each(self.requests, function(key, value) {
+            jq.each(self.requests, function (key, value) {
                 if (previous_text === key) {
                     previous_request = value;
                 }
@@ -4412,7 +4407,7 @@ var max = max || {};
                 return previous_request.text;
             }
         };
-        MaxPredictive.prototype.normalizeWhiteSpace = function(s, multi) {
+        MaxPredictive.prototype.normalizeWhiteSpace = function (s, multi) {
             s = s.replace(/(^\s*)|(\s*$)/gi, "");
             s = s.replace(/\n /, "\n");
             var trimMulti = true;
@@ -4430,7 +4425,7 @@ var max = max || {};
         //   1 - if the request is repeated, use the stored request
         //   2 - if we have a request that is shorter than 10, filter and use it, as there isn't more data in server to show
         //   3 - if we don't have any matching data for the current request, fetch it
-        MaxPredictive.prototype.show = function(event) {
+        MaxPredictive.prototype.show = function (event) {
             var self = this;
             var $input = jq(event.target);
             var text = self.normalizeWhiteSpace($input.val(), false);
@@ -4442,7 +4437,7 @@ var max = max || {};
                     self.render(text, matching_request);
                 } else {
                     this.source.apply(this, [event, text,
-                        function(data) {
+                        function (data) {
                             self.requests[text] = {
                                 text: text,
                                 data: data,
@@ -4455,7 +4450,7 @@ var max = max || {};
                 self.hide();
             }
         };
-        MaxPredictive.prototype.render = function(query, request) {
+        MaxPredictive.prototype.render = function (query, request) {
             var self = this;
             var predictions = '';
             var items = self.requests[request].data;
@@ -4488,7 +4483,7 @@ var max = max || {};
             self.$list.html(predictions);
             self.$el.show();
         };
-        MaxPredictive.prototype.hide = function(event) {
+        MaxPredictive.prototype.hide = function (event) {
             var self = this;
             self.$el.hide();
         };
@@ -4507,7 +4502,7 @@ var max = max || {};
             // Initialize input value with placeholder
             self.$input.val(self.placeholder);
         }
-        MaxInput.prototype.normalizeWhiteSpace = function(s, multi) {
+        MaxInput.prototype.normalizeWhiteSpace = function (s, multi) {
             s = s.replace(/(^\s*)|(\s*$)/gi, "");
             s = s.replace(/\n /, "\n");
             var trimMulti = true;
@@ -4519,25 +4514,25 @@ var max = max || {};
             }
             return s;
         };
-        MaxInput.prototype.bind = function(eventName, callback) {
+        MaxInput.prototype.bind = function (eventName, callback) {
             var self = this;
             self.$delegate.on(eventName, self.input, callback);
         };
-        MaxInput.prototype.execExtraBinding = function(context, event) {
+        MaxInput.prototype.execExtraBinding = function (context, event) {
             var self = this;
             if (self.bindings.hasOwnProperty(event.type)) {
                 self.bindings[event.type].apply(context, [event]);
             }
         };
-        MaxInput.prototype.getInputValue = function() {
+        MaxInput.prototype.getInputValue = function () {
             var self = this;
             var text = this.$input.val();
             return self.normalizeWhiteSpace(text, false);
         };
-        MaxInput.prototype.setBindings = function() {
+        MaxInput.prototype.setBindings = function () {
             var maxinput = this;
             // Erase placeholder when focusing on input and nothing written
-            maxinput.bind('focusin', function(event) {
+            maxinput.bind('focusin', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 var normalized = maxinput.getInputValue();
@@ -4547,7 +4542,7 @@ var max = max || {};
                 maxinput.execExtraBinding(this, event);
             });
             // Put placeholder back when focusing out and nothing written
-            maxinput.bind('focusout', function(event) {
+            maxinput.bind('focusout', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 var normalized = maxinput.getInputValue();
@@ -4560,16 +4555,16 @@ var max = max || {};
             // Execute custom bindings on the events triggered by some
             // keypresses in the "keyup" binding.
             var binded_key_events = 'maxui-input-submit maxui-input-cancel maxui-input-up maxui-input-down maxui-input-keypress';
-            maxinput.bind(binded_key_events, function(event) {
+            maxinput.bind(binded_key_events, function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 maxinput.execExtraBinding(this, event);
             });
-            maxinput.bind('maxui-input-clear', function(event) {
+            maxinput.bind('maxui-input-clear', function (event) {
                 maxinput.$input.val(maxinput.placeholder);
             });
             // Put placeholder back when focusing out and nothing written
-            maxinput.bind('keydown', function(event) {
+            maxinput.bind('keydown', function (event) {
                 if (event.which === 38) {
                     maxinput.$input.trigger('maxui-input-up', [event]);
                 } else if (event.which === 40) {
@@ -4578,7 +4573,7 @@ var max = max || {};
                 maxinput.$input.toggleClass('maxui-empty', false);
             });
             // Trigger events on ENTER, ESC
-            maxinput.bind('keyup', function(event) {
+            maxinput.bind('keyup', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 if (event.which === 13 && !event.shiftKey) {
@@ -4605,8 +4600,8 @@ var max = max || {};
 
 'use strict';
 var max = max || {};
-(function(jq) {
-    var views = function() {
+(function (jq) {
+    var views = function () {
         /** MaxViewName
          *
          *
@@ -4619,29 +4614,29 @@ var max = max || {};
             self.content = '';
             self.el = '#maxui-overlay-panel';
             self.overlay_show_class = jq("#box_chat").length > 0 ? '#box_chat .maxui-overlay' : '.maxui-overlay';
-            jq(self.el + ' .maxui-close').click(function(event) {
+            jq(self.el + ' .maxui-close').click(function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 self.maxui.overlay.hide();
             });
         }
-        MaxOverlay.prototype.$el = function() {
+        MaxOverlay.prototype.$el = function () {
             return jq(this.el);
         };
-        MaxOverlay.prototype.setTitle = function(title) {
+        MaxOverlay.prototype.setTitle = function (title) {
             this.$el().find('#maxui-overlay-title').text(title);
         };
-        MaxOverlay.prototype.setContent = function(content) {
+        MaxOverlay.prototype.setContent = function (content) {
             this.$el().find('#maxui-overlay-content').html(content);
         };
-        MaxOverlay.prototype.configure = function(overlay) {
+        MaxOverlay.prototype.configure = function (overlay) {
             this.setTitle(overlay.title);
             this.setContent(overlay.content);
             overlay.bind(this);
         };
-        MaxOverlay.prototype.show = function(overlay) {
+        MaxOverlay.prototype.show = function (overlay) {
             var self = this;
-            overlay.load(function(data) {
+            overlay.load(function (data) {
                 self.configure(data);
             });
             jq(self.overlay_show_class).show();
@@ -4649,12 +4644,12 @@ var max = max || {};
                 opacity: 1
             }, 200);
         };
-        MaxOverlay.prototype.hide = function() {
+        MaxOverlay.prototype.hide = function () {
             var self = this;
             self.$el().trigger('maxui-overlay-close', []);
             self.$el().animate({
                 opacity: 0
-            }, 200, function(event) {
+            }, 200, function (event) {
                 jq(self.overlay_show_class).hide();
             });
         };
@@ -4671,8 +4666,8 @@ var max = max || {};
 
 'use strict';
 var max = max || {};
-(function(jq) {
-    var views = function() {
+(function (jq) {
+    var views = function () {
         /** MaxChatInfo
          *
          *
@@ -4684,7 +4679,7 @@ var max = max || {};
             self.content = '<div>Hello world</div>';
             self.panelID = 'conversation-settings-panel';
             self.displayNameSlot = {
-                show: function() {
+                show: function () {
                     var $panel = jq(self.getOwnerSelector(''));
                     var $displayNameEdit = jq(self.getOwnerSelector('> #maxui-conversation-displayname-edit'));
                     var $displayName = jq(self.getOwnerSelector('> .maxui-displayname'));
@@ -4693,16 +4688,16 @@ var max = max || {};
                     $displayName.hide();
                     $displayNameEdit.show().val($displayName.text()).focus();
                 },
-                hide: function() {
+                hide: function () {
                     var $displayNameEdit = jq(self.getOwnerSelector('> #maxui-conversation-displayname-edit'));
                     var $displayName = jq(self.getOwnerSelector('> .maxui-displayname'));
                     $displayName.show();
                     $displayNameEdit.hide().val('');
                 },
-                save: function() {
+                save: function () {
                     var $displayName = jq(self.getOwnerSelector('> .maxui-displayname'));
                     var $displayNameInput = jq(self.getOwnerSelector('> #maxui-conversation-displayname-edit input.maxui-displayname'));
-                    maxui.maxClient.modifyConversation(self.data.id, $displayNameInput.val(), function(event) {
+                    maxui.maxClient.modifyConversation(self.data.id, $displayNameInput.val(), function (event) {
                         self.displayNameSlot.hide();
                         $displayName.text(this.displayName);
                         maxui.conversations.messagesview.setTitle(this.displayName);
@@ -4710,19 +4705,19 @@ var max = max || {};
                 }
             };
         }
-        MaxChatInfo.prototype.getOwnerSelector = function(selector) {
+        MaxChatInfo.prototype.getOwnerSelector = function (selector) {
             return '#maxui-' + this.panelID + '.maxui-owner ' + selector;
         };
-        MaxChatInfo.prototype.getSelector = function(selector) {
+        MaxChatInfo.prototype.getSelector = function (selector) {
             return '#maxui-' + this.panelID + ' ' + selector;
         };
-        MaxChatInfo.prototype.bind = function(overlay) {
+        MaxChatInfo.prototype.bind = function (overlay) {
             var self = this;
             // Clear previous overla usage bindings
             overlay.$el().unbind();
             // Gets fresh conversation data on overlay close, checking first if the conversation is still
             // on the list, otherwise, it means that the overlay was closed by a deletion, and so we don't reload anything
-            overlay.$el().on('maxui-overlay-close', function(event) {
+            overlay.$el().on('maxui-overlay-close', function (event) {
                 var still_exists = _.where(self.maxui.conversations.listview.conversations, {
                     id: self.maxui.conversations.active
                 });
@@ -4731,11 +4726,11 @@ var max = max || {};
                 }
             });
             // Open displayName editing box when user clicks on displayName
-            overlay.$el().on('click', self.getOwnerSelector('> .maxui-displayname'), function(event) {
+            overlay.$el().on('click', self.getOwnerSelector('> .maxui-displayname'), function (event) {
                 self.displayNameSlot.show();
             });
             // Saves or hides displayName editing box when user presses ENTER or ESC
-            overlay.$el().on('keyup', self.getOwnerSelector('> #maxui-conversation-displayname-edit input.maxui-displayname'), function(event) {
+            overlay.$el().on('keyup', self.getOwnerSelector('> #maxui-conversation-displayname-edit input.maxui-displayname'), function (event) {
                 if (event.which === 27) {
                     self.displayNameSlot.hide();
                 } else if (event.which === 13) {
@@ -4743,16 +4738,16 @@ var max = max || {};
                 }
             });
             // Saves displayName when user clicks the ok button
-            overlay.$el().on('click', self.getOwnerSelector('#maxui-conversation-displayname-edit i.maxui-icon-ok-circled'), function(event) {
+            overlay.$el().on('click', self.getOwnerSelector('#maxui-conversation-displayname-edit i.maxui-icon-ok-circled'), function (event) {
                 self.displayNameSlot.save();
             });
             // Hides displayName editing box hen user clicks the cancel button
-            overlay.$el().on('click', self.getOwnerSelector('#maxui-conversation-displayname-edit i.maxui-icon-cancel-circled'), function(event) {
+            overlay.$el().on('click', self.getOwnerSelector('#maxui-conversation-displayname-edit i.maxui-icon-cancel-circled'), function (event) {
                 self.displayNameSlot.hide();
             });
             // Displays confirmation buttons when Owner clicks on kick user button
             // Displays confirmation buttons when Owner clicks on transfer ownership button
-            overlay.$el().on('click', self.getOwnerSelector('.maxui-conversation-user-action'), function(event) {
+            overlay.$el().on('click', self.getOwnerSelector('.maxui-conversation-user-action'), function (event) {
                 var $action = jq(event.currentTarget);
                 var $participant = $action.closest('.maxui-participant');
                 $participant.find('.maxui-conversation-confirmation:visible').hide();
@@ -4765,13 +4760,13 @@ var max = max || {};
                 }
             });
             // Transfers ownership to selected user and toggles ownership crown and classes accordingly
-            overlay.$el().on('click', self.getSelector('.maxui-participant .maxui-conversation-transfer-to .maxui-icon-ok-circled'), function(event) {
+            overlay.$el().on('click', self.getSelector('.maxui-participant .maxui-conversation-transfer-to .maxui-icon-ok-circled'), function (event) {
                 var $new_owner = jq(event.currentTarget).closest('.maxui-participant');
                 var new_owner_username = $new_owner.attr('data-username');
                 var $current_owner = jq(self.getSelector('.maxui-participant.maxui-owner'));
                 var $current_crown = $current_owner.find('.maxui-icon-crown');
                 var $new_crown = $new_owner.find('.maxui-icon-crown-plus');
-                self.maxui.maxClient.transferConversationOwnership(self.data.id, new_owner_username, function(event) {
+                self.maxui.maxClient.transferConversationOwnership(self.data.id, new_owner_username, function (event) {
                     $new_owner.find('.maxui-conversation-transfer-to').hide();
                     $current_crown.removeClass('maxui-icon-crown').addClass('maxui-icon-crown-plus');
                     $new_crown.removeClass('maxui-icon-crown-plus').addClass('maxui-icon-crown');
@@ -4783,16 +4778,16 @@ var max = max || {};
                 });
             });
             // Kicks user and toggles trashbin and classes accordingly
-            overlay.$el().on('click', self.getSelector('.maxui-participant .maxui-conversation-kick-user .maxui-icon-ok-circled'), function(event) {
+            overlay.$el().on('click', self.getSelector('.maxui-participant .maxui-conversation-kick-user .maxui-icon-ok-circled'), function (event) {
                 var $kicked_user = jq(event.currentTarget).closest('.maxui-participant');
                 var kicked_username = $kicked_user.attr('data-username');
-                self.maxui.maxClient.kickUserFromConversation(self.data.id, kicked_username, function(event) {
+                self.maxui.maxClient.kickUserFromConversation(self.data.id, kicked_username, function (event) {
                     $kicked_user.remove();
                 });
             });
             // Cancels ownership transfer
             // Cancels user kicking
-            overlay.$el().on('click', self.getSelector('.maxui-participant .maxui-conversation-confirmation .maxui-icon-cancel-circled'), function(event) {
+            overlay.$el().on('click', self.getSelector('.maxui-participant .maxui-conversation-confirmation .maxui-icon-cancel-circled'), function (event) {
                 var $new_owner = jq(event.currentTarget).closest('.maxui-participant');
                 $new_owner.find('.maxui-conversation-confirmation:visible').hide();
                 var $new_owner_action_icon = $new_owner.find('.maxui-conversation-user-action.active');
@@ -4802,15 +4797,15 @@ var max = max || {};
             self.predictive = new max.views.MaxPredictive({
                 maxui: self.maxui,
                 minchars: 3,
-                filter: function(event) {
-                    return jq.map(self.data.participants, function(element, index) {
+                filter: function (event) {
+                    return jq.map(self.data.participants, function (element, index) {
                         return element.username;
                     });
                 },
-                source: function(event, query, callback) {
+                source: function (event, query, callback) {
                     self.maxui.maxClient.getUsersList(query, callback);
                 },
-                action: function($selected) {
+                action: function ($selected) {
                     // Action executed after a prediction item is selected, to add the user add confirmation buttons
                     var username = $selected.attr('data-username');
                     var displayName = $selected.attr('data-username');
@@ -4827,7 +4822,7 @@ var max = max || {};
                     var $participant = jq(self.getSelector('.maxui-participant:last'));
                     $participant.animate({
                         height: 36
-                    }, 100, function(event) {
+                    }, 100, function (event) {
                         $participant.animate({
                             opacity: 1
                         }, 200);
@@ -4842,31 +4837,31 @@ var max = max || {};
                 delegate: overlay.el,
                 placeholder: self.maxui.settings.literals.conversations_info_add,
                 bindings: {
-                    'maxui-input-keypress': function(event) {
+                    'maxui-input-keypress': function (event) {
                         self.predictive.show(event);
                     },
-                    'maxui-input-submit': function(event) {
+                    'maxui-input-submit': function (event) {
                         self.predictive.choose(event);
                     },
-                    'maxui-input-cancel': function(event) {
+                    'maxui-input-cancel': function (event) {
                         self.predictive.hide(event);
                     },
-                    'maxui-input-up': function(event) {
+                    'maxui-input-up': function (event) {
                         self.predictive.moveup(event);
                     },
-                    'maxui-input-down': function(event) {
+                    'maxui-input-down': function (event) {
                         self.predictive.movedown(event);
                     }
                 }
             });
             // Confirmas adding a new user to the conversation
-            overlay.$el().on('click', self.getOwnerSelector('.maxui-participant .maxui-conversation-add-user .maxui-icon-ok-circled'), function(event) {
+            overlay.$el().on('click', self.getOwnerSelector('.maxui-participant .maxui-conversation-add-user .maxui-icon-ok-circled'), function (event) {
                 var $participant = jq(event.target).closest('.maxui-participant');
                 var new_username = $participant.attr('data-username');
-                self.maxui.maxClient.addUserToConversation(self.data.id, new_username, function(event) {
+                self.maxui.maxClient.addUserToConversation(self.data.id, new_username, function (event) {
                     $participant.animate({
                         opacity: 0
-                    }, 200, function(event) {
+                    }, 200, function (event) {
                         $participant.find('.maxui-conversation-add-user').remove();
                         $participant.animate({
                             opacity: 1
@@ -4876,48 +4871,48 @@ var max = max || {};
                 });
             });
             // Cancels adding a new user to the conversation
-            overlay.$el().on('click', self.getOwnerSelector('.maxui-participant .maxui-conversation-add-user .maxui-icon-cancel-circled'), function(event) {
+            overlay.$el().on('click', self.getOwnerSelector('.maxui-participant .maxui-conversation-add-user .maxui-icon-cancel-circled'), function (event) {
                 var $participant = jq(event.currentTarget).closest('.maxui-participant');
                 $participant.animate({
                     opacity: 0
-                }, 200, function(event) {
+                }, 200, function (event) {
                     $participant.animate({
                         height: 0
-                    }, 200, function(event) {
+                    }, 200, function (event) {
                         $participant.remove();
                     });
                 });
             });
             // User Leaves conversation
-            overlay.$el().on('click', self.getSelector('#maxui-conversation-leave .maxui-button'), function(event) {
+            overlay.$el().on('click', self.getSelector('#maxui-conversation-leave .maxui-button'), function (event) {
                 var leaving_username = self.maxui.settings.username;
-                self.maxui.maxClient.kickUserFromConversation(self.data.id, leaving_username, function(event) {
+                self.maxui.maxClient.kickUserFromConversation(self.data.id, leaving_username, function (event) {
                     self.maxui.conversations.listview.remove(self.data.id);
                     overlay.hide();
                     jq('#maxui-back-conversations a').trigger('click');
                 });
             });
             // User clicks delete conversation button
-            overlay.$el().on('click', self.getSelector('#maxui-conversation-delete .maxui-button'), function(event) {
+            overlay.$el().on('click', self.getSelector('#maxui-conversation-delete .maxui-button'), function (event) {
                 jq(self.getSelector('#maxui-conversation-delete .maxui-help')).show();
             });
             // User confirms deleting a conversation
-            overlay.$el().on('click', self.getSelector('#maxui-conversation-delete .maxui-help .maxui-confirmation-ok'), function(event) {
-                self.maxui.maxClient.deleteConversation(self.data.id, function(event) {
+            overlay.$el().on('click', self.getSelector('#maxui-conversation-delete .maxui-help .maxui-confirmation-ok'), function (event) {
+                self.maxui.maxClient.deleteConversation(self.data.id, function (event) {
                     self.maxui.conversations.listview.remove(self.data.id);
                     overlay.hide();
                     jq('#maxui-back-conversations a').trigger('click');
                 });
             });
             // User cancels deleting a conversation
-            overlay.$el().on('click', self.getSelector('#maxui-conversation-delete .maxui-help .maxui-confirmation-cancel'), function(event) {
+            overlay.$el().on('click', self.getSelector('#maxui-conversation-delete .maxui-help .maxui-confirmation-cancel'), function (event) {
                 jq(self.getSelector('#maxui-conversation-delete .maxui-help')).hide();
             });
         };
-        MaxChatInfo.prototype.load = function(configurator) {
+        MaxChatInfo.prototype.load = function (configurator) {
             var self = this;
-            self.maxui.maxClient.getConversation(self.maxui.conversations.active, function(data) {
-                self.maxui.maxClient.getConversationSubscription(self.maxui.conversations.active, self.maxui.settings.username, function(subscription) {
+            self.maxui.maxClient.getConversation(self.maxui.conversations.active, function (data) {
+                self.maxui.maxClient.getConversationSubscription(self.maxui.conversations.active, self.maxui.settings.username, function (subscription) {
                     self.data = data;
                     var participants = [];
                     for (var pt = 0; pt < self.data.participants.length; pt++) {
@@ -4968,8 +4963,8 @@ var max = max || {};
 
 'use strict';
 var max = max || {};
-(function(jq) {
-    var views = function() {
+(function (jq) {
+    var views = function () {
         /** MaxScrollbar
          *
          *
@@ -4987,9 +4982,9 @@ var max = max || {};
             self.$target = jq(self.target_selector);
             self.bind();
         }
-        MaxScrollbar.prototype.bind = function() {
+        MaxScrollbar.prototype.bind = function () {
             var self = this;
-            self.$target.on('mousewheel', function(event, delta, deltaX, deltaY) {
+            self.$target.on('mousewheel', function (event, delta, deltaX, deltaY) {
                 event.preventDefault();
                 event.stopPropagation();
                 if (self.enabled()) {
@@ -5010,7 +5005,7 @@ var max = max || {};
                     self.setDraggerPosition(relative_pos);
                 }
             });
-            jq(document).on('mousemove', function(event) {
+            jq(document).on('mousemove', function (event) {
                 if (self.dragging) {
                     event.stopPropagation();
                     event.preventDefault();
@@ -5030,16 +5025,16 @@ var max = max || {};
                     }
                 }
             });
-            jq(document.body).on('mousedown', '.maxui-dragger', function(event) {
+            jq(document.body).on('mousedown', '.maxui-dragger', function (event) {
                 event.stopPropagation();
                 event.preventDefault();
                 self.dragging = true;
             });
-            jq(document).on('mouseup', function(event) {
+            jq(document).on('mouseup', function (event) {
                 self.dragging = false;
             });
         };
-        MaxScrollbar.prototype.setHeight = function(height) {
+        MaxScrollbar.prototype.setHeight = function (height) {
             var self = this;
             var wrapper_top = jq('#maxui-conversations .maxui-wrapper').offset().top - self.maxui.offset().top - 1;
             self.$bar.css({
@@ -5048,18 +5043,18 @@ var max = max || {};
             });
             self.maxtop = height - self.handle.height - 2;
         };
-        MaxScrollbar.prototype.setTarget = function(selector) {
+        MaxScrollbar.prototype.setTarget = function (selector) {
             var self = this;
             self.$target = jq(selector);
         };
-        MaxScrollbar.prototype.setDraggerPosition = function(relative_pos) {
+        MaxScrollbar.prototype.setDraggerPosition = function (relative_pos) {
             var self = this;
             var margintop = (self.maxtop * relative_pos) / 100;
             self.$dragger.css({
                 'margin-top': margintop
             });
         };
-        MaxScrollbar.prototype.setContentPosition = function(relative_pos) {
+        MaxScrollbar.prototype.setContentPosition = function (relative_pos) {
             var self = this;
             if (self.enabled()) {
                 var movable_height = self.$target.height() - self.maxtop - self.handle.height;
@@ -5075,7 +5070,7 @@ var max = max || {};
                 self.setDraggerPosition(0);
             }
         };
-        MaxScrollbar.prototype.enabled = function() {
+        MaxScrollbar.prototype.enabled = function () {
             var self = this;
             return self.$target.height() > self.maxtop;
         };
@@ -5092,8 +5087,8 @@ var max = max || {};
 
 'use strict';
 var max = max || {};
-(function(jq) {
-    var views = function() {
+(function (jq) {
+    var views = function () {
         /** MaxConversationsList
          *
          *
@@ -5104,7 +5099,7 @@ var max = max || {};
             self.mainview = maxconversations;
             self.maxui = self.mainview.maxui;
         }
-        MaxConversationsList.prototype.load = function(conversations) {
+        MaxConversationsList.prototype.load = function (conversations) {
             var self = this;
             if (_.isArray(conversations)) {
                 self.conversations = conversations;
@@ -5112,7 +5107,7 @@ var max = max || {};
             } else if (_.isFunction(conversations)) {
                 self.maxui.maxClient.getConversationsForUser.apply(self.maxui.maxClient, [
                     self.maxui.settings.username,
-                    function(data) {
+                    function (data) {
                         self.maxui.logger.info('Loaded {0} conversations from max'.format(self.maxui.settings.username), self.mainview.logtag);
                         self.conversations = data;
                         self.render();
@@ -5122,17 +5117,17 @@ var max = max || {};
                 ]);
             }
         };
-        MaxConversationsList.prototype.loadConversation = function(conversation_hash) {
+        MaxConversationsList.prototype.loadConversation = function (conversation_hash) {
             var self = this;
             var callback;
             if (arguments.length > 1) {
                 callback = arguments[1];
             }
-            self.maxui.maxClient.getConversationSubscription(conversation_hash, self.maxui.settings.username, function(data) {
+            self.maxui.maxClient.getConversationSubscription(conversation_hash, self.maxui.settings.username, function (data) {
                 if (_.findWhere(self.conversations, {
-                        'id': data.id
-                    })) {
-                    self.conversations = _.map(self.conversations, function(conversation) {
+                    'id': data.id
+                })) {
+                    self.conversations = _.map(self.conversations, function (conversation) {
                         if (conversation.id === data.id) {
                             return data;
                         } else {
@@ -5150,9 +5145,9 @@ var max = max || {};
                 }
             });
         };
-        MaxConversationsList.prototype.updateLastMessage = function(conversation_id, message) {
+        MaxConversationsList.prototype.updateLastMessage = function (conversation_id, message) {
             var self = this;
-            self.conversations = _.map(self.conversations, function(conversation) {
+            self.conversations = _.map(self.conversations, function (conversation) {
                 if (conversation.id === conversation_id) {
                     conversation.lastMessage = message;
                     _.defaults(conversation, {
@@ -5166,9 +5161,9 @@ var max = max || {};
             }, self);
             self.sort();
         };
-        MaxConversationsList.prototype.resetUnread = function(conversation_id) {
+        MaxConversationsList.prototype.resetUnread = function (conversation_id) {
             var self = this;
-            self.conversations = _.map(self.conversations, function(conversation) {
+            self.conversations = _.map(self.conversations, function (conversation) {
                 if (conversation.id === conversation_id) {
                     conversation.unread_messages = 0;
                 }
@@ -5176,28 +5171,28 @@ var max = max || {};
             }, self);
             self.mainview.updateUnreadConversations();
         };
-        MaxConversationsList.prototype.sort = function() {
+        MaxConversationsList.prototype.sort = function () {
             var self = this;
-            self.conversations = _.sortBy(self.conversations, function(conversation) {
+            self.conversations = _.sortBy(self.conversations, function (conversation) {
                 return conversation.lastMessage.published;
             });
             self.conversations.reverse();
         };
-        MaxConversationsList.prototype.remove = function(conversation_id) {
+        MaxConversationsList.prototype.remove = function (conversation_id) {
             var self = this;
-            self.conversations = _.filter(self.conversations, function(conversation) {
+            self.conversations = _.filter(self.conversations, function (conversation) {
                 return conversation.id !== conversation_id;
             });
             self.sort();
             self.render();
         };
-        MaxConversationsList.prototype.insert = function(conversation) {
+        MaxConversationsList.prototype.insert = function (conversation) {
             var self = this;
             self.conversations.push(conversation);
             self.sort();
             self.render();
         };
-        MaxConversationsList.prototype.show = function() {
+        MaxConversationsList.prototype.show = function () {
             var self = this;
             self.mainview.loadWrappers();
             self.mainview.$newparticipants.show();
@@ -5211,7 +5206,7 @@ var max = max || {};
                 self.toggle();
             }
         };
-        MaxConversationsList.prototype.toggle = function() {
+        MaxConversationsList.prototype.toggle = function () {
             var self = this;
             self.mainview.loadWrappers();
             var literal = '';
@@ -5227,7 +5222,7 @@ var max = max || {};
                     'height': 19,
                     'padding-top': 6,
                     'padding-bottom': 6
-                }, 400, function(event) {
+                }, 400, function (event) {
                     self.mainview.$addpeople.removeAttr('style');
                 });
                 var widgetWidth = self.mainview.$conversations_list.width() + 11; // +2 To include border;
@@ -5243,7 +5238,7 @@ var max = max || {};
             }
         };
         // Renders the conversations list of the current user, defined in settings.username
-        MaxConversationsList.prototype.render = function() {
+        MaxConversationsList.prototype.render = function () {
             var overwrite_postbox = true;
             if (arguments.length > 0) {
                 overwrite_postbox = arguments[0];
@@ -5316,7 +5311,7 @@ var max = max || {};
             self.remaining = true;
         }
         // Loads the last 10 messages of a conversation
-        MaxConversationMessages.prototype.load = function() {
+        MaxConversationMessages.prototype.load = function () {
             var self = this;
             var conversation_id = self.mainview.active;
             var set_unread = false;
@@ -5327,10 +5322,10 @@ var max = max || {};
             self.messages[conversation_id] = [];
             self.maxui.maxClient.getMessagesForConversation(conversation_id, {
                 limit: 10
-            }, function(messages) {
+            }, function (messages) {
                 self.maxui.logger.info('Loaded conversation {0} messages from max'.format(conversation_id), self.mainview.logtag);
                 self.remaining = this.getResponseHeader('X-Has-Remaining-Items');
-                _.each(messages, function(message, index, list) {
+                _.each(messages, function (message, index, list) {
                     message.ack = true;
                     self.append(message);
                 });
@@ -5349,7 +5344,7 @@ var max = max || {};
                 self.render();
             });
         };
-        MaxConversationMessages.prototype.ack = function(message) {
+        MaxConversationMessages.prototype.ack = function (message) {
             var self = this;
             self.maxui.logger.info("Acknowledged Message {0} --> {1}".format(message.uuid, message.data.id), self.mainview.logtag);
             var $message = jq('#' + message.uuid);
@@ -5359,7 +5354,7 @@ var max = max || {};
             if ($message_ack && own_message) {
                 $message_ack.addClass('maxui-ack');
                 // mark currentyly stored message as ack'd
-                self.messages[self.mainview.active] = _.map(self.messages[self.mainview.active], function(stored_message) {
+                self.messages[self.mainview.active] = _.map(self.messages[self.mainview.active], function (stored_message) {
                     if (message.uuid === stored_message.uuid) {
                         stored_message.ack = true;
                     }
@@ -5369,48 +5364,48 @@ var max = max || {};
                 $message.attr('id', message.data.id);
             }
         };
-        MaxConversationMessages.prototype.exists = function(message) {
+        MaxConversationMessages.prototype.exists = function (message) {
             var self = this;
             var found = _.findWhere(self.messages[message.destination], {
                 "uuid": message.uuid
             });
             return _.isUndefined(found);
         };
-        MaxConversationMessages.prototype.setTitle = function(title) {
+        MaxConversationMessages.prototype.setTitle = function (title) {
             var self = this;
             self.mainview.$common_header.find('#maxui-back-conversations .maxui-title').text(title);
         };
-        MaxConversationMessages.prototype.loadNew = function() {
+        MaxConversationMessages.prototype.loadNew = function () {
             var self = this;
             var newest_loaded = _.last(self.messages[self.mainview.active]);
             self.maxui.maxClient.getMessagesForConversation(self.mainview.active, {
                 limit: 10,
                 after: newest_loaded.uuid
-            }, function(messages) {
+            }, function (messages) {
                 self.remaining = this.getResponseHeader('X-Has-Remaining-Items');
-                _.each(messages, function(message, index, list) {
+                _.each(messages, function (message, index, list) {
                     message.ack = true;
                     self.prepend(message, index);
                 });
                 self.render();
             });
         };
-        MaxConversationMessages.prototype.loadOlder = function() {
+        MaxConversationMessages.prototype.loadOlder = function () {
             var self = this;
             var older_loaded = _.first(self.messages[self.mainview.active]);
             self.maxui.maxClient.getMessagesForConversation(self.mainview.active, {
                 limit: 10,
                 before: older_loaded.uuid
-            }, function(messages) {
+            }, function (messages) {
                 self.remaining = this.getResponseHeader('X-Has-Remaining-Items');
-                _.each(messages, function(message, index, list) {
+                _.each(messages, function (message, index, list) {
                     message.ack = true;
                     self.prepend(message, index);
                 });
                 self.render();
             });
         };
-        MaxConversationMessages.prototype.append = function(message) {
+        MaxConversationMessages.prototype.append = function (message) {
             var self = this;
             var _message;
             // Convert activity from max to mimic rabbit response
@@ -5453,7 +5448,7 @@ var max = max || {};
             self.messages[_message.destination] = self.messages[_message.destination] || [];
             self.messages[_message.destination].push(_message);
         };
-        MaxConversationMessages.prototype.prepend = function(message, index) {
+        MaxConversationMessages.prototype.prepend = function (message, index) {
             var self = this;
             var _message;
             // Convert activity from max to mimic rabbit response
@@ -5482,7 +5477,7 @@ var max = max || {};
             self.messages[self.mainview.active] = self.messages[self.mainview.active] || [];
             self.messages[self.mainview.active].splice(index, 0, _message);
         };
-        MaxConversationMessages.prototype.render = function() {
+        MaxConversationMessages.prototype.render = function () {
             var self = this;
             // String to store the generated html pieces of each conversation item
             var messages = '';
@@ -5530,12 +5525,12 @@ var max = max || {};
                     }
                 }
                 jq('#maxui-messages #maxui-message-list').html(messages);
-                _.each(images_to_render, function(message, index, list) {
-                    self.maxui.maxClient.getMessageImage('/messages/{0}/image/thumb'.format(message.uuid), function(encoded_image_data) {
+                _.each(images_to_render, function (message, index, list) {
+                    self.maxui.maxClient.getMessageImage('/messages/{0}/image/thumb'.format(message.uuid), function (encoded_image_data) {
                         var imagetag = '<img class="maxui-embedded fullImage" alt="" src="data:image/png;base64,{0}" />'.format(encoded_image_data);
                         jq('.maxui-message#{0} .maxui-body'.format(message.uuid)).after(imagetag);
-                        jq('.maxui-message#{0} img.fullImage'.format(message.uuid)).on('click', function() {
-                            self.maxui.maxClient.getMessageImage(message.object.fullURL, function(encoded_image_data) {
+                        jq('.maxui-message#{0} img.fullImage'.format(message.uuid)).on('click', function () {
+                            self.maxui.maxClient.getMessageImage(message.object.fullURL, function (encoded_image_data) {
                                 var image = new Image();
                                 image.src = "data:image/png;base64," + encoded_image_data;
                                 var w = window.open("");
@@ -5553,7 +5548,7 @@ var max = max || {};
                 }
             }
         };
-        MaxConversationMessages.prototype.show = function(conversation_hash) {
+        MaxConversationMessages.prototype.show = function (conversation_hash) {
             var self = this;
             self.mainview.loadWrappers();
             // PLEASE CLEAN THIS SHIT
@@ -5578,7 +5573,7 @@ var max = max || {};
                 self.toggle();
             }
         };
-        MaxConversationMessages.prototype.toggle = function() {
+        MaxConversationMessages.prototype.toggle = function () {
             var self = this;
             self.mainview.loadWrappers();
             var literal = '';
@@ -5587,7 +5582,7 @@ var max = max || {};
                     'height': 0,
                     'padding-top': 0,
                     'padding-bottom': 0
-                }, 400, function(event) {
+                }, 400, function (event) {
                     self.mainview.$addpeople.css({
                         'border-color': 'transparent'
                     });
@@ -5600,7 +5595,7 @@ var max = max || {};
                 self.mainview.$messages.animate({
                     'left': 0,
                     'margin-left': 0
-                }, 400, function(event) {
+                }, 400, function (event) {
                     self.mainview.scrollbar.setHeight(self.mainview.height - 75);
                     self.mainview.scrollbar.setTarget('#maxui-conversations #maxui-messages');
                     self.mainview.scrollbar.setContentPosition(100);
@@ -5627,11 +5622,11 @@ var max = max || {};
             self.conversationSettings = new max.views.MaxChatInfo(self.maxui);
             self.active = '';
         }
-        MaxConversations.prototype.visible = function() {
+        MaxConversations.prototype.visible = function () {
             var self = this;
             return self.$conversations.is(':visible') && self.$conversations.height > 0;
         };
-        MaxConversations.prototype.loadScrollbar = function() {
+        MaxConversations.prototype.loadScrollbar = function () {
             var self = this;
             self.scrollbar = new max.views.MaxScrollbar({
                 maxui: self.maxui,
@@ -5643,13 +5638,13 @@ var max = max || {};
                 target: self.el
             });
         };
-        MaxConversations.prototype.getActive = function() {
+        MaxConversations.prototype.getActive = function () {
             var self = this;
             return _.findWhere(self.listview.conversations, {
                 'id': self.active
             });
         };
-        MaxConversations.prototype.loadWrappers = function() {
+        MaxConversations.prototype.loadWrappers = function () {
             var self = this;
             self.$conversations = jq('#maxui-conversations');
             self.$conversations_list = jq('#maxui-conversations-list');
@@ -5662,28 +5657,28 @@ var max = max || {};
             self.$newparticipants = jq('#maxui-new-participants');
             self.$newmessagebox = jq('#maxui-newactivity');
         };
-        MaxConversations.prototype.render = function() {
+        MaxConversations.prototype.render = function () {
             var self = this;
             self.loadScrollbar();
             self.bindEvents();
         };
-        MaxConversations.prototype.bindEvents = function() {
+        MaxConversations.prototype.bindEvents = function () {
             var self = this;
             // Show overlay with conversation info
-            jq('#maxui-conversation-info').click(function(event) {
+            jq('#maxui-conversation-info').click(function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 self.maxui.overlay.show(self.conversationSettings);
             });
             //Assign going back to conversations list
-            jq('#maxui-back-conversations').on('click', function(event) {
+            jq('#maxui-back-conversations').on('click', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 window.status = '';
                 self.listview.show();
             });
             //Assign activation of messages section by delegating the clicl of a conversation arrow to the conversations container
-            jq('#maxui-conversations').on('click', '.maxui-conversation', function(event) {
+            jq('#maxui-conversations').on('click', '.maxui-conversation', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 window.status = '';
@@ -5691,7 +5686,7 @@ var max = max || {};
                 self.messagesview.show(conversation_hash);
             });
             /// Load older activities
-            jq('#maxui-conversations').on('click', '#maxui-more-messages .maxui-button', function(event) {
+            jq('#maxui-conversations').on('click', '#maxui-more-messages .maxui-button', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
                 window.status = '';
@@ -5702,7 +5697,7 @@ var max = max || {};
          *    Sends a post when user clicks `post activity` button with
          *    the current contents of the `maxui-newactivity` textarea
          **/
-        MaxConversations.prototype.send = function(text) {
+        MaxConversations.prototype.send = function (text) {
             var self = this;
             var message = {
                 data: {
@@ -5730,10 +5725,10 @@ var max = max || {};
         /**
          *    Creates a new conversation and shows it
          **/
-        MaxConversations.prototype.create = function(options) {
+        MaxConversations.prototype.create = function (options) {
             var self = this;
             options.participants.push(self.maxui.settings.username);
-            self.maxui.maxClient.addMessageAndConversation(options, function(event) {
+            self.maxui.maxClient.addMessageAndConversation(options, function (event) {
                 var message = this;
                 var chash = message.contexts[0].id;
                 var conversation = {
@@ -5759,14 +5754,14 @@ var max = max || {};
                 self.maxui.reloadPersons();
             });
         };
-        MaxConversations.prototype.hideNameChat = function() {
+        MaxConversations.prototype.hideNameChat = function () {
             jq('#maxui-add-people-box #maxui-new-displayName input').val('');
             jq('#maxui-add-people-box #maxui-new-displayName').hide();
         };
-        MaxConversations.prototype.updateUnreadConversations = function(data) {
+        MaxConversations.prototype.updateUnreadConversations = function (data) {
             var self = this;
             var $showconversations = jq('#maxui-show-conversations .maxui-unread-conversations');
-            var conversations_with_unread_messages = _.filter(self.listview.conversations, function(conversation) {
+            var conversations_with_unread_messages = _.filter(self.listview.conversations, function (conversation) {
                 if (conversation.unread_messages > 0) {
                     return conversation;
                 }
@@ -5785,7 +5780,7 @@ var max = max || {};
                 }
             }
         };
-        MaxConversations.prototype.ReceiveMessage = function(message) {
+        MaxConversations.prototype.ReceiveMessage = function (message) {
             var self = this;
             // Insert message only if the message is from another user.
             var message_from_another_user = message.user.username !== self.maxui.settings.username;
@@ -5810,7 +5805,7 @@ var max = max || {};
             //  Receiving our own message after going trough rabbitmq
             //}
         };
-        MaxConversations.prototype.ReceiveConversation = function(message) {
+        MaxConversations.prototype.ReceiveConversation = function (message) {
             var self = this;
             // Insert conversation only if the message is from another user.
             var message_from_another_user = message.user.username !== self.maxui.settings.username;
@@ -5818,17 +5813,17 @@ var max = max || {};
             if (message_from_another_user || message_not_in_list) {
                 if (self.maxui.settings.UISection === 'conversations' && self.maxui.settings.conversationsSection === 'conversations') {
                     self.active = message.destination;
-                    self.listview.loadConversation(message.destination, function(event) {
+                    self.listview.loadConversation(message.destination, function (event) {
                         this.messagesview.show(message.destination);
                     });
                 } else if (self.maxui.settings.UISection === 'conversations' && self.maxui.settings.conversationsSection === 'messages') {
                     self.active = message.destination;
-                    self.listview.loadConversation(message.destination, function(event) {
+                    self.listview.loadConversation(message.destination, function (event) {
                         this.messagesview.load();
                         this.listview.resetUnread(message.destination);
                     });
                 } else if (self.maxui.settings.UISection === 'timeline') {
-                    self.listview.loadConversation(message.destination, function(event) {
+                    self.listview.loadConversation(message.destination, function (event) {
                         self.updateUnreadConversations();
                         self.listview.render();
                     });
@@ -5855,7 +5850,7 @@ var max = max || {};
 
 var max = max || {};
 
-max.templates = function() {
+max.templates = function () {
     var templates = {
         activity: Hogan.compile('\
 <div class="maxui-activity {{#flagged}}maxui-flagged{{/flagged}}" id="{{id}}" userid="{{actor.id}}" username="{{actor.username}}">\
@@ -5884,7 +5879,6 @@ max.templates = function() {
                     </form>\
                     {{/fileDownload}}\
                     <p class="maxui-body">{{&text}}</p>\
-        \
                 </div>\
             </div>\
             <div class="maxui-footer">\
@@ -6230,9 +6224,10 @@ max.templates = function() {
                       {{/subscriptionList}}\
                     </select>\
                     {{/showSubscriptionList}}\
-                    <img id="img-preview">\
-                    <label for="maxui-img">Upload Image</label> \
-                    <input type="file" id="maxui-img" class="" accept="image/*" onchange="showPreview(event);" style="display:none">\
+                    <img id="preview">\
+                    <input type="file" id="maxui-file" accept="file/*" onchange="">\
+                    <label for="maxui-img" class="upload-img">Upload image</label> \
+                    <input type="file" id="maxui-img" accept="image/*" onchange="showPreview(event);" style="display:none">\
                    <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{buttonLiteral}}">\
               </div>\
             '),
@@ -6251,7 +6246,9 @@ max.templates = function() {
 function showPreview(event) {
     if (event.target.files.length > 0) {
         var src = URL.createObjectURL(event.target.files[0]);
-        var preview = document.getElementById("img-preview");
+        var preview = document.getElementById("preview");
+        var name = event.target.files[0].name;
+        var size = (event.target.files[0].size / 1000).toFixed(1);
         preview.src = src;
         preview.style.display = "block";
         preview.style.height = "100px";
@@ -6266,7 +6263,7 @@ function showPreview(event) {
  */
 'use strict';
 var max = max || {};
-(function(jq) {
+(function (jq) {
     /** MaxMessaging
      *
      *
@@ -6404,11 +6401,11 @@ var max = max || {};
         };
         // invert specification to acces by packed value
         self._specification = {};
-        _.each(self.specification, function(svalue, sname, slist) {
+        _.each(self.specification, function (svalue, sname, slist) {
             var spec = _.clone(svalue);
             if (_.has(spec, 'values')) {
                 spec.values = {};
-                _.each(svalue.values, function(vvalue, vname, vlist) {
+                _.each(svalue.values, function (vvalue, vname, vlist) {
                     spec.values[vvalue.id] = _.clone(vvalue);
                     spec.values[vvalue.id].name = vname;
                     delete spec.values[vvalue.id].id;
@@ -6416,7 +6413,7 @@ var max = max || {};
             }
             if (_.has(spec, 'fields') && spec.type === 'object') {
                 spec.fields = {};
-                _.each(svalue.fields, function(vvalue, vname, vlist) {
+                _.each(svalue.fields, function (vvalue, vname, vlist) {
                     spec.fields[vvalue.id] = _.clone(vvalue);
                     spec.fields[vvalue.id].name = vname;
                     delete spec.fields[vvalue.id].id;
@@ -6427,7 +6424,7 @@ var max = max || {};
             self._specification[svalue.id] = spec;
         });
     }
-    MaxMessaging.prototype.domainFromMaxServer = function(server) {
+    MaxMessaging.prototype.domainFromMaxServer = function (server) {
         //var self = this;
         // Extract domain out of maxserver url, if present
         // Matches several cases, but always assumes the domain is the last
@@ -6445,13 +6442,13 @@ var max = max || {};
         dummy_a.href = server_without_trailing_slash;
         return _.last(dummy_a.pathname.split('/'));
     };
-    MaxMessaging.prototype.start = function() {
+    MaxMessaging.prototype.start = function () {
         var self = this;
         self.maxui.logger.info('Connecting ...', self.logtag);
         self.connect();
         var current_try = 1;
         // Retry connection if initial failed
-        var interval = setInterval(function(event) {
+        var interval = setInterval(function (event) {
             if (!self.active && current_try <= self.max_retries) {
                 self.maxui.logger.debug('Connection retry #{0}'.format(current_try), self.logtag);
                 self.disconnect();
@@ -6466,16 +6463,16 @@ var max = max || {};
             current_try += 1;
         }, self.retry_interval);
     };
-    MaxMessaging.prototype.bind = function(params, callback) {
+    MaxMessaging.prototype.bind = function (params, callback) {
         var self = this;
         self.bindings.push({
             'key': self.pack(params),
             'callback': callback
         });
     };
-    MaxMessaging.prototype.on_message = function(message, routing_key) {
+    MaxMessaging.prototype.on_message = function (message, routing_key) {
         var self = this;
-        var matched_bindings = _.filter(self.bindings, function(binding) {
+        var matched_bindings = _.filter(self.bindings, function (binding) {
             // compare the stored binding key with a normalized key from message
             var bind_key = _.pick(message, _.keys(binding.key));
             if (_.isEqual(binding.key, bind_key)) {
@@ -6485,7 +6482,7 @@ var max = max || {};
         if (_.isEmpty(matched_bindings)) {
             self.maxui.logger.warning('Ignoring received message\n{0}\n No binding found for this message'.format(message), self.logtag);
         } else {
-            _.each(matched_bindings, function(binding, index, list) {
+            _.each(matched_bindings, function (binding, index, list) {
                 self.maxui.logger.debug('Matched binding "{1}"'.format(message, binding.key), self.logtag);
                 var unpacked = self.unpack(message);
                 // format routing key to extract first part before dot (.)
@@ -6495,19 +6492,19 @@ var max = max || {};
             });
         }
     };
-    MaxMessaging.prototype.disconnect = function() {
+    MaxMessaging.prototype.disconnect = function () {
         var self = this;
         self.stomp.disconnect();
         return;
     };
-    MaxMessaging.prototype.connect = function() {
+    MaxMessaging.prototype.connect = function () {
         var self = this;
         self.stomp = Stomp.over(self.ws);
         self.stomp.heartbeat.outgoing = 60000;
         self.stomp.heartbeat.incoming = 60000;
         self.stomp.reconnect_delay = 100;
         var heartbeat = [self.stomp.heartbeat.outgoing, self.stomp.heartbeat.incoming].join(',');
-        self.stomp.debug = function(message) {
+        self.stomp.debug = function (message) {
             self.maxui.logger.debug(message, self.logtag);
         };
         var product = 'maxui';
@@ -6523,8 +6520,8 @@ var max = max || {};
             "product-version": self.maxui.version,
             platform: '{0} {1} / {2} {3}'.format(jq.ua.browser.name, jq.ua.browser.version, jq.ua.os.name, jq.ua.os.version)
         };
-        var connectCallback = function(x) {
-            self.stomp.subscribe('/exchange/{0}.subscribe'.format(self.maxui.settings.username), function(stomp_message) {
+        var connectCallback = function (x) {
+            self.stomp.subscribe('/exchange/{0}.subscribe'.format(self.maxui.settings.username), function (stomp_message) {
                 var data = JSON.parse(stomp_message.body);
                 var routing_key = /([^/])+$/.exec(stomp_message.headers.destination)[0];
                 self.on_message(data, routing_key);
@@ -6532,16 +6529,16 @@ var max = max || {};
             self.active = true;
             self.maxui.logger.info('Succesfully connected to {0}'.format(self.stompServer), self.logtag);
         };
-        var errorCallback = function(error) {
+        var errorCallback = function (error) {
             self.maxui.logger.error(error);
         };
         self.stomp.connect(headers, connectCallback, errorCallback);
     };
-    MaxMessaging.prototype.pack = function(message) {
+    MaxMessaging.prototype.pack = function (message) {
         var self = this;
         var packed = {};
         var packed_key;
-        _.each(message, function(value, key, list) {
+        _.each(message, function (value, key, list) {
             var spec = self.specification[key];
             if (_.isUndefined(spec)) {
                 // Raise ??
@@ -6555,7 +6552,7 @@ var max = max || {};
                     packed_value = value;
                     if (_.has(spec, 'fields') && spec.type === 'object' && _.isObject(packed_value)) {
                         var packed_inner = {};
-                        _.each(message[key], function(inner_value, inner_key, inner_list) {
+                        _.each(message[key], function (inner_value, inner_key, inner_list) {
                             if (_.has(spec.fields, inner_key)) {
                                 packed_key = spec.fields[inner_key].id;
                             } else {
@@ -6573,11 +6570,11 @@ var max = max || {};
         });
         return packed;
     };
-    MaxMessaging.prototype.unpack = function(message) {
+    MaxMessaging.prototype.unpack = function (message) {
         var self = this;
         var unpacked = {};
         var unpacked_key;
-        _.each(message, function(value, key, list) {
+        _.each(message, function (value, key, list) {
             var spec = self._specification[key];
             if (_.isUndefined(spec)) {
                 // Raise ??
@@ -6594,7 +6591,7 @@ var max = max || {};
                     //change inner object keys if the field has a field keys mapping
                     if (_.has(spec, 'fields') && spec.type === 'object' && _.isObject(unpacked_value)) {
                         var unpacked_inner = {};
-                        _.each(message[key], function(inner_value, inner_key, inner_list) {
+                        _.each(message[key], function (inner_value, inner_key, inner_list) {
                             if (_.has(spec.fields, inner_key)) {
                                 unpacked_key = spec.fields[inner_key].name;
                             } else {
@@ -6613,7 +6610,7 @@ var max = max || {};
         });
         return unpacked;
     };
-    MaxMessaging.prototype.prepare = function(params) {
+    MaxMessaging.prototype.prepare = function (params) {
         var self = this;
         var base = {
             'source': 'widget',
@@ -6632,7 +6629,7 @@ var max = max || {};
         // Trim any key from params not in specification
         return _.extend(_.pick(params, _.keys(self.specification)), base);
     };
-    MaxMessaging.prototype.send = function(message, routing_key) {
+    MaxMessaging.prototype.send = function (message, routing_key) {
         var self = this;
         var message_unpacked = self.prepare(message);
         self.stomp.send('/exchange/{0}.publish/{1}'.format(self.maxui.settings.username, routing_key), {}, JSON.stringify(self.pack(message_unpacked)));
@@ -6646,7 +6643,7 @@ var max = max || {};
 
 'use strict';
 var max = max || {};
-(function(jq) {
+(function (jq) {
     /** MaxLogging
      *
      *
@@ -6662,16 +6659,16 @@ var max = max || {};
         var self = this;
         self.level = 0;
     }
-    MaxLogging.prototype.setLevel = function(level) {
+    MaxLogging.prototype.setLevel = function (level) {
         var self = this;
         self.level = levels[level];
     };
-    MaxLogging.prototype.log = function(message, tag) {
+    MaxLogging.prototype.log = function (message, tag) {
         try {
             window.console.log('{0}: {1}'.format(tag, message));
-        } catch (err) {}
+        } catch (err) { }
     };
-    MaxLogging.prototype.debug = function(message) {
+    MaxLogging.prototype.debug = function (message) {
         var tag = 'MAXUI';
         if (arguments.length > 1) {
             tag = arguments[1];
@@ -6681,7 +6678,7 @@ var max = max || {};
             self.log(message, tag);
         }
     };
-    MaxLogging.prototype.info = function(message) {
+    MaxLogging.prototype.info = function (message) {
         var tag = 'MAXUI';
         if (arguments.length > 1) {
             tag = arguments[1];
@@ -6691,7 +6688,7 @@ var max = max || {};
             self.log(message, tag);
         }
     };
-    MaxLogging.prototype.warn = function(message) {
+    MaxLogging.prototype.warn = function (message) {
         var tag = 'MAXUI';
         if (arguments.length > 1) {
             tag = arguments[1];
@@ -6701,7 +6698,7 @@ var max = max || {};
             self.log(message, tag);
         }
     };
-    MaxLogging.prototype.error = function(message) {
+    MaxLogging.prototype.error = function (message) {
         var tag = 'MAXUI';
         if (arguments.length > 1) {
             tag = arguments[1];
@@ -6719,7 +6716,7 @@ var max = max || {};
 
 'use strict';
 var max = max || {};
-max.literals = function(language) {
+max.literals = function (language) {
     var maxui = {};
     maxui.en = {
         'cancel': 'Cancel',
@@ -6912,10 +6909,10 @@ max.literals = function(language) {
 
 'use strict';
 var max = max || {};
-max.utils = function() {
+max.utils = function () {
     var settings = {};
     return {
-        setSettings: function(maxui_settings) {
+        setSettings: function (maxui_settings) {
             settings = maxui_settings;
         },
         /**
@@ -6924,7 +6921,7 @@ max.utils = function() {
          *
          *    @param {Event} e       The DOM event we want to freeze
          **/
-        freezeEvent: function(e) {
+        freezeEvent: function (e) {
             if (e.preventDefault) {
                 e.preventDefault();
             }
@@ -6940,7 +6937,7 @@ max.utils = function() {
          *    @param {String} s       A text that may contain whitespaces
          *    @param {Boolean} multi  If true, reduces multiple consecutive whitespaces to one
          **/
-        normalizeWhiteSpace: function(s, multi) {
+        normalizeWhiteSpace: function (s, multi) {
             s = s.replace(/(^\s*)|(\s*$)/gi, "");
             s = s.replace(/\n /, "\n");
             var trimMulti = true;
@@ -6955,10 +6952,10 @@ max.utils = function() {
         /**  Searches for urls and hashtags in text and transforms to hyperlinks
          *    @param {String} text     String containing 0 or more valid links embedded with any other text
          **/
-        formatText: function(text) {
+        formatText: function (text) {
             if (text) {
                 // Format hyperlinks
-                text = text.replace(/((https?\:\/\/)|(www\.))(\S+)(\w{2,4})(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/gi, function(url) {
+                text = text.replace(/((https?\:\/\/)|(www\.))(\S+)(\w{2,4})(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/gi, function (url) {
                     var full_url = url;
                     if (!full_url.match('^https?:\/\/')) {
                         full_url = 'http://' + full_url;
@@ -6966,7 +6963,7 @@ max.utils = function() {
                     return '<a href="' + full_url + '">' + url + '</a>';
                 });
                 // Format hashtags links
-                text = text.replace(/(\s|^)#{1}(\w+)/gi, function() {
+                text = text.replace(/(\s|^)#{1}(\w+)/gi, function () {
                     var pre = arguments[1];
                     var tag = arguments[2];
                     return '<a class="maxui-hashtag" href="#" value="' + tag + '">' + pre + '#' + tag + '</a>';
@@ -6979,7 +6976,7 @@ max.utils = function() {
         /**  Identifies cors funcionalities and returns a boolean
          indicating wheter the browser is or isn't CORS capable
     **/
-        isCORSCapable: function() {
+        isCORSCapable: function () {
             var xhrObject = new XMLHttpRequest();
             //check if the XHR tobject has CORS functionalities
             if (xhrObject.withCredentials !== undefined) {
@@ -6990,7 +6987,7 @@ max.utils = function() {
         },
         /**  Removes elements from array by value
          **/
-        removeValueFrom: function(arr) {
+        removeValueFrom: function (arr) {
             var what, a = arguments,
                 L = a.length,
                 ax;
@@ -7004,19 +7001,19 @@ max.utils = function() {
         },
         /**  Returns the numner of milliseconds since epoch
          **/
-        timestamp: function() {
+        timestamp: function () {
             var date = new Date();
             return date / 1;
         },
         /**  Returns current Date & Time in rfc339 format
          **/
-        now: function() {
+        now: function () {
             var now = new Date();
             return now;
         },
         /**  Formats a date in rfc3339 format
          **/
-        rfc3339: function(date) {
+        rfc3339: function (date) {
             function pad(n) {
                 return n < 10 ? '0' + n : n;
             }
@@ -7025,7 +7022,7 @@ max.utils = function() {
         /**  Returns an human readable date from a timestamp in rfc3339 format (cross-browser)
          *    @param {String} timestamp    A date represented as a string in rfc3339 format '2012-02-09T13:06:43Z'
          **/
-        formatDate: function(timestamp, lang) {
+        formatDate: function (timestamp, lang) {
             var today = new Date();
             var formatted = '';
             var prefix = '';
@@ -7086,7 +7083,7 @@ max.utils = function() {
         /**  Returns an utf8 decoded string
          *    @param {String} str_data    an utf-8 String
          **/
-        utf8_decode: function(str_data) {
+        utf8_decode: function (str_data) {
             // Converts a UTF-8 encoded string to ISO-8859-1
             //
             // version: 1109.2015
@@ -7126,7 +7123,7 @@ max.utils = function() {
             }
             return tmp_arr.join('');
         },
-        sha1: function(msg) {
+        sha1: function (msg) {
             function rotate_left(n, s) {
                 var t4 = (n << s) | (n >>> (32 - s));
                 return t4;
@@ -7259,7 +7256,7 @@ max.utils = function() {
 
 'use strict';
 if (!Object.keys) {
-    Object.keys = function(obj) {
+    Object.keys = function (obj) {
         var keys = [],
             k;
         for (k in obj) {
@@ -7270,10 +7267,10 @@ if (!Object.keys) {
         return keys;
     };
 }
-String.prototype.format = function() {
+String.prototype.format = function () {
     var pattern = /\{\d+\}/g;
     var args = arguments;
-    return this.replace(pattern, function(capture) {
+    return this.replace(pattern, function (capture) {
         return args[capture.match(/\d+/)];
     });
 };
@@ -7310,7 +7307,7 @@ function MaxClient() {
         context: '/contexts/{0}'
     };
 }
-MaxClient.prototype.configure = function(settings) {
+MaxClient.prototype.configure = function (settings) {
     this.url = settings.server;
     this.mode = settings.mode;
     this.token = settings.token;
@@ -7319,7 +7316,7 @@ MaxClient.prototype.configure = function(settings) {
         "username": settings.username
     };
 };
-MaxClient.prototype.POST = function(route, query, callback) {
+MaxClient.prototype.POST = function (route, query, callback) {
     var self = this;
     var resource_uri = '{0}{1}'.format(this.url, route);
     // Get method-defined triggers
@@ -7329,7 +7326,7 @@ MaxClient.prototype.POST = function(route, query, callback) {
     }
     jQuery.ajax({
         url: resource_uri,
-        beforeSend: function(xhr) {
+        beforeSend: function (xhr) {
             xhr.setRequestHeader("X-Oauth-Token", self.token);
             xhr.setRequestHeader("X-Oauth-Username", self.actor.username);
             xhr.setRequestHeader("X-Oauth-Scope", 'widgetcli');
@@ -7339,12 +7336,12 @@ MaxClient.prototype.POST = function(route, query, callback) {
         data: JSON.stringify(query),
         async: true,
         dataType: 'json'
-    }).done(function(result) {
+    }).done(function (result) {
         callback.call(result);
         if (triggers.done) {
             jQuery(window).trigger(triggers.done, result);
         }
-    }).fail(function(xhr) {
+    }).fail(function (xhr) {
         jQuery(window).trigger('maxclienterror', xhr);
         if (triggers.fail) {
             jQuery(window).trigger(triggers.fail, xhr);
@@ -7360,7 +7357,7 @@ MaxClient.prototype.POSTFILE = function (route, query, callback) {
     if (arguments.length > 3) {
         triggers = arguments[3];
     }
-    
+
     jQuery.ajax({
         url: resource_uri,
         beforeSend: function (xhr) {
@@ -7379,7 +7376,7 @@ MaxClient.prototype.POSTFILE = function (route, query, callback) {
         if (triggers.done) {
             jQuery(window).trigger(triggers.done, result);
         }
-        
+
     }).fail(function (xhr) {
         jQuery(window).trigger('maxclienterror', xhr);
         if (triggers.fail) {
@@ -7388,7 +7385,7 @@ MaxClient.prototype.POSTFILE = function (route, query, callback) {
     });
     return true;
 };
-MaxClient.prototype.PUT = function(route, query, callback) {
+MaxClient.prototype.PUT = function (route, query, callback) {
     var self = this;
     var resource_uri = '{0}{1}'.format(this.url, route);
     // Get method-defined triggers
@@ -7398,7 +7395,7 @@ MaxClient.prototype.PUT = function(route, query, callback) {
     }
     jQuery.ajax({
         url: resource_uri,
-        beforeSend: function(xhr) {
+        beforeSend: function (xhr) {
             xhr.setRequestHeader("X-Oauth-Token", self.token);
             xhr.setRequestHeader("X-Oauth-Username", self.actor.username);
             xhr.setRequestHeader("X-Oauth-Scope", 'widgetcli');
@@ -7409,12 +7406,12 @@ MaxClient.prototype.PUT = function(route, query, callback) {
         data: JSON.stringify(query),
         async: true,
         dataType: 'json'
-    }).done(function(result) {
+    }).done(function (result) {
         callback.call(result);
         if (triggers.done) {
             jQuery(window).trigger(triggers.done, result);
         }
-    }).fail(function(xhr) {
+    }).fail(function (xhr) {
         jQuery(window).trigger('maxclienterror', xhr);
         if (triggers.fail) {
             jQuery(window).trigger(triggers.fail, xhr);
@@ -7422,7 +7419,7 @@ MaxClient.prototype.PUT = function(route, query, callback) {
     });
     return true;
 };
-MaxClient.prototype.DELETE = function(route, query, callback) {
+MaxClient.prototype.DELETE = function (route, query, callback) {
     var self = this;
     var resource_uri = '{0}{1}'.format(this.url, route);
     // Get method-defined triggers
@@ -7432,7 +7429,7 @@ MaxClient.prototype.DELETE = function(route, query, callback) {
     }
     jQuery.ajax({
         url: resource_uri,
-        beforeSend: function(xhr) {
+        beforeSend: function (xhr) {
             xhr.setRequestHeader("X-Oauth-Token", self.token);
             xhr.setRequestHeader("X-Oauth-Username", self.actor.username);
             xhr.setRequestHeader("X-Oauth-Scope", 'widgetcli');
@@ -7442,12 +7439,12 @@ MaxClient.prototype.DELETE = function(route, query, callback) {
         data: JSON.stringify(query),
         async: true,
         dataType: 'json'
-    }).done(function(result) {
+    }).done(function (result) {
         callback.call(result);
         if (triggers.done) {
             jQuery(window).trigger(triggers.done, result);
         }
-    }).fail(function(xhr) {
+    }).fail(function (xhr) {
         jQuery(window).trigger('maxclienterror', xhr);
         if (triggers.fail) {
             jQuery(window).trigger(triggers.fail, xhr);
@@ -7455,7 +7452,7 @@ MaxClient.prototype.DELETE = function(route, query, callback) {
     });
     return true;
 };
-MaxClient.prototype.GET = function(route, query, callback) {
+MaxClient.prototype.GET = function (route, query, callback) {
     var self = this;
     var resource_uri = '{0}{1}'.format(this.url, route);
     // Get method-defined triggers
@@ -7468,7 +7465,7 @@ MaxClient.prototype.GET = function(route, query, callback) {
     }
     var ajax_options = {
         url: resource_uri,
-        beforeSend: function(xhr) {
+        beforeSend: function (xhr) {
             xhr.setRequestHeader("X-Oauth-Token", self.token);
             xhr.setRequestHeader("X-Oauth-Username", self.actor.username);
             xhr.setRequestHeader("X-Oauth-Scope", 'widgetcli');
@@ -7481,12 +7478,12 @@ MaxClient.prototype.GET = function(route, query, callback) {
     if (arguments.length > 3) {
         _.extend(ajax_options, arguments[3]);
     }
-    jQuery.ajax(ajax_options).done(function(result, status, xhr) {
+    jQuery.ajax(ajax_options).done(function (result, status, xhr) {
         if (triggers.done) {
             jQuery(window).trigger(triggers.done);
         }
         callback.apply(xhr, [result]);
-    }).fail(function(xhr) {
+    }).fail(function (xhr) {
         jQuery(window).trigger('maxclienterror', xhr);
         if (triggers.fail) {
             jQuery(window).trigger(triggers.fail);
@@ -7497,12 +7494,12 @@ MaxClient.prototype.GET = function(route, query, callback) {
 /*
  * People related endpoints
  */
-MaxClient.prototype.getUserData = function(username, callback) {
+MaxClient.prototype.getUserData = function (username, callback) {
     var route = this.ROUTES.user.format(username);
     var query = {};
     this.GET(route, query, callback);
 };
-MaxClient.prototype.getUsersList = function(userquery, callback) {
+MaxClient.prototype.getUsersList = function (userquery, callback) {
     var route = this.ROUTES.users;
     var query = {
         username: userquery
@@ -7512,7 +7509,7 @@ MaxClient.prototype.getUsersList = function(userquery, callback) {
 /*
  * Context related endpoints
  */
-MaxClient.prototype.getContext = function(chash, callback) {
+MaxClient.prototype.getContext = function (chash, callback) {
     var route = this.ROUTES.context.format(chash);
     var query = {};
     this.GET(route, query, callback);
@@ -7520,7 +7517,7 @@ MaxClient.prototype.getContext = function(chash, callback) {
 /*
  * Activity related endpoints
  */
-MaxClient.prototype.getUserTimeline = function(username, callback) {
+MaxClient.prototype.getUserTimeline = function (username, callback) {
     var route = this.ROUTES.timeline.format(username);
     var query = {};
     if (arguments.length > 2) {
@@ -7528,7 +7525,7 @@ MaxClient.prototype.getUserTimeline = function(username, callback) {
     }
     this.GET(route, query, callback);
 };
-MaxClient.prototype.getActivities = function(options, callback) {
+MaxClient.prototype.getActivities = function (options, callback) {
     var route = this.ROUTES.activities.format(options.context);
     var query = {};
     if (arguments.length > 2) {
@@ -7541,12 +7538,12 @@ MaxClient.prototype.getActivities = function(options, callback) {
     }
     this.GET(route, query, callback);
 };
-MaxClient.prototype.getCommentsForActivity = function(activityid, callback) {
+MaxClient.prototype.getCommentsForActivity = function (activityid, callback) {
     var route = this.ROUTES.comments.format(activityid);
     var query = {};
     this.GET(route, query, callback);
 };
-MaxClient.prototype.addComment = function(comment, activity, callback) {
+MaxClient.prototype.addComment = function (comment, activity, callback) {
     var query = {
         "actor": {},
         "object": {
@@ -7559,30 +7556,32 @@ MaxClient.prototype.addComment = function(comment, activity, callback) {
     var route = this.ROUTES.comments.format(activity);
     this.POST(route, query, callback);
 };
-MaxClient.prototype.addActivity = function(text, contexts, callback, img, file) {
-    if (img == undefined && file == undefined) {
+MaxClient.prototype.addActivity = function (text, contexts, callback, media) {
+    if (media == undefined) {
         var query = {
             "object": {
                 "objectType": "note",
                 "content": ""
             }
         };
-    } else if (img) {
-        var query = {
-            "object": {
-                "objectType": "image",
-                "content": "",
-                "mimetype": img.type
-            },
-        };
     } else {
-        var query = {
-            "object": {
-                "objectType": "file",
-                "content": "",
-                "mimetype": file.type
-            },
-        };
+        if (media.type.split('/')[0] === 'image') {
+            var query = {
+                "object": {
+                    "objectType": "image",
+                    "content": "",
+                    "mimetype": media.type
+                },
+            };
+        } else {
+            var query = {
+                "object": {
+                    "objectType": "file",
+                    "content": "",
+                    "mimetype": media.type
+                },
+            };
+        }
     }
     if (contexts.length > 0) {
         query.contexts = [];
@@ -7603,69 +7602,65 @@ MaxClient.prototype.addActivity = function(text, contexts, callback, img, file) 
         'done': 'maxui-posted-activity',
         'fail': 'maxui-failed-activity'
     };
-    if (img == undefined && file == undefined) {
+    if (media == undefined) {
         this.POST(route, query, callback, trigger);
     }
     else {
         let formData = new FormData();
         formData.append("json_data", JSON.stringify(query));
-        if (img) {
-            formData.append("file", new Blob([img], { type: img.type }));
-        } else {
-            formData.append("file", new Blob([file], { type: file.type }));
-        }
+        formData.append("file", new Blob([media], { type: media.type }), media.name);
         this.POSTFILE(route, formData, callback, trigger);
     }
 };
-MaxClient.prototype.removeActivity = function(activity_id, callback) {
+MaxClient.prototype.removeActivity = function (activity_id, callback) {
     var route = this.ROUTES.activity.format(activity_id);
     this.DELETE(route, {}, callback);
 };
-MaxClient.prototype.removeActivityComment = function(activity_id, comment_id, callback) {
+MaxClient.prototype.removeActivityComment = function (activity_id, comment_id, callback) {
     var route = this.ROUTES.comment.format(activity_id, comment_id);
     this.DELETE(route, {}, callback);
 };
 /*
  * Conversation related endpoints
  */
-MaxClient.prototype.getConversationSubscription = function(chash, username, callback) {
+MaxClient.prototype.getConversationSubscription = function (chash, username, callback) {
     var route = this.ROUTES.user_conversation.format(username, chash);
     var query = {};
     this.GET(route, query, callback);
 };
-MaxClient.prototype.getConversation = function(chash, callback) {
+MaxClient.prototype.getConversation = function (chash, callback) {
     var route = this.ROUTES.conversation.format(chash);
     var query = {};
     this.GET(route, query, callback);
 };
-MaxClient.prototype.modifyConversation = function(chash, displayName, callback) {
+MaxClient.prototype.modifyConversation = function (chash, displayName, callback) {
     var query = {
         "displayName": displayName
     };
     var route = this.ROUTES.conversation.format(chash);
     this.PUT(route, query, callback);
 };
-MaxClient.prototype.addUserToConversation = function(chash, username, callback) {
+MaxClient.prototype.addUserToConversation = function (chash, username, callback) {
     var query = {};
     var route = this.ROUTES.user_conversation.format(username, chash);
     this.POST(route, query, callback);
 };
-MaxClient.prototype.kickUserFromConversation = function(chash, username, callback) {
+MaxClient.prototype.kickUserFromConversation = function (chash, username, callback) {
     var query = {};
     var route = this.ROUTES.user_conversation.format(username, chash);
     this.DELETE(route, query, callback);
 };
-MaxClient.prototype.deleteConversation = function(chash, callback) {
+MaxClient.prototype.deleteConversation = function (chash, callback) {
     var query = {};
     var route = this.ROUTES.conversation.format(chash);
     this.DELETE(route, query, callback);
 };
-MaxClient.prototype.leaveConversation = function(chash, username, callback) {
+MaxClient.prototype.leaveConversation = function (chash, username, callback) {
     var query = {};
     var route = this.ROUTES.user_conversation.format(username, chash);
     this.DELETE(route, query, callback);
 };
-MaxClient.prototype.transferConversationOwnership = function(chash, username, callback) {
+MaxClient.prototype.transferConversationOwnership = function (chash, username, callback) {
     var query = {
         "actor": {
             "username": username
@@ -7674,12 +7669,12 @@ MaxClient.prototype.transferConversationOwnership = function(chash, username, ca
     var route = this.ROUTES.conversation_owner.format(chash);
     this.PUT(route, query, callback);
 };
-MaxClient.prototype.getConversationsForUser = function(username, callback) {
+MaxClient.prototype.getConversationsForUser = function (username, callback) {
     var route = this.ROUTES.conversations;
     var query = {};
     this.GET(route, query, callback);
 };
-MaxClient.prototype.getMessageImage = function(route, callback) {
+MaxClient.prototype.getMessageImage = function (route, callback) {
     var query = {};
     var ajax_options = {
         processData: false,
@@ -7688,12 +7683,12 @@ MaxClient.prototype.getMessageImage = function(route, callback) {
     };
     this.GET(route, query, callback, ajax_options);
 };
-MaxClient.prototype.getMessagesForConversation = function(hash, params, callback) {
+MaxClient.prototype.getMessagesForConversation = function (hash, params, callback) {
     var route = this.ROUTES.messages.format(hash);
     var query = params;
     this.GET(route, query, callback);
 };
-MaxClient.prototype.addMessageAndConversation = function(params, callback) {
+MaxClient.prototype.addMessageAndConversation = function (params, callback) {
     var query = {
         "object": {
             "objectType": "note",
@@ -7710,7 +7705,7 @@ MaxClient.prototype.addMessageAndConversation = function(params, callback) {
     var route = this.ROUTES.conversations;
     this.POST(route, query, callback);
 };
-MaxClient.prototype.addMessage = function(text, chash, callback) {
+MaxClient.prototype.addMessage = function (text, chash, callback) {
     var query = {
         "object": {
             "objectType": "note",
@@ -7724,7 +7719,7 @@ MaxClient.prototype.addMessage = function(text, chash, callback) {
 /*
  * Social-interactions related endpoints
  */
-MaxClient.prototype.follow = function(username, callback) {
+MaxClient.prototype.follow = function (username, callback) {
     var query = {
         "object": {
             "objectType": "person",
@@ -7735,32 +7730,32 @@ MaxClient.prototype.follow = function(username, callback) {
     var route = this.ROUTES.follow.format(this.actor.username, username);
     this.POST(route, query, callback);
 };
-MaxClient.prototype.favoriteActivity = function(activityid, callback) {
+MaxClient.prototype.favoriteActivity = function (activityid, callback) {
     var query = {};
     var route = this.ROUTES.favorites.format(activityid);
     this.POST(route, query, callback);
 };
-MaxClient.prototype.unfavoriteActivity = function(activityid, callback) {
+MaxClient.prototype.unfavoriteActivity = function (activityid, callback) {
     var query = {};
     var route = this.ROUTES.favorite.format(activityid, this.actor.username);
     this.DELETE(route, query, callback);
 };
-MaxClient.prototype.likeActivity = function(activityid, callback) {
+MaxClient.prototype.likeActivity = function (activityid, callback) {
     var query = {};
     var route = this.ROUTES.likes.format(activityid);
     this.POST(route, query, callback);
 };
-MaxClient.prototype.unlikeActivity = function(activityid, callback) {
+MaxClient.prototype.unlikeActivity = function (activityid, callback) {
     var query = {};
     var route = this.ROUTES.like.format(activityid, this.actor.username);
     this.DELETE(route, query, callback);
 };
-MaxClient.prototype.flagActivity = function(activityid, callback) {
+MaxClient.prototype.flagActivity = function (activityid, callback) {
     var query = {};
     var route = this.ROUTES.flag.format(activityid);
     this.POST(route, query, callback);
 };
-MaxClient.prototype.unflagActivity = function(activityid, callback) {
+MaxClient.prototype.unflagActivity = function (activityid, callback) {
     var query = {};
     var route = this.ROUTES.flag.format(activityid);
     this.DELETE(route, query, callback);
@@ -7773,12 +7768,12 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
 /* @fileoverview Main Activity Stream widget module
  */
 'use strict';
-(function(jq) {
+(function (jq) {
     /**
      *    MaxUI plugin definition
      *    @param {Object} options    Object containing overrides for default values
      **/
-    jq.fn.maxUI = function(options) {
+    jq.fn.maxUI = function (options) {
         // Keep a reference of the context object
         var maxui = this;
         maxui.version = '5.0.29.7';
@@ -7876,7 +7871,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         //        maxui.settings['profileURLpattern'] = maxui.settings.maxServerURL+'/profiles/{0}'
         // Catch errors triggered by failed max api calls
         if (maxui.settings.enableAlerts) {
-            jq(window).bind('maxclienterror', function(event, xhr) {
+            jq(window).bind('maxclienterror', function (event, xhr) {
                 var error = JSON.parse(xhr.responseText);
                 alert('The server responded with a "{0}" error, with the following message: "{1}". \n\nPlease try again later or contact administrator at admin@max.upc.edu.'.format(error.error, error.error_description));
             });
@@ -7900,25 +7895,25 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             maxui.messaging.bind({
                 action: 'add',
                 object: 'message'
-            }, function(message) {
+            }, function (message) {
                 maxui.conversations.ReceiveMessage(message);
             });
             maxui.messaging.bind({
                 action: 'add',
                 object: 'conversation'
-            }, function(message) {
+            }, function (message) {
                 maxui.conversations.ReceiveConversation(message);
             });
             maxui.messaging.bind({
                 action: 'refresh',
                 object: 'conversation'
-            }, function(message) {
+            }, function (message) {
                 maxui.conversations.messagesview.load(message.destination);
             });
             maxui.messaging.bind({
                 action: 'ack',
                 object: 'message'
-            }, function(message) {
+            }, function (message) {
                 maxui.conversations.messagesview.ack(message);
             });
         }
@@ -7928,7 +7923,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
          *
          *
          **/
-        jq.fn.hidePostbox = function() {
+        jq.fn.hidePostbox = function () {
             var maxui = this;
             if (maxui.settings.activitySource === 'timeline') {
                 if (maxui.settings.subscriptionsWrite.length > 0) {
@@ -7944,7 +7939,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             return true;
         };
         // Get user data and start ui rendering when completed
-        this.maxClient.getUserData(maxui.settings.username, function(data) {
+        this.maxClient.getUserData(maxui.settings.username, function (data) {
             //Determine if user can write in writeContexts
             maxui.settings.displayName = data.displayName || maxui.settings.username;
             var userSubscriptions = {};
@@ -7978,7 +7973,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             // Start messaging only if conversations enabled
             if (!maxui.settings.disableConversations) {
                 maxui.messaging.start();
-                jq(window).on('beforeunload', function(event) {
+                jq(window).on('beforeunload', function (event) {
                     var x = maxui.messaging.disconnect();
                     return x;
                 });
@@ -8032,7 +8027,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 };
                 maxui.printActivities({
                     sortBy: sort_orders_by_view[maxui.settings.activitySortView]
-                }, function(event) {
+                }, function (event) {
                     maxui.bindEvents();
                 });
             }
@@ -8040,10 +8035,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         // allow jq chaining
         return maxui;
     };
-    jq.fn.bindEvents = function() {
+    jq.fn.bindEvents = function () {
         var maxui = this;
         //Assign click to loadmore
-        jq('#maxui-more-activities .maxui-button').click(function(event) {
+        jq('#maxui-more-activities .maxui-button').click(function (event) {
             event.preventDefault();
             maxui.loadMoreActivities();
             /*if (jq('#maxui-search').hasClass('folded')) {
@@ -8054,11 +8049,11 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }*/
         });
         //PG Assign click to load news activities
-        jq('#maxui-news-activities .maxui-button').click(function(event) {
+        jq('#maxui-news-activities .maxui-button').click(function (event) {
             maxui.loadNewsActivities();
         });
         //Assign click to toggle search filters if any search filter defined
-        jq('#maxui-search-toggle').click(function(event) {
+        jq('#maxui-search-toggle').click(function (event) {
             event.preventDefault();
             if (!jq(this).hasClass('maxui-disabled')) {
                 jq('#maxui-search').toggleClass('folded');
@@ -8070,13 +8065,13 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Assign Commentbox toggling via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-commentaction', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-commentaction', function (event) {
             event.preventDefault();
             window.status = '';
             jq(this).closest('.maxui-activity').find('.maxui-comments').toggle(200);
         });
         //Assign Username and avatar clicking via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-filter-actor', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-filter-actor', function (event) {
             event.preventDefault();
             var actor = jq(this).parent().find('.maxui-username').text();
             maxui.addFilter({
@@ -8086,7 +8081,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             jq('#maxui-search').toggleClass('folded', false);
         });
         //Assign Username and avatar clicking via delegating the click to the activities container
-        jq('#maxui-search').on('click', '#maxui-favorites-filter', function(event) {
+        jq('#maxui-search').on('click', '#maxui-favorites-filter', function (event) {
             event.preventDefault();
             var favoritesButton = jq(event.currentTarget);
             var filterFavorites = !favoritesButton.hasClass('active');
@@ -8113,7 +8108,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             jq('#maxui-activity-sort .maxui-most-valued').text(valued_literal);
         });
         //Assign hashtag filtering via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-hashtag', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-hashtag', function (event) {
             event.preventDefault();
             maxui.addFilter({
                 type: 'hashtag',
@@ -8122,7 +8117,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             jq('#maxui-search').toggleClass('folded', false);
         });
         //Add to writeContexts selected subscription to post in it.
-        jq('#maxui-subscriptions').on('change', function() {
+        jq('#maxui-subscriptions').on('change', function () {
             var $urlContext = jq('#maxui-subscriptions :selected').val();
             if ($urlContext !== 'timeline') {
                 maxui.settings.writeContexts = [];
@@ -8139,7 +8134,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Assign filter closing via delegating the click to the filters container
-        jq('#maxui-search-filters').on('click', '.maxui-close', function(event) {
+        jq('#maxui-search-filters').on('click', '.maxui-close', function (event) {
             event.preventDefault();
             var filter = jq(this.parentNode.parentNode);
             maxui.delFilter({
@@ -8148,7 +8143,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             });
         });
         //Assign filter closing via delegating the click to the filters container
-        jq('#maxui-new-participants').on('click', '.maxui-close', function(event) {
+        jq('#maxui-new-participants').on('click', '.maxui-close', function (event) {
             event.preventDefault();
             var filter = jq(this.parentNode.parentNode);
             maxui.delPerson({
@@ -8156,12 +8151,12 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             });
         });
         //Assign filter closing via delegating the click to the filters container
-        jq('#maxui-new-displayName').on('keyup', 'input', function(event) {
+        jq('#maxui-new-displayName').on('keyup', 'input', function (event) {
             event.preventDefault();
             maxui.reloadPersons();
         });
         //Assign user mention suggestion to textarea by click
-        jq('#maxui-newactivity').on('click', '.maxui-prediction', function(event) {
+        jq('#maxui-newactivity').on('click', '.maxui-prediction', function (event) {
             event.preventDefault();
             var $selected = jq(this);
             var $area = jq('#maxui-newactivity-box textarea');
@@ -8174,12 +8169,12 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             $area.focus();
         });
         // Close predictive window if clicked outside
-        jq(document).on('click', function(event) {
+        jq(document).on('click', function (event) {
             var $predictive = jq('.maxui-predictive');
             $predictive.hide();
         });
         //Assign user mention suggestion to input by click
-        jq('#maxui-conversation-predictive').on('click', '.maxui-prediction', function(event) {
+        jq('#maxui-conversation-predictive').on('click', '.maxui-prediction', function (event) {
             event.preventDefault();
             var $selected = jq(this);
             var $area = jq('#maxui-add-people-box .maxui-text-input');
@@ -8194,38 +8189,38 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             $area.val('').focus();
         });
         //Assign toggling conversations section
-        jq('#maxui-show-conversations').on('click', function(event) {
+        jq('#maxui-show-conversations').on('click', function (event) {
             event.preventDefault();
             window.status = '';
             maxui.toggleSection('conversations');
         });
         //Assign activation of timeline section by its button
-        jq('#maxui-show-timeline').on('click', function(event) {
+        jq('#maxui-show-timeline').on('click', function (event) {
             event.preventDefault();
             window.status = '';
-            maxui.printActivities({}, function(event) {
+            maxui.printActivities({}, function (event) {
                 maxui.toggleSection('timeline');
             });
         });
         //Toggle favorite status via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-action.maxui-favorites', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-action.maxui-favorites', function (event) {
             event.preventDefault();
             var $favorites = jq(this);
             var $activity = jq(this).closest('.maxui-activity');
             var activityid = $activity.attr('id');
             var favorited = $favorites.hasClass('maxui-favorited');
             if (favorited) {
-                maxui.maxClient.unfavoriteActivity(activityid, function(event) {
+                maxui.maxClient.unfavoriteActivity(activityid, function (event) {
                     $favorites.toggleClass('maxui-favorited', false);
                 });
             } else {
-                maxui.maxClient.favoriteActivity(activityid, function(event) {
+                maxui.maxClient.favoriteActivity(activityid, function (event) {
                     $favorites.toggleClass('maxui-favorited', true);
                 });
             }
         });
         //Toggle like status via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-action.maxui-likes', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-action.maxui-likes', function (event) {
             event.preventDefault();
             var $likes = jq(this);
             var $activity = jq(this).closest('.maxui-activity');
@@ -8237,18 +8232,18 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 likesUsernames = $likes.attr('title').split('\n');
             }
             if (liked) {
-                maxui.maxClient.unlikeActivity(activityid, function(event) {
+                maxui.maxClient.unlikeActivity(activityid, function (event) {
                     $likes.toggleClass('maxui-liked', false);
                 });
                 $likes_count.text(parseInt($likes_count.text(), 10) - 1);
-                likesUsernames = jq.grep(likesUsernames, function(value) {
+                likesUsernames = jq.grep(likesUsernames, function (value) {
                     return value !== maxui.settings.username;
                 });
                 if (maxui.settings.showLikes) {
                     $likes.attr('title', likesUsernames.join('\n'));
                 }
             } else {
-                maxui.maxClient.likeActivity(activityid, function(event) {
+                maxui.maxClient.likeActivity(activityid, function (event) {
                     $likes.toggleClass('maxui-liked', true);
                 });
                 $likes_count.text(parseInt($likes_count.text(), 10) + 1);
@@ -8259,20 +8254,20 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Toggle flagged status via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-action.maxui-flag', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-action.maxui-flag', function (event) {
             event.preventDefault();
             var $flag = jq(this);
             var $activity = jq(this).closest('.maxui-activity');
             var activityid = $activity.attr('id');
             var flagged = $flag.hasClass('maxui-flagged');
             if (flagged) {
-                maxui.maxClient.unflagActivity(activityid, function(event) {
+                maxui.maxClient.unflagActivity(activityid, function (event) {
                     $flag.toggleClass('maxui-flagged', false);
                     $activity.toggleClass('maxui-flagged', false);
                     maxui.printActivities({});
                 });
             } else {
-                maxui.maxClient.flagActivity(activityid, function(event) {
+                maxui.maxClient.flagActivity(activityid, function (event) {
                     $flag.toggleClass('maxui-flagged', true);
                     $activity.toggleClass('maxui-flagged', false);
                     maxui.printActivities({});
@@ -8280,7 +8275,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Assign activity removal confirmation dialog toggle via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-action.maxui-delete', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-action.maxui-delete', function (event) {
             event.preventDefault();
             var $activity = jq(this).closest('.maxui-activity');
             var $dialog = $activity.find('.maxui-actions > .maxui-popover');
@@ -8302,7 +8297,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Assign activity removal confirmation dialog via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-actions .maxui-button-cancel', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-actions .maxui-button-cancel', function (event) {
             event.preventDefault();
             // Hide all visible dialogs
             var $popover = jq('.maxui-popover:visible').css({
@@ -8311,11 +8306,11 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             $popover.hide();
         });
         //Assign activity removal via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-actions .maxui-button-delete', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-actions .maxui-button-delete', function (event) {
             event.preventDefault();
             var $activity = jq(this).closest('.maxui-activity');
             var activityid = $activity.attr('id');
-            maxui.maxClient.removeActivity(activityid, function(event) {
+            maxui.maxClient.removeActivity(activityid, function (event) {
                 var $popover = jq('.maxui-popover:visible').animate({
                     opacity: 0
                 }, 300);
@@ -8326,14 +8321,14 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 $activity.animate({
                     height: 0,
                     opacity: 0
-                }, 100, function(event) {
+                }, 100, function (event) {
                     $activity.remove();
                     $popover.hide();
                 });
             });
         });
         //Assign activity comment removal confirmation dialog toggle via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-delete-comment', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-delete-comment', function (event) {
             event.preventDefault();
             var $comment = jq(this).closest('.maxui-comment');
             var $dialog = $comment.find('.maxui-popover');
@@ -8355,7 +8350,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             }
         });
         //Assign activity comment removal confirmation dialog via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-comment .maxui-button-cancel', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-comment .maxui-button-cancel', function (event) {
             event.preventDefault();
             var $popover = jq('.maxui-popover').css({
                 opacity: 0
@@ -8363,13 +8358,13 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             $popover.hide();
         });
         //Assign activity comment removal via delegating the click to the activities container
-        jq('#maxui-activities').on('click', '.maxui-comment .maxui-button-delete', function(event) {
+        jq('#maxui-activities').on('click', '.maxui-comment .maxui-button-delete', function (event) {
             event.preventDefault();
             var $comment = jq(this).closest('.maxui-comment');
             var $activity = $comment.closest('.maxui-activity');
             var activityid = $activity.attr('id');
             var commentid = $comment.attr('id');
-            maxui.maxClient.removeActivityComment(activityid, commentid, function() {
+            maxui.maxClient.removeActivityComment(activityid, commentid, function () {
                 var $popover = jq('.maxui-popover').animate({
                     opacity: 0
                 }, 300);
@@ -8380,13 +8375,13 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 $comment.animate({
                     height: 0,
                     opacity: 0
-                }, 100, function(event) {
+                }, 100, function (event) {
                     $comment.remove();
                     $popover.hide();
                 });
             });
         });
-        jq('#maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-most-recent', function(event) {
+        jq('#maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-most-recent', function (event) {
             event.preventDefault();
             var $sortbutton = jq(this);
             if (!$sortbutton.hasClass('active')) {
@@ -8395,7 +8390,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 maxui.printActivities({});
             }
         });
-        jq('#maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-most-valued', function(event) {
+        jq('#maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-most-valued', function (event) {
             event.preventDefault();
             var $sortbutton = jq(this);
             if (!$sortbutton.hasClass('active')) {
@@ -8406,7 +8401,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 });
             }
         });
-        jq('#maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-flagged', function(event) {
+        jq('#maxui-activity-sort').on('click', 'a.maxui-sort-action.maxui-flagged', function (event) {
             event.preventDefault();
             var $sortbutton = jq(this);
             if (!$sortbutton.hasClass('active')) {
@@ -8421,7 +8416,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         //                    add people predicting
         // **************************************************************************************
         var selector = '.maxui-text-input';
-        jq('#maxui-add-people-box').on('focusin', selector, function(event) {
+        jq('#maxui-add-people-box').on('focusin', selector, function (event) {
             event.preventDefault();
             var text = jq(this).val();
             var literal = jq(this).attr('data-literal');
@@ -8429,11 +8424,11 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (normalized === literal) {
                 jq(this).val('');
             }
-        }).on('keydown', selector, function(event) {
+        }).on('keydown', selector, function (event) {
             if (jq('#maxui-conversation-predictive:visible').length > 0 && (event.which === 40 || event.which === 38 || event.which === 13 || event.which === 9)) {
                 maxui.utils.freezeEvent(event);
             }
-        }).on('keyup', selector, function(event) {
+        }).on('keyup', selector, function (event) {
             event.preventDefault();
             event.stopPropagation();
             var text = jq(this).val();
@@ -8504,7 +8499,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                     }
                 }
             } //1
-        }).on('focusout', selector, function(event) {
+        }).on('focusout', selector, function (event) {
             event.preventDefault();
             var text = jq(this).val();
             var literal = jq(this).attr('data-literal');
@@ -8515,10 +8510,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         });
         // **************************************************************************************
         //Assign Activity post action And textarea behaviour
-        maxui.bindActionBehaviour('#maxui-newactivity', '#maxui-newactivity-box', {}, function(text, img, file) {
+        maxui.bindActionBehaviour('#maxui-newactivity', '#maxui-newactivity-box', {}, function (text, media) {
             // console.log("bindActionBehaviour");
             if (maxui.settings.UISection === 'timeline') {
-                maxui.sendActivity(text, img, file);
+                maxui.sendActivity(text, media);
                 jq('#maxui-search').toggleClass('folded', true);
             } else if (maxui.settings.UISection === 'conversations') {
                 if (maxui.settings.conversationsSection === 'conversations') {
@@ -8541,7 +8536,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                     maxui.conversations.send(text);
                 }
             }
-        }, function(text, area, button, ev) {
+        }, function (text, area, button, ev) {
             var key = ev.which;
             var matchMention = new RegExp('^\\s*@([\\w\\.]+)\\s*');
             var match = text.match(matchMention);
@@ -8614,9 +8609,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             } //1
         }); //function;
         //Assign Commentbox send comment action And textarea behaviour
-        maxui.bindActionBehaviour('#maxui-activities', '.maxui-newcommentbox', {}, function(text) {
+        maxui.bindActionBehaviour('#maxui-activities', '.maxui-newcommentbox', {}, function (text) {
             var activityid = jq(this).closest('.maxui-activity').attr('id');
-            maxui.maxClient.addComment(text, activityid, function() {
+            maxui.maxClient.addComment(text, activityid, function () {
                 jq('#activityContainer textarea').val('');
                 var activity_id = this.object.inReplyTo[0].id;
                 maxui.printCommentsForActivity(activity_id);
@@ -8625,7 +8620,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             });
         });
         //Assign Search box search action And input behaviour
-        maxui.bindActionBehaviour('#maxui-search', '#maxui-search-box', {}, function(text) {
+        maxui.bindActionBehaviour('#maxui-search', '#maxui-search-box', {}, function (text) {
             maxui.textSearch(text);
             jq('#maxui-search').toggleClass('folded', false);
             jq('#maxui-search-text').val('');
@@ -8648,7 +8643,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    @param {object} options          Extra options, currently ignore-button, to avoid button updates
      *    @param {Function} clickFunction  Function to execute when click on the button
      **/
-    jq.fn.bindActionBehaviour = function(delegate, target, options, clickFunction) {
+    jq.fn.bindActionBehaviour = function (delegate, target, options, clickFunction) {
         // Clear input when focusing in only if user hasn't typed anything yet
         var maxui = this;
         var selector = target + ' .maxui-text-input';
@@ -8656,7 +8651,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         if (arguments.length > 4) {
             extra_bind = arguments[4];
         }
-        jq(delegate).on('focusin', selector, function(event) {
+        jq(delegate).on('focusin', selector, function (event) {
             event.preventDefault();
             var text = jq(this).val();
             var literal = jq(this).attr('data-literal');
@@ -8664,7 +8659,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (normalized === literal) {
                 jq(this).val('');
             }
-        }).on('keydown', selector, function(event) {
+        }).on('keydown', selector, function (event) {
             if (jq(delegate + ' #maxui-predictive:visible').length > 0 && (event.which === 40 || event.which === 38 || event.which === 13 || event.which === 9)) {
                 maxui.utils.freezeEvent(event);
             } else if (event.which === 13 && event.shiftKey === false && !options.ignore_button && !jq(this).is("textarea")) {
@@ -8677,7 +8672,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                     clickFunction.apply(this, [text]);
                 }
             }
-        }).on('keyup', selector, function(event) {
+        }).on('keyup', selector, function (event) {
             event.preventDefault();
             event.stopPropagation();
             var text = jq(this).val();
@@ -8698,7 +8693,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (extra_bind !== null) {
                 extra_bind(text, this, button, event);
             }
-        }).on('paste', selector, function(event) {
+        }).on('paste', selector, function (event) {
             var button = jq(this).parent().parent().find('.maxui-button');
             if (maxui.settings.canwrite && !options.ignore_button) {
                 jq(button).removeAttr('disabled');
@@ -8709,7 +8704,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             if (extra_bind !== null) {
                 extra_bind(text, this, button, event);
             }
-        }).on('focusout', selector, function(event) {
+        }).on('focusout', selector, function (event) {
             event.preventDefault();
             var text = jq(this).val();
             var literal = jq(this).attr('data-literal');
@@ -8722,18 +8717,22 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                         if (event.which == 3) {
                             debugger
                         }*/
-        }).on('click', target + ' .maxui-button', function(event) {
+        }).on('click', target + ' .maxui-button', function (event) {
             // console.log("click maxui-button");
             event.preventDefault();
-            // var file = document.getElementById('maxui-file').files[0];
-            var file = undefined;
-            var image = document.getElementById('maxui-img').files[0];
+            var media = undefined;
+            var file = document.getElementById('maxui-file').files[0];
+            if (file != undefined) media = file;
+            else {
+                var image = document.getElementById('maxui-img').files[0];
+                if (image != undefined) media = image;
+            }
             var $area = jq(this).parent().find('.maxui-text-input');
             var literal = $area.attr('data-literal');
             var text = $area.val();
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
             if ((normalized !== literal & normalized !== '') || options.empty_click) {
-                clickFunction.apply(this, [text, image, file]);
+                clickFunction.apply(this, [text, media]);
             }
         });
     };
@@ -8744,7 +8743,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *    @param {String} text    A string containing whitespace-separated keywords/#hashtags
      **/
-    jq.fn.textSearch = function(text) {
+    jq.fn.textSearch = function (text) {
         var maxui = this;
         //Normalize spaces
         var normalized = maxui.utils.normalizeWhiteSpace(text);
@@ -8779,7 +8778,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *    @param {String} (optional)    A string containing the id of the last activity loaded
      **/
-    jq.fn.getFilters = function() {
+    jq.fn.getFilters = function () {
         var maxui = this;
         var params = {
             filters: maxui.filters
@@ -8816,7 +8815,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *    @param {String} (optional)    A string containing the id of the last activity loaded
      **/
-    jq.fn.reloadFilters = function() {
+    jq.fn.reloadFilters = function () {
         var maxui = this;
         var filters;
         var params = {
@@ -8838,7 +8837,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    Adds a new filter to the search if its not present
      *    @param {Object} filter    An object repesenting a filter, with the keys "type" and "value"
      **/
-    jq.fn.delFilter = function(filter) {
+    jq.fn.delFilter = function (filter) {
         var maxui = this;
         var deleted = false;
         for (var i = 0; i < maxui.filters.length; i++) {
@@ -8855,7 +8854,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    Adds a new filter to the search if its not present
      *    @param {Object} filter    An object repesenting a filter, with the keys "type" and "value"
      **/
-    jq.fn.addFilter = function(filter) {
+    jq.fn.addFilter = function (filter) {
         var maxui = this;
         var reload = true;
         //Reload or not by func argument
@@ -8899,7 +8898,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *    @param {String} (optional)    A string containing the id of the last activity loaded
      **/
-    jq.fn.reloadPersons = function() {
+    jq.fn.reloadPersons = function () {
         var maxui = this;
         var $participants_box = jq('#maxui-new-participants');
         var participants_box = $participants_box[0];
@@ -8969,7 +8968,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    Removes a person from the list of new conversation
      *    @param {String} person    A String representing a user's username
      **/
-    jq.fn.delPerson = function(person) {
+    jq.fn.delPerson = function (person) {
         var deleted = false;
         var participants_box = jq('#maxui-new-participants')[0];
         for (var i = 0; i < participants_box.people.length; i++) {
@@ -8986,7 +8985,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    Adds a new person to the list of new conversation
      *    @param {String} person    A String representing a user's username
      **/
-    jq.fn.addPerson = function(person) {
+    jq.fn.addPerson = function (person) {
         var maxui = this;
         var participants_box = jq('#maxui-new-participants')[0];
         var reload = true;
@@ -9015,7 +9014,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     /**
      *    Toggles between main sections
      **/
-    jq.fn.toggleSection = function(sectionToEnable) {
+    jq.fn.toggleSection = function (sectionToEnable) {
         var maxui = this;
         var textarea_literal;
         var $search = jq('#maxui-search');
@@ -9048,7 +9047,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             $conversations_user_input.focus();
             $conversations.animate({
                 'height': height
-            }, 400, function(event) {
+            }, 400, function (event) {
                 $conversations_wrapper.height(height);
             });
             $conversations_list.width(sectionsWidth);
@@ -9078,12 +9077,12 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var timeline_height = $timeline_wrapper.height();
             $timeline.animate({
                 'height': timeline_height
-            }, 400, function(event) {
+            }, 400, function (event) {
                 $timeline.css('height', '');
             });
             $conversations.animate({
                 'height': 0
-            }, 400, function(event) {
+            }, 400, function (event) {
                 $conversations.hide();
                 $addpeople.hide();
             });
@@ -9108,7 +9107,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     /**
      *    Returns the current settings of the plugin
      **/
-    jq.fn.Settings = function() {
+    jq.fn.Settings = function () {
         var maxui = this;
         return maxui.settings;
     };
@@ -9116,7 +9115,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    Sends a post when user clicks `post activity` button with
      *    the current contents of the `maxui-newactivity` textarea
      **/
-    jq.fn.sendActivity = function(text, img, file) {
+    jq.fn.sendActivity = function (text, media) {
         var maxui = this;
         var text = jq('#maxui-newactivity textarea').val();
         var func_params = [];
@@ -9125,7 +9124,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         jq('#maxui-activity-sort .maxui-sort-action.maxui-most-recent').toggleClass('active', true);
         func_params.push(text);
         func_params.push(maxui.settings.writeContexts);
-        func_params.push(function() {
+        func_params.push(function () {
             jq('#maxui-newactivity textarea').val('');
             jq('#maxui-newactivity .maxui-button').attr('disabled', 'disabled');
             var first = jq('.maxui-activity:first');
@@ -9142,11 +9141,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         if (maxui.settings.generatorName) {
             func_params.push(maxui.settings.generatorName);
         }
-        if (img) func_params.push(img);
-        if (file) func_params.push(file);
+        if (media) func_params.push(media);
         var activityAdder = maxui.maxClient.addActivity;
         activityAdder.apply(maxui.maxClient, func_params);
-        var preview = document.getElementById("img-preview");
+        var preview = document.getElementById("preview");
         preview.style.display = "none";
         document.querySelector("#maxui-newactivity-box > label").textContent = 'Upload image'
         jq('#maxui-subscriptions option:first-child').attr("selected", "selected");
@@ -9155,7 +9153,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    Loads more activities from max posted earlier than
      *    the oldest loaded activity
      **/
-    jq.fn.loadMoreActivities = function() {
+    jq.fn.loadMoreActivities = function () {
         var maxui = this;
         var lastActivity = jq('.maxui-activity:last').attr('id');
         if (jq('#maxui-activity-sort .maxui-sort-action.maxui-most-recent').hasClass('active')) {
@@ -9172,18 +9170,18 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    Loads news activities from max posted earlier than
      *    the oldest loaded activity
      **/
-    jq.fn.loadNewsActivities = function() {
+    jq.fn.loadNewsActivities = function () {
         var maxui = this;
         maxui.printActivities();
     };
     /**
      *    Renders the conversations list of the current user, defined in settings.username
      **/
-    jq.fn.printPredictions = function(query, predictive_selector) {
+    jq.fn.printPredictions = function (query, predictive_selector) {
         var maxui = this;
         var func_params = [];
         func_params.push(query);
-        func_params.push(function(items) {
+        func_params.push(function (items) {
             maxui.formatPredictions(items, predictive_selector);
         });
         var userListRetriever = this.maxClient.getUsersList;
@@ -9193,7 +9191,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *
      **/
-    jq.fn.formatPredictions = function(items, predictive_selector) {
+    jq.fn.formatPredictions = function (items, predictive_selector) {
         var maxui = this;
         // String to store the generated html pieces of each conversation item
         var predictions = '';
@@ -9225,7 +9223,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *
      *
      **/
-    jq.fn.canCommentActivity = function(url) {
+    jq.fn.canCommentActivity = function (url) {
         var maxui = this;
         for (var i in maxui.settings.subscriptionsWrite) {
             var hash = maxui.settings.subscriptionsWrite[i].hash;
@@ -9244,7 +9242,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    @param {String} insertAt  were to prepend or append activities, 'beginning' or 'end
      *    @param {Function} (optional)  A function to call when all formatting is finished
      **/
-    jq.fn.formatActivities = function(items, insertAt) {
+    jq.fn.formatActivities = function (items, insertAt) {
         var maxui = this;
         var activities = '';
         // Iterate through all the activities
@@ -9372,6 +9370,22 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 // When the animation ends, move the new activites to its native container
                 jq('#maxui-preload .maxui-wrapper').html("");
                 jq('#maxui-activities').prepend(activities);
+                if (items.length === 1) {
+                    if (activity.object.objectType === 'image') {
+                        maxui.maxClient.getMessageImage('/activities/{0}/image/thumb'.format(activity.id), function (encoded_image_data) {
+                            var imagetag = '<img class="maxui-embedded fullImage" alt="" src="data:image/png;base64,{0}" />'.format(encoded_image_data);
+                            jq('.maxui-activity#{0} .maxui-activity-message .maxui-body'.format(activity.id)).after(imagetag);
+                            jq('.maxui-activity#{0} .maxui-activity-message img.fullImage'.format(activity.id)).on('click', function () {
+                                maxui.maxClient.getMessageImage(activity.object.fullURL, function (encoded_image_data) {
+                                    var image = new Image();
+                                    image.src = "data:image/png;base64," + encoded_image_data;
+                                    var w = window.open("");
+                                    w.document.write(image.outerHTML);
+                                });
+                            });
+                        });
+                    }
+                }
                 jq('#maxui-preload').height(0);
             });
         }
@@ -9387,12 +9401,12 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         if (arguments.length > 2) {
             arguments[2].call();
         }
-        _.each(images_to_render, function(activity, index, list) {
-            maxui.maxClient.getMessageImage('/activities/{0}/image/thumb'.format(activity.id), function(encoded_image_data) {
+        _.each(images_to_render, function (activity, index, list) {
+            maxui.maxClient.getMessageImage('/activities/{0}/image/thumb'.format(activity.id), function (encoded_image_data) {
                 var imagetag = '<img class="maxui-embedded fullImage" alt="" src="data:image/png;base64,{0}" />'.format(encoded_image_data);
                 jq('.maxui-activity#{0} .maxui-activity-message .maxui-body'.format(activity.id)).after(imagetag);
-                jq('.maxui-activity#{0} .maxui-activity-message img.fullImage'.format(activity.id)).on('click', function() {
-                    maxui.maxClient.getMessageImage(activity.object.fullURL, function(encoded_image_data) {
+                jq('.maxui-activity#{0} .maxui-activity-message img.fullImage'.format(activity.id)).on('click', function () {
+                    maxui.maxClient.getMessageImage(activity.object.fullURL, function (encoded_image_data) {
                         var image = new Image();
                         image.src = "data:image/png;base64," + encoded_image_data;
                         var w = window.open("");
@@ -9408,7 +9422,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
      *    @param {String} items         a list of objects representing comments, returned by max
      *    @param {String} activity_id   id of the activity where comments belong to
      **/
-    jq.fn.formatComment = function(items, activity_id) {
+    jq.fn.formatComment = function (items, activity_id) {
         // When receiving the list of activities from max
         // construct the object for Hogan
         // `activities `contain the list of activity objects
@@ -9444,7 +9458,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     /**
      *    Renders the postbox
      **/
-    jq.fn.renderPostbox = function() {
+    jq.fn.renderPostbox = function () {
         var maxui = this;
         // Render the postbox UI if user has permission
         var showCT = maxui.settings.UISection === 'conversations';
@@ -9466,7 +9480,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     /**
      *    Renders the timeline of the current user, defined in settings.username
      **/
-    jq.fn.printActivities = function(ufilters) {
+    jq.fn.printActivities = function (ufilters) {
         // save a reference to the container object to be able to access it
         // from callbacks defined in inner levels
         var maxui = this;
@@ -9505,13 +9519,13 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         }
         if (arguments.length > 1) {
             var callback = arguments[1];
-            func_params.push(function(items) {
+            func_params.push(function (items) {
                 maxui.settings.showLikes = window._MAXUI.showLikes;
                 // Determine write permission, granted by default if we don't find a restriction
                 maxui.settings.canwrite = true;
                 // If we don't have a context, we're in timeline, so we can write
                 if (maxui.settings.activitySource === 'activities') {
-                    maxui.maxClient.getContext(maxui.settings.readContextHash, function(context) {
+                    maxui.maxClient.getContext(maxui.settings.readContextHash, function (context) {
                         // Add read context if user is not subscribed to it
                         var subscriptions = maxui.settings.subscriptions;
                         if (!subscriptions[context.hash]) {
@@ -9551,7 +9565,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 }
             });
         } else {
-            func_params.push(function(items) {
+            func_params.push(function (items) {
                 maxui.formatActivities(items, insert_at);
             });
         }
@@ -9564,17 +9578,17 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     /**
      *    Renders the timeline of the current user, defined in settings.username
      **/
-    jq.fn.printCommentsForActivity = function(activity_id) {
+    jq.fn.printCommentsForActivity = function (activity_id) {
         var maxui = this;
         var func_params = [];
         func_params.push(activity_id);
-        func_params.push(function(data) {
+        func_params.push(function (data) {
             maxui.formatComment(data, activity_id);
         });
         this.maxClient.getCommentsForActivity.apply(this.maxClient, func_params);
     };
-    jq.maxui = function() {};
-    jq.maxui.settings = function() {
+    jq.maxui = function () { };
+    jq.maxui.settings = function () {
         return this.settings;
     };
 }(jQuery));
@@ -9592,7 +9606,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
 // In the example.js file lives the code that the api consumer has to insert in the host application
 //
 'use strict';
-window.setTimeout(function() {
+window.setTimeout(function () {
     if (window._MAXUI && window._MAXUI.onReady && !window._MAXUI.hasRun) {
         window._MAXUI.hasRun = true;
         _MAXUI.onReady();
