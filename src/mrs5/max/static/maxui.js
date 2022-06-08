@@ -6216,7 +6216,6 @@ max.templates = function () {
                        <textarea class="maxui-empty maxui-text-input" data-literal="{{textLiteral}}">{{textLiteral}}</textarea>\
                        <div class="maxui-error-box"></div>\
                    </div>\
-        \
                     {{#showSubscriptionList}}\
                     <select id="maxui-subscriptions">\
                       {{#subscriptionList}}\
@@ -6224,9 +6223,10 @@ max.templates = function () {
                       {{/subscriptionList}}\
                     </select>\
                     {{/showSubscriptionList}}\
-                    <img id="preview">\
-                    <input type="file" id="maxui-file" accept="file/*" onchange="">\
-                    <label for="maxui-img" class="upload-img">Upload image</label> \
+                    <div id="preview"></div>\
+                    <label for="maxui-file" class="upload-file">Upload file</label> \
+                    <input type="file" id="maxui-file" accept="file/*" onchange="showPreview(event);" style="display:none">\
+                    <label for="maxui-img" class="upload-img" style="">Upload image</label> \
                     <input type="file" id="maxui-img" accept="image/*" onchange="showPreview(event);" style="display:none">\
                    <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{buttonLiteral}}">\
               </div>\
@@ -6245,16 +6245,36 @@ max.templates = function () {
 
 function showPreview(event) {
     if (event.target.files.length > 0) {
-        var src = URL.createObjectURL(event.target.files[0]);
-        var preview = document.getElementById("preview");
         var name = event.target.files[0].name;
         var size = (event.target.files[0].size / 1000).toFixed(1);
-        preview.src = src;
-        preview.style.display = "block";
-        preview.style.height = "100px";
-        preview.style.width = "100px";
-        document.querySelector("#maxui-newactivity-box > label").textContent = 'Change image'
+        if (event.target.id === 'maxui-img')
+            var html = '<div class="preview-box"><div class="preview-icon-img"><span class="preview-title">{0}</span><p>{1} KB</p><i class="fa fa-times" onclick="imgClear(event)"></i></div></div>'.format(name, size);
+        else
+            var html = '<div class="preview-box"><div class="preview-icon-file"><span class="preview-title">{0}</span><p>{1} KB</p><i class="fa fa-times" onclick="fileClear(event)"></i></div></div>'.format(name, size);
+        $("#maxui-newactivity-box > .upload-file").addClass('label-disabled');
+        $("#maxui-file").prop("disabled", true);
+        $("#maxui-newactivity-box > .upload-img").addClass('label-disabled');
+        $("#maxui-img").prop("disabled", true);
+        $('#preview').prepend(html);
     }
+}
+
+function imgClear(event) {
+    $("#preview").empty();
+    $("#maxui-img").val('');
+    $("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
+    $("#maxui-img").prop("disabled", false);
+    $("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
+    $("#maxui-file").prop("disabled", false);
+}
+
+function fileClear(event) {
+    $("#preview").empty();
+    $("#maxui-file").val('');
+    $("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
+    $("#maxui-img").prop("disabled", false);
+    $("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
+    $("#maxui-file").prop("disabled", false);
 }
 
 /*global uuid */
@@ -8712,11 +8732,6 @@ MaxClient.prototype.unflagActivity = function (activityid, callback) {
             if (normalized === '') {
                 jq(this).val(literal);
             }
-            /*        }).on('mousedown', selector, function(event) {
-                        event.preventDefault();
-                        if (event.which == 3) {
-                            debugger
-                        }*/
         }).on('click', target + ' .maxui-button', function (event) {
             // console.log("click maxui-button");
             event.preventDefault();
@@ -8733,6 +8748,12 @@ MaxClient.prototype.unflagActivity = function (activityid, callback) {
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
             if ((normalized !== literal & normalized !== '') || options.empty_click) {
                 clickFunction.apply(this, [text, media]);
+                $('#maxui-file').value = "";
+                $('#maxui-img').value = "";
+                $("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
+                $("#maxui-img").prop("disabled", false);
+                $("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
+                $("#maxui-file").prop("disabled", false);
             }
         });
     };
