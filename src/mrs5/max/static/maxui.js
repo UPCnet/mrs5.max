@@ -5253,6 +5253,8 @@ var max = max || {};
             var params = {
                 avatar: self.maxui.settings.avatarURLpattern.format(self.maxui.settings.username),
                 allowPosting: true,
+                imgLiteral: maxui.settings.literals.new_img_post,
+                fileLiteral: maxui.settings.literals.new_file_post,
                 buttonLiteral: self.maxui.settings.literals.new_message_post,
                 textLiteral: self.maxui.settings.literals.new_conversation_text,
                 literals: self.maxui.settings.literals,
@@ -6224,9 +6226,9 @@ max.templates = function () {
                     </select>\
                     {{/showSubscriptionList}}\
                     <div id="preview"></div>\
-                    <label for="maxui-file" class="upload-file">Upload file</label> \
+                    <label for="maxui-file" class="upload-file">{{fileLiteral}}</label> \
                     <input type="file" id="maxui-file" accept="file/*" onchange="showPreview(event);" style="display:none">\
-                    <label for="maxui-img" class="upload-img" style="">Upload image</label> \
+                    <label for="maxui-img" class="upload-img" style="">{{imgLiteral}}</label> \
                     <input type="file" id="maxui-img" accept="image/*" onchange="showPreview(event);" style="display:none">\
                    <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{buttonLiteral}}">\
               </div>\
@@ -6245,31 +6247,30 @@ max.templates = function () {
 
 function showPreview(event) {
     if (event.target.files.length > 0) {
-        var name = event.target.files[0].name;
-        var size = (event.target.files[0].size / 1000).toFixed(1);
-        if (event.target.id === 'maxui-img')
-            var html = '<div class="preview-box"><div class="preview-icon-img"><span class="preview-title">{0}</span><p>{1} KB</p><i class="fa fa-times" onclick="imgClear(event)"></i></div></div>'.format(name, size);
-        else
-            var html = '<div class="preview-box"><div class="preview-icon-file"><span class="preview-title">{0}</span><p>{1} KB</p><i class="fa fa-times" onclick="fileClear(event)"></i></div></div>'.format(name, size);
-        $("#maxui-newactivity-box > .upload-file").addClass('label-disabled');
-        $("#maxui-file").prop("disabled", true);
-        $("#maxui-newactivity-box > .upload-img").addClass('label-disabled');
-        $("#maxui-img").prop("disabled", true);
-        $('#preview').prepend(html);
+        if (event.target.files[0].size > 50000000) {
+            alert('El archivo no debe superar los 50MB');
+            $("#maxui-img").val('');
+            $("#maxui-file").val('');
+        }
+        else {
+            var name = event.target.files[0].name;
+            var size = (event.target.files[0].size / 1000).toFixed(1);
+            if (event.target.id === 'maxui-img')
+                var html = '<div class="preview-box"><div class="preview-icon-img"><span class="preview-title">{0}</span><p>{1} KB</p><i class="fa fa-times" onclick="inputClear(event)"></i></div></div>'.format(name, size);
+            else
+                var html = '<div class="preview-box"><div class="preview-icon-file"><span class="preview-title">{0}</span><p>{1} KB</p><i class="fa fa-times" onclick="inputClear(event)"></i></div></div>'.format(name, size);
+            $("#maxui-newactivity-box > .upload-file").addClass('label-disabled');
+            $("#maxui-file").prop("disabled", true);
+            $("#maxui-newactivity-box > .upload-img").addClass('label-disabled');
+            $("#maxui-img").prop("disabled", true);
+            $('#preview').prepend(html);
+        }
     }
 }
 
-function imgClear(event) {
+function inputClear(event) {
     $("#preview").empty();
     $("#maxui-img").val('');
-    $("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
-    $("#maxui-img").prop("disabled", false);
-    $("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
-    $("#maxui-file").prop("disabled", false);
-}
-
-function fileClear(event) {
-    $("#preview").empty();
     $("#maxui-file").val('');
     $("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
     $("#maxui-img").prop("disabled", false);
@@ -6767,6 +6768,8 @@ max.literals = function (language) {
         'no_chats': 'No chats already',
         'no_match_found': 'No match found',
         'new_conversation_text': 'Add participants and send a message to start a chat',
+        'new_img_post': "Add image",
+        'new_file_post': "Add file",
         'new_activity_post': "Post activity",
         'toggle_comments': "comments",
         'new_comment_text': "Comment something...",
@@ -6828,6 +6831,8 @@ max.literals = function (language) {
         'no_chats': 'No hay chats',
         'no_match_found': 'No hay coincidencias',
         'new_conversation_text': 'Añade participantes y envia el mensaje para iniciar un chat',
+        'new_img_post': "Añadir imagen",
+        'new_file_post': "Añadir archivo",
         'new_activity_post': "Publica",
         'toggle_comments': "comentarios",
         'new_comment_text': "Comenta algo...",
@@ -6889,6 +6894,8 @@ max.literals = function (language) {
         'no_chats': 'No hi ha xats',
         'no_match_found': "No s'han trobat coincidències",
         'new_conversation_text': 'Afegeix participants i envia el missatge per iniciar un xat',
+        'new_img_post': "Afegir imatge",
+        'new_file_post': "Afegir arxiu",
         'new_activity_post': "Publica",
         'toggle_comments': "comentaris",
         'new_comment_text': "Comenta alguna cosa...",
@@ -9167,7 +9174,6 @@ MaxClient.prototype.unflagActivity = function (activityid, callback) {
         activityAdder.apply(maxui.maxClient, func_params);
         var preview = document.getElementById("preview");
         preview.style.display = "none";
-        document.querySelector("#maxui-newactivity-box > label").textContent = 'Upload image'
         jq('#maxui-subscriptions option:first-child').attr("selected", "selected");
     };
     /**
@@ -9487,6 +9493,8 @@ MaxClient.prototype.unflagActivity = function (activityid, callback) {
         var params = {
             avatar: maxui.settings.avatarURLpattern.format(maxui.settings.username),
             allowPosting: maxui.settings.canwrite,
+            imgLiteral: maxui.settings.literals.new_img_post,
+            fileLiteral: maxui.settings.literals.new_file_post,
             buttonLiteral: maxui.settings.literals.new_activity_post,
             textLiteral: maxui.settings.literals.new_activity_text,
             literals: maxui.settings.literals,
