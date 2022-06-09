@@ -5258,13 +5258,15 @@ var max = max || {};
             var params = {
                 avatar: self.maxui.settings.avatarURLpattern.format(self.maxui.settings.username),
                 allowPosting: true,
+                imgLiteral: self.maxui.settings.literals.new_img_post,
+                fileLiteral: self.maxui.settings.literals.new_file_post,
                 buttonLiteral: self.maxui.settings.literals.new_message_post,
                 textLiteral: self.maxui.settings.literals.new_conversation_text,
                 literals: self.maxui.settings.literals,
                 showConversationsToggle: toggleCT ? 'display:block;' : 'display:none;',
                 showSubscriptionList: false
             };
-            var postbox = self.maxui.templates.postBoxChat.render(params);
+            //var postbox = self.maxui.templates.postBoxChat.render(params);
             var $postbox = jq('#maxuichat-widget-container #maxui-newactivity-chat');
             if (overwrite_postbox) {
                 $postbox.html(postbox);
@@ -5964,7 +5966,11 @@ max.templates = function() {
                        <textarea class="maxui-empty maxui-text-input" data-literal="{{textLiteral}}">{{textLiteral}}</textarea>\
                        <div class="maxui-error-box"></div>\
                    </div>\
-        \
+                    <div id="preview"></div>\
+                    <label for="maxui-file" class="upload-file">{{fileLiteral}}</label> \
+                    <input type="file" id="maxui-file" accept="file/*" onchange="showPreview(event);" style="display:none">\
+                    <label for="maxui-img" class="upload-img" style="">{{imgLiteral}}</label> \
+                    <input type="file" id="maxui-img" accept="image/*" onchange="showPreview(event);" style="display:none">\
                    <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{buttonLiteral}}">\
               </div>\
             '),
@@ -6079,6 +6085,32 @@ max.templates = function() {
 
 
 ;
+
+function showPreview(event) {
+    if (event.target.files.length > 0) {
+        var name = event.target.files[0].name;
+        var size = (event.target.files[0].size / 1000).toFixed(1);
+        if (event.target.id === 'maxui-img')
+            var html = '<div class="preview-box"><div class="preview-icon-img"><span class="preview-title">{0}</span><p>{1} KB</p><i class="fa fa-times" onclick="inputClear(event)"></i></div></div>'.format(name, size);
+        else
+            var html = '<div class="preview-box"><div class="preview-icon-file"><span class="preview-title">{0}</span><p>{1} KB</p><i class="fa fa-times" onclick="inputClear(event)"></i></div></div>'.format(name, size);
+        $("#maxui-newactivity-box > .upload-file").addClass('label-disabled');
+        $("#maxui-file").prop("disabled", true);
+        $("#maxui-newactivity-box > .upload-img").addClass('label-disabled');
+        $("#maxui-img").prop("disabled", true);
+        $('#preview').prepend(html);
+    }
+}
+
+function inputClear(event) {
+    $("#preview").empty();
+    $("#maxui-img").val('');
+    $("#maxui-file").val('');
+    $("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
+    $("#maxui-img").prop("disabled", false);
+    $("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
+    $("#maxui-file").prop("disabled", false);
+}
 
 /*global uuid */
 /**
@@ -7343,13 +7375,33 @@ MaxClient.prototype.addComment = function(comment, activity, callback) {
     var route = this.ROUTES.comments.format(activity);
     this.POST(route, query, callback);
 };
-MaxClient.prototype.addActivity = function(text, contexts, callback) {
-    var query = {
-        "object": {
-            "objectType": "note",
-            "content": ""
+MaxClient.prototype.addActivity = function(text, contexts, callback, media) {
+    if (media == undefined) {
+        var query = {
+            "object": {
+                "objectType": "note",
+                "content": ""
+            }
+        };
+    } else {
+        if (media.type.split('/')[0] === 'image') {
+            var query = {
+                "object": {
+                    "objectType": "image",
+                    "content": "",
+                    "mimetype": media.type
+                },
+            };
+        } else {
+            var query = {
+                "object": {
+                    "objectType": "file",
+                    "content": "",
+                    "mimetype": media.type
+                },
+            };
         }
-    };
+    }
     if (contexts.length > 0) {
         query.contexts = [];
         for (var ct = 0; ct < contexts.length; ct++) {
@@ -7369,7 +7421,15 @@ MaxClient.prototype.addActivity = function(text, contexts, callback) {
         'done': 'maxui-posted-activity',
         'fail': 'maxui-failed-activity'
     };
-    this.POST(route, query, callback, trigger);
+    if (media == undefined) {
+        this.POST(route, query, callback, trigger);
+    }
+    else {
+        let formData = new FormData();
+        formData.append("json_data", JSON.stringify(query));
+        formData.append("file", new Blob([media], { type: media.type }), media.name);
+        this.POSTFILE(route, formData, callback, trigger);
+    }
 };
 MaxClient.prototype.removeActivity = function(activity_id, callback) {
     var route = this.ROUTES.activity.format(activity_id);
@@ -8268,9 +8328,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         });
         // **************************************************************************************
         //Assign Activity post action And textarea behaviour
-        maxui.bindActionBehaviourChat('#maxuichat-widget-container #maxui-newactivity-chat', '#maxui-newactivity-box', {}, function(text) {
+        maxui.bindActionBehaviourChat('#maxuichat-widget-container #maxui-newactivity-chat', '#maxui-newactivity-box', {}, function(text, media) {
             if (maxui.settings.UISection === 'timeline') {
-                maxui.sendActivityChat(text);
+                maxui.sendActivityChat(text, media);
                 jq('#maxuichat-widget-container #maxui-search').toggleClass('folded', true);
             } else if (maxui.settings.UISection === 'conversations') {
                 if (maxui.settings.conversationsSection === 'conversations') {
@@ -8475,6 +8535,28 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                             debugger
                         }*/
         }).on('click', target + ' .maxui-button', function(event) {
+            event.preventDefault();
+            var media = undefined;
+            var file = document.getElementById('maxui-file').files[0];
+            if (file != undefined) media = file;
+            else {
+                var image = document.getElementById('maxui-img').files[0];
+                if (image != undefined) media = image;
+            }
+            var $area = jq(this).parent().find('.maxui-text-input');
+            var literal = $area.attr('data-literal');
+            var text = $area.val();
+            var normalized = maxui.utils.normalizeWhiteSpace(text, false);
+            if ((normalized !== literal & normalized !== '') || options.empty_click) {
+                clickFunction.apply(this, [text, media]);
+                $('#maxui-file').value = "";
+                $('#maxui-img').value = "";
+                $("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
+                $("#maxui-img").prop("disabled", false);
+                $("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
+                $("#maxui-file").prop("disabled", false);
+            }
+
             event.preventDefault();
             var $area = jq(this).parent().find('.maxui-text-input');
             var literal = $area.attr('data-literal');
@@ -8890,8 +8972,11 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         if (maxui.settings.generatorName) {
             func_params.push(maxui.settings.generatorName);
         }
+        if (media) func_params.push(media);
         var activityAdder = maxui.maxClient.addActivity;
         activityAdder.apply(maxui.maxClient, func_params);
+        var preview = document.getElementById("preview");
+        preview.style.display = "none";
         jq('#maxui-subscriptions option:first-child').attr("selected", "selected");
     };
     /**
