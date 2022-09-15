@@ -5201,9 +5201,9 @@ var max = max || {};
             var self = this;
             self.mainview.loadWrappers();
             self.mainview.$newparticipants.show();
-            jq('#maxui-newactivity-box > .upload-file').hide();
-            jq('#maxui-newactivity-box > .upload-img').hide();
-            jq('#maxui-newactivity-box > #preview').hide();
+            jq('#maxui-newactivity-box > .chat-upload-file').hide();
+            jq('#maxui-newactivity-box > .chat-upload-img').hide();
+            jq('#maxui-newactivity-box > #chat-preview').hide();
             // Load conversations from max if never loaded
             if (self.conversations.length === 0) {
                 self.load();
@@ -5566,16 +5566,16 @@ var max = max || {};
             self.mainview.loadWrappers();
             // PLEASE CLEAN THIS SHIT
             var $button = jq('#maxui-newactivity').find('input.maxui-button');
-            jq("#preview").empty();
-            jq("#maxui-img").val("");
-            jq("#maxui-file").val("");
-            jq("#maxui-newactivity-box > .upload-img").removeClass("label-disabled");
-            jq("#maxui-img").prop("disabled", false);
-            jq("#maxui-newactivity-box > .upload-file").removeClass("label-disabled");
-            jq("#maxui-file").prop("disabled", false);
-            jq('#maxui-newactivity-box > .upload-file').show();
-            jq('#maxui-newactivity-box > .upload-img').show();
-            jq('#maxui-newactivity-box > #preview').show();
+            jq("#chat-preview").empty();
+            jq("#maxuichat-img").val("");
+            jq("#maxuichat-file").val("");
+            jq("#maxui-newactivity-box > .chat-upload-img").removeClass("label-disabled");
+            jq("#maxuichat-img").prop("disabled", false);
+            jq("#maxui-newactivity-box > .chat-upload-file").removeClass("label-disabled");
+            jq("#maxuichat-file").prop("disabled", false);
+            jq('#maxui-newactivity-box > .chat-upload-file').show();
+            jq('#maxui-newactivity-box > .chat-upload-img').show();
+            jq('#maxui-newactivity-box > #chat-preview').show();
             $button.attr('class', 'maxui-button');
             self.mainview.$newmessagebox.find('textarea').attr('class', 'maxui-text-input');
             self.mainview.$newmessagebox.find('.maxui-error-box').animate({
@@ -5698,6 +5698,9 @@ var max = max || {};
                 event.stopPropagation();
                 window.status = '';
                 self.listview.show();
+                jq('#maxui-newactivity-box > .chat-upload-file').hide();
+                jq('#maxui-newactivity-box > .chat-upload-img').hide();
+                jq('#maxui-newactivity-box > #chat-preview').hide();
             });
             //Assign activation of messages section by delegating the clicl of a conversation arrow to the conversations container
             jq('#maxuichat-widget-container #maxui-conversations').on('click', '.maxui-conversation', function(event) {
@@ -5773,15 +5776,15 @@ var max = max || {};
                     type: media.type
                 }), media.name);
                 var callback = (function() {
-                    jq('#maxui-newactivity textarea').val('');
+                    jq('#maxui-newactivity-chat textarea').val('');
                     jq('#maxui-newactivity .maxui-button').attr('disabled', 'disabled');
-                    jq("#preview").empty();
-                    jq("#maxui-img").val("");
-                    jq("#maxui-file").val("");
-                    jq("#maxui-newactivity-box > .upload-img").removeClass("label-disabled");
-                    jq("#maxui-img").prop("disabled", false);
-                    jq("#maxui-newactivity-box > .upload-file").removeClass("label-disabled");
-                    jq("#maxui-file").prop("disabled", false);
+                    jq("#chat-preview").empty();
+                    jq("#maxuichat-img").val("");
+                    jq("#maxuichat-file").val("");
+                    jq("#maxui-newactivity-box > .chat-upload-img").removeClass("label-disabled");
+                    jq("#maxuichat-img").prop("disabled", false);
+                    jq("#maxui-newactivity-box > .chat-upload-file").removeClass("label-disabled");
+                    jq("#maxuichat-file").prop("disabled", false);
                 });
                 self.maxui.maxClient.POSTFILE(route, formData, callback);
                 setTimeout(function() {
@@ -6023,17 +6026,20 @@ max.templates = function() {
             '),
         postBoxChat: Hogan.compile('\
       <span class="maxui-avatar maxui-big">\
-                  <img src="{{avatar}}">\
+                    <img src="{{avatar}}">\
               </span>\
               <div id="maxui-newactivity-box">\
-                   <div class="maxui-wrapper">\
-                       <textarea class="maxui-empty maxui-text-input" data-literal="{{textLiteral}}">{{textLiteral}}</textarea>\
-                       <div class="maxui-error-box"></div>\
-                   </div>\
-        \
-                   <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{buttonLiteral}}">\
-              </div>\
-            '),
+                <div class="maxui-wrapper">\
+                   <textarea class="maxui-empty maxui-text-input" data-literal="{{textLiteral}}">{{textLiteral}}</textarea>\
+                   <div class="maxui-error-box"></div>\
+                </div>\
+                <div id="chat-preview" style="display: none;"></div>\
+                <label for="maxuichat-file" class="chat-upload-file" style="display: none;">{{fileLiteral}}</label>\
+                <input type="file" id="maxuichat-file" class="maxuichat-file-image" accept="file/*" style="display:none">\
+                <label for="maxuichat-img" class="chat-upload-img" style="display: none;">{{imgLiteral}}</label>\
+                <input type="file" id="maxuichat-img" class="maxuichat-file-image" accept="image/*" style="display:none">\
+                <input disabled="disabled" type="button" class="maxui-button maxui-disabled" value="{{buttonLiteral}}">\
+              </div>    '),
         predictive: Hogan.compile('\
 <li data-username="{{username}}" data-displayname="{{displayName}}" class="{{cssclass}}">\
         <img src="{{avatarURL}}"/><span>{{displayName}}</span>\
@@ -8427,7 +8433,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                     }
                     maxui.conversations.create(options);
                 } else {
-                    maxui.conversations.send(text);
+                    maxui.conversations.send(text, media);
                 }
             }
         }, function(text, area, button, ev) {
@@ -8615,11 +8621,11 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             event.preventDefault();
             var media;
             media = undefined;
-            var file = document.getElementById('maxui-file').files[0];
+            var file = document.getElementById('maxuichat-file').files[0];
             if (file !== undefined) {
                 media = file;
             } else {
-                var image = document.getElementById('maxui-img').files[0];
+                var image = document.getElementById('maxuichat-img').files[0];
                 if (image !== undefined) {
                     media = image;
                 }
@@ -8630,12 +8636,12 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
             if ((normalized !== literal & normalized !== '') || options.empty_click) {
                 clickFunction.apply(this, [text, media]);
-                jq('#maxui-file').value = "";
-                jq('#maxui-img').value = "";
-                jq("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
-                jq("#maxui-img").prop("disabled", false);
-                jq("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
-                jq("#maxui-file").prop("disabled", false);
+                jq('#maxuichat-file').value = "";
+                jq('#maxuichat-img').value = "";
+                jq("#maxui-newactivity-box > .chat-upload-img").removeClass('label-disabled');
+                jq("#maxuichat-img").prop("disabled", false);
+                jq("#maxui-newactivity-box > .chat-upload-file").removeClass('label-disabled');
+                jq("#maxuichat-file").prop("disabled", false);
             }
         });
     };
@@ -9364,6 +9370,43 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         var postbox = maxui.templates.postBoxChat.render(params);
         var $postbox = jq('#maxuichat-widget-container #maxui-newactivity-chat');
         $postbox.html(postbox);
+        jq('#maxui-newactivity-box .maxuichat-file-image').on('change', function(event) {
+            event.preventDefault();
+            if (event.target.files.length > 0) {
+                if (event.target.files[0].size > 50000000) {
+                    alert("El archivo no debe superar los 50MB");
+                    jq("#maxuichat-img").val("");
+                    jq("#maxuichat-file").val("");
+                } else {
+                    var name = event.target.files[0].name;
+                    var size = (event.target.files[0].size / 1000).toFixed(1);
+                    var html;
+                    if (event.target.id === "maxui-img") {
+                        html = "<div class=\"preview-box\"><div class=\"preview-icon-img\"><span class=\"preview-title\">{0}</span><p>{1} KB</p><i class=\"fa fa-times\"></i></div></div>".format(name, size);
+                    } else {
+                        html = "<div class=\"preview-box\"><div class=\"preview-icon-file\"><span class=\"preview-title\">{0}</span><p>{1} KB</p><i class=\"fa fa-times\"></i></div></div>".format(name, size);
+                    }
+                    jq("#maxui-newactivity-box > .chat-upload-file").addClass("label-disabled");
+                    jq("#maxuichat-file").prop("disabled", true);
+                    jq("#maxui-newactivity-box > .chat-upload-img").addClass("label-disabled");
+                    jq("#maxuichat-img").prop("disabled", true);
+                    jq("#chat-preview").prepend(html);
+                    jq('#box_chat #maxui-newactivity-box .fa-times').on('click', function(event) {
+                        jq("#chat-preview").empty();
+                        jq("#maxuichat-img").val("");
+                        jq("#maxuichat-file").val("");
+                        jq("#maxui-newactivity-box > .chat-upload-img").removeClass("label-disabled");
+                        jq("#maxuichat-img").prop("disabled", false);
+                        jq("#maxui-newactivity-box > .chat-upload-file").removeClass("label-disabled");
+                        jq("#maxuichat-file").prop("disabled", false);
+                        var input = jq('#maxui-newactivity-chat .maxui-text-input');
+                        if (input.val() === "" || input.val() === input.data('literal')) {
+                            jq('#box_chat #maxui-newactivity .maxui-button').attr('disabled', 'disabled');
+                        }
+                    });
+                }
+            }
+        });
     };
     /**
      *    Renders the timeline of the current user, defined in settings.username
