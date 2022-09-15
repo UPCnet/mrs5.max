@@ -7845,7 +7845,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.1.3';
+        maxui.version = '5.1.4';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -9641,7 +9641,11 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         if (arguments.length > 1) {
             var callback = arguments[1];
             func_params.push(function(items) {
-                maxui.settings.showLikes = window._MAXUI.showLikes;
+                if (typeof window._MAXUI === "undefined" || window._MAXUI === null) {
+                    maxui.settings.showLikes = true;
+                } else {
+                    maxui.settings.showLikes = window._MAXUI.showLikes;
+                }
                 // Determine write permission, granted by default if we don't find a restriction
                 maxui.settings.canwrite = true;
                 // If we don't have a context, we're in timeline, so we can write
