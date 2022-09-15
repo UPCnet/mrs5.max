@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-1.1 (unreleased)
+1.1 (2022-09-15)
 ----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.1.3 setup finished add image and file portlet chat [Pilar Marinas]
 
 1.0 (2022-09-14)
 ----------------
