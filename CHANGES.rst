@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-1.3 (unreleased)
+1.3 (2022-10-17)
 ----------------
 
-- Nothing changed yet.
-
+* MAX UI 5.1.6 setup finished [Pilar Marinas]
 
 1.2 (2022-09-15)
 ----------------
