@@ -5576,6 +5576,7 @@ var max = max || {};
             jq('#maxui-newactivity-box > .upload-file').show();
             jq('#maxui-newactivity-box > .upload-img').show();
             jq('#maxui-newactivity-box > #preview').show();
+            self.maxui.loadPreviewRender();
             $button.attr('class', 'maxui-button');
             self.mainview.$newmessagebox.find('textarea').attr('class', 'maxui-text-input');
             self.mainview.$newmessagebox.find('.maxui-error-box').animate({
@@ -5723,6 +5724,9 @@ var max = max || {};
          *    the current contents of the `maxui-newactivity` textarea
          **/
         MaxConversations.prototype.send = function(text, media) {
+            if (text === jq('#maxui-newactivity textarea').attr('data-literal')) {
+                text = "";
+            }
             var self = this;
             var query = {};
             var message = {
@@ -7845,7 +7849,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.1.4';
+        maxui.version = '5.1.6';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -8788,7 +8792,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var literal = $area.attr('data-literal');
             var text = $area.val();
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
-            if ((normalized !== literal & normalized !== '') || options.empty_click) {
+            if ((normalized !== literal & normalized !== '') || options.empty_click || media) {
                 clickFunction.apply(this, [text, media]);
                 jq('#maxui-file').value = "";
                 jq('#maxui-img').value = "";
@@ -9181,6 +9185,9 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.sendActivity = function(text, media) {
         var maxui = this;
         text = jq('#maxui-newactivity textarea').val();
+        if (text === jq('#maxui-newactivity textarea').attr('data-literal')) {
+            text = "";
+        }
         var func_params = [];
         // change to recent view before posting
         jq('#maxui-activity-sort .maxui-sort-action.active').toggleClass('active', false);
@@ -9543,43 +9550,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         var postbox = maxui.templates.postBox.render(params);
         var $postbox = jq('#maxui-newactivity');
         $postbox.html(postbox);
-        jq('#maxui-newactivity-box .maxui-file-image').on('change', function(event) {
-            event.preventDefault();
-            if (event.target.files.length > 0) {
-                if (event.target.files[0].size > 50000000) {
-                    alert("El archivo no debe superar los 50MB");
-                    jq("#maxui-img").val("");
-                    jq("#maxui-file").val("");
-                } else {
-                    var name = event.target.files[0].name;
-                    var size = (event.target.files[0].size / 1000).toFixed(1);
-                    var html;
-                    if (event.target.id === "maxui-img") {
-                        html = "<div class=\"preview-box\"><div class=\"preview-icon-img\"><span class=\"preview-title\">{0}</span><p>{1} KB</p><i class=\"fa fa-times\"></i></div></div>".format(name, size);
-                    } else {
-                        html = "<div class=\"preview-box\"><div class=\"preview-icon-file\"><span class=\"preview-title\">{0}</span><p>{1} KB</p><i class=\"fa fa-times\"></i></div></div>".format(name, size);
-                    }
-                    jq("#maxui-newactivity-box > .upload-file").addClass("label-disabled");
-                    jq("#maxui-file").prop("disabled", true);
-                    jq("#maxui-newactivity-box > .upload-img").addClass("label-disabled");
-                    jq("#maxui-img").prop("disabled", true);
-                    jq("#preview").prepend(html);
-                    jq('#maxui-newactivity-box .fa-times').on('click', function(event) {
-                        jq("#preview").empty();
-                        jq("#maxui-img").val("");
-                        jq("#maxui-file").val("");
-                        jq("#maxui-newactivity-box > .upload-img").removeClass("label-disabled");
-                        jq("#maxui-img").prop("disabled", false);
-                        jq("#maxui-newactivity-box > .upload-file").removeClass("label-disabled");
-                        jq("#maxui-file").prop("disabled", false);
-                        var input = jq('#maxui-newactivity .maxui-text-input');
-                        if (input.val() === "" || input.val() === input.data('literal')) {
-                            jq('#maxui-newactivity .maxui-button').attr('disabled', 'disabled');
-                        }
-                    });
-                }
-            }
-        });
+        maxui.loadPreviewRender();
         //Add to writeContexts selected subscription to post in it.
         jq('#maxui-subscriptions').on('change', function() {
             var $urlContext = jq('#maxui-subscriptions :selected').val();
@@ -9597,6 +9568,54 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 maxui.settings.writeContextsHashes = undefined;
             }
         });
+    };
+    /**
+     *    Load preview of the image and file
+     */
+    jq.fn.loadPreviewRender = function() {
+        var file_image = jq('#maxui-newactivity-box .maxui-file-image');
+        if (!jq(file_image).hasClass('changeLoaded')) {
+            jq(file_image).addClass('changeLoaded');
+            jq(file_image).on('change', function(event) {
+                event.preventDefault();
+                if (event.target.files.length > 0) {
+                    if (event.target.files[0].size > 50000000) {
+                        alert("El archivo no debe superar los 50MB");
+                        jq("#maxui-img").val("");
+                        jq("#maxui-file").val("");
+                    } else {
+                        var name = event.target.files[0].name;
+                        var size = (event.target.files[0].size / 1000).toFixed(1);
+                        var html;
+                        if (event.target.id === "maxui-img") {
+                            html = "<div class=\"preview-box\"><div class=\"preview-icon-img\"><span class=\"preview-title\">{0}</span><p>{1} KB</p><i class=\"fa fa-times\"></i></div></div>".format(name, size);
+                        } else {
+                            html = "<div class=\"preview-box\"><div class=\"preview-icon-file\"><span class=\"preview-title\">{0}</span><p>{1} KB</p><i class=\"fa fa-times\"></i></div></div>".format(name, size);
+                        }
+                        jq("#maxui-newactivity-box > .upload-file").addClass("label-disabled");
+                        jq("#maxui-file").prop("disabled", true);
+                        jq("#maxui-newactivity-box > .upload-img").addClass("label-disabled");
+                        jq("#maxui-img").prop("disabled", true);
+                        jq("#preview").prepend(html);
+                        jq('#maxui-newactivity-box .maxui-button').removeClass("maxui-disabled");
+                        jq('#maxui-newactivity-box .maxui-button').removeAttr("disabled");
+                        jq('#maxui-newactivity-box .fa-times').on('click', function(event) {
+                            jq("#preview").empty();
+                            jq("#maxui-img").val("");
+                            jq("#maxui-file").val("");
+                            jq("#maxui-newactivity-box > .upload-img").removeClass("label-disabled");
+                            jq("#maxui-img").prop("disabled", false);
+                            jq("#maxui-newactivity-box > .upload-file").removeClass("label-disabled");
+                            jq("#maxui-file").prop("disabled", false);
+                            var input = jq('#maxui-newactivity .maxui-text-input');
+                            if (input.val() === "" || input.val() === input.data('literal')) {
+                                jq('#maxui-newactivity .maxui-button').attr('disabled', 'disabled');
+                            }
+                        });
+                    }
+                }
+            });
+        }
     };
     /**
      *    Renders the timeline of the current user, defined in settings.username
