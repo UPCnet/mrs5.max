@@ -20,8 +20,8 @@ $('#menusup > nav > div:first-of-type').click(reloadActivity);
 
 $(document).ready(function(){
     setTimeout(function(){
-        if($('#menusup > nav > div:first-of-type').hasClass('active')){
+        if($('#maxui-news-activities .maxui-button').length > 0){
             reloadActivity();
         }
-    }, 500);
+    }, 5000);
 });
