@@ -2,11 +2,10 @@ Changelog
 =========
 
 
-1.4 (unreleased)
+1.4 (2024-01-24)
 ----------------
 
-- Nothing changed yet.
-
+* [FIX] Refresco de la actividad [Iago López]
 
 1.3 (2022-10-17)
 ----------------
