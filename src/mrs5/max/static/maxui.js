@@ -7851,7 +7851,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.1.7';
+        maxui.version = '5.1.8';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -8807,22 +8807,23 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
         jq(delegate).on('change', '#maxui-subscriptions', function(event) {
             event.preventDefault();
             event.stopPropagation();
+            selector = delegate + ' ' + selector;
             var text = jq(selector).val();
             var $area = jq(selector).parent().find('.maxui-text-input');
             var literal = $area.attr('data-literal');
             var button = jq(selector).parent().parent().find('.maxui-button');
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
-            if ((jq(this).val() === null || normalized === '' || normalized === literal) && !options.ignore_button) {
-                jq(button).attr('disabled', 'disabled');
-                jq(button).attr('class', 'maxui-button maxui-disabled');
-                jq(selector).attr('class', 'maxui-empty maxui-text-input');
-                jq(selector).removeAttr('title');
-            } else {
-                if (maxui.settings.canwrite && !options.ignore_button) {
+            if (!options.ignore_button && jq(this).val() && maxui.settings.canwrite) {
+                if ((normalized !== '' && normalized !== literal) || jq(selector + " #maxui-file").val() || jq(selector + " #maxui-img").val()) {
                     jq(button).removeAttr('disabled');
                     jq(button).attr('class', 'maxui-button');
                     jq(selector).attr('class', 'maxui-text-input');
                 }
+            } else {
+                jq(button).attr('disabled', 'disabled');
+                jq(button).attr('class', 'maxui-button maxui-disabled');
+                jq(selector).attr('class', 'maxui-empty maxui-text-input');
+                jq(selector).removeAttr('title');
             }
             if (extra_bind !== null) {
                 extra_bind(text, this, button, event);
