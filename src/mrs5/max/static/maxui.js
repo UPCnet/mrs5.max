@@ -5564,7 +5564,6 @@ var max = max || {};
         MaxConversationMessages.prototype.show = function(conversation_hash) {
             var self = this;
             self.mainview.loadWrappers();
-            // PLEASE CLEAN THIS SHIT
             var $button = jq('#maxui-newactivity').find('input.maxui-button');
             jq("#preview").empty();
             jq("#maxui-img").val("");
@@ -5583,7 +5582,6 @@ var max = max || {};
                 'margin-top': -26
             }, 200);
             self.mainview.$newparticipants.hide();
-            // UNTIL HERE
             self.mainview.active = conversation_hash;
             self.mainview.listview.resetUnread(conversation_hash);
             // Load conversation messages from max if never loaded
@@ -6298,6 +6296,7 @@ max.templates = function() {
         \
                     {{#showSubscriptionList}}\
                     <select id="maxui-subscriptions">\
+                      <option disabled selected value>{{selectCommunityLiteral}}</option>\
                       {{#subscriptionList}}\
                         <option value="{{hash}}">{{displayname}}</option>\
                       {{/subscriptionList}}\
@@ -6845,7 +6844,8 @@ max.literals = function(language) {
         'flagged_activity': "Flagged activity",
         'recent_favorited_activity': "Latest favorites",
         'valued_favorited_activity': "Most valued favorites",
-        'open_profile': "Show profile"
+        'open_profile': "Show profile",
+        'select_community': 'Select a community'
     };
     maxui.es = {
         'cancel': 'Cancelar',
@@ -6908,7 +6908,8 @@ max.literals = function(language) {
         'flagged_activity': "Actividades destacadas",
         'recent_favorited_activity': "Últimas favoritas",
         'valued_favorited_activity': "Favoritas más valoradas",
-        'open_profile': "Ver el perfil"
+        'open_profile': "Ver el perfil",
+        'select_community': 'Selecciona una comunidad'
     };
     maxui.ca = {
         'cancel': 'Cancelar',
@@ -6971,7 +6972,8 @@ max.literals = function(language) {
         'flagged_activity': "Activitats destacades",
         'recent_favorited_activity': "Darreres favorites",
         'valued_favorited_activity': "Favorites més valorades",
-        'open_profile': "Veure el perfil"
+        'open_profile': "Veure el perfil",
+        'select_community': 'Selecciona una comunitat'
     };
     return maxui[language];
 };
@@ -7849,7 +7851,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.1.6';
+        maxui.version = '5.1.7';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -8736,7 +8738,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var text = jq(this).val();
             var button = jq(this).parent().parent().find('.maxui-button');
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
-            if (normalized === '' && !options.ignore_button) {
+            if ((jq('#maxui-newactivity #maxui-subscriptions').val() === null || normalized === '') && !options.ignore_button) {
                 jq(button).attr('disabled', 'disabled');
                 jq(button).attr('class', 'maxui-button maxui-disabled');
                 jq(this).attr('class', 'maxui-empty maxui-text-input');
@@ -8792,7 +8794,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var literal = $area.attr('data-literal');
             var text = $area.val();
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
-            if ((normalized !== literal & normalized !== '') || options.empty_click || media) {
+            if ((normalized !== literal & normalized !== '' & jq('#maxui-newactivity #maxui-subscriptions').val() !== null) || options.empty_click || media) {
                 clickFunction.apply(this, [text, media]);
                 jq('#maxui-file').value = "";
                 jq('#maxui-img').value = "";
@@ -8800,6 +8802,30 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                 jq("#maxui-img").prop("disabled", false);
                 jq("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
                 jq("#maxui-file").prop("disabled", false);
+            }
+        });
+        jq(delegate).on('change', '#maxui-subscriptions', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var text = jq(selector).val();
+            var $area = jq(selector).parent().find('.maxui-text-input');
+            var literal = $area.attr('data-literal');
+            var button = jq(selector).parent().parent().find('.maxui-button');
+            var normalized = maxui.utils.normalizeWhiteSpace(text, false);
+            if ((jq(this).val() === null || normalized === '' || normalized === literal) && !options.ignore_button) {
+                jq(button).attr('disabled', 'disabled');
+                jq(button).attr('class', 'maxui-button maxui-disabled');
+                jq(selector).attr('class', 'maxui-empty maxui-text-input');
+                jq(selector).removeAttr('title');
+            } else {
+                if (maxui.settings.canwrite && !options.ignore_button) {
+                    jq(button).removeAttr('disabled');
+                    jq(button).attr('class', 'maxui-button');
+                    jq(selector).attr('class', 'maxui-text-input');
+                }
+            }
+            if (extra_bind !== null) {
+                extra_bind(text, this, button, event);
             }
         });
     };
@@ -9540,6 +9566,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             allowPosting: maxui.settings.canwrite,
             buttonLiteral: maxui.settings.literals.new_activity_post,
             textLiteral: maxui.settings.literals.new_activity_text,
+            selectCommunityLiteral: maxui.settings.literals.select_community,
             imgLiteral: maxui.settings.literals.new_img_post,
             fileLiteral: maxui.settings.literals.new_file_post,
             literals: maxui.settings.literals,
@@ -9597,6 +9624,10 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                         jq("#maxui-newactivity-box > .upload-img").addClass("label-disabled");
                         jq("#maxui-img").prop("disabled", true);
                         jq("#preview").prepend(html);
+                        if (jq('#maxui-newactivity-box #maxui-subscriptions').val() !== null) {
+                            jq('#maxui-newactivity-box .maxui-button').removeClass("maxui-disabled");
+                            jq('#maxui-newactivity-box .maxui-button').removeAttr("disabled");
+                        }
                         jq('#maxui-newactivity-box .maxui-button').removeClass("maxui-disabled");
                         jq('#maxui-newactivity-box .maxui-button').removeAttr("disabled");
                         jq('#maxui-newactivity-box .fa-times').on('click', function(event) {
@@ -9608,7 +9639,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                             jq("#maxui-newactivity-box > .upload-file").removeClass("label-disabled");
                             jq("#maxui-file").prop("disabled", false);
                             var input = jq('#maxui-newactivity .maxui-text-input');
-                            if (input.val() === "" || input.val() === input.data('literal')) {
+                            if (input.val() === "" || input.val() === input.data('literal') || jq('#maxui-newactivity-box #maxui-subscriptions').val() === null) {
                                 jq('#maxui-newactivity .maxui-button').attr('disabled', 'disabled');
                             }
                         });

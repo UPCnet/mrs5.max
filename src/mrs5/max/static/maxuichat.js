@@ -5564,7 +5564,6 @@ var max = max || {};
         MaxConversationMessages.prototype.show = function(conversation_hash) {
             var self = this;
             self.mainview.loadWrappers();
-            // PLEASE CLEAN THIS SHIT
             var $button = jq('#maxui-newactivity').find('input.maxui-button');
             jq("#chat-preview").empty();
             jq("#maxuichat-img").val("");
@@ -5583,7 +5582,6 @@ var max = max || {};
                 'margin-top': -26
             }, 200);
             self.mainview.$newparticipants.hide();
-            // UNTIL HERE
             self.mainview.active = conversation_hash;
             self.mainview.listview.resetUnread(conversation_hash);
             // Load conversation messages from max if never loaded
@@ -6678,7 +6676,8 @@ max.literals = function(language) {
         'flagged_activity': "Flagged activity",
         'recent_favorited_activity': "Latest favorites",
         'valued_favorited_activity': "Most valued favorites",
-        'open_profile': "Show profile"
+        'open_profile': "Show profile",
+        'select_community': 'Select a community'
     };
     maxui.es = {
         'cancel': 'Cancelar',
@@ -6741,7 +6740,8 @@ max.literals = function(language) {
         'flagged_activity': "Actividades destacadas",
         'recent_favorited_activity': "Últimas favoritas",
         'valued_favorited_activity': "Favoritas más valoradas",
-        'open_profile': "Ver el perfil"
+        'open_profile': "Ver el perfil",
+        'select_community': 'Selecciona una comunidad'
     };
     maxui.ca = {
         'cancel': 'Cancelar',
@@ -6804,7 +6804,8 @@ max.literals = function(language) {
         'flagged_activity': "Activitats destacades",
         'recent_favorited_activity': "Darreres favorites",
         'valued_favorited_activity': "Favorites més valorades",
-        'open_profile': "Veure el perfil"
+        'open_profile': "Veure el perfil",
+        'select_community': 'Selecciona una comunitat'
     };
     return maxui[language];
 };
