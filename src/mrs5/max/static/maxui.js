@@ -7851,7 +7851,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.1.8';
+        maxui.version = '5.1.9';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -8814,7 +8814,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var button = jq(selector).parent().parent().find('.maxui-button');
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
             if (!options.ignore_button && jq(this).val() && maxui.settings.canwrite) {
-                if ((normalized !== '' && normalized !== literal) || jq(selector + " #maxui-file").val() || jq(selector + " #maxui-img").val()) {
+                if ((normalized !== '' && normalized !== literal) || jq(delegate + " #maxui-file").val() || jq(delegate + " #maxui-img").val()) {
                     jq(button).removeAttr('disabled');
                     jq(button).attr('class', 'maxui-button');
                     jq(selector).attr('class', 'maxui-text-input');
@@ -9629,8 +9629,6 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                             jq('#maxui-newactivity-box .maxui-button').removeClass("maxui-disabled");
                             jq('#maxui-newactivity-box .maxui-button').removeAttr("disabled");
                         }
-                        jq('#maxui-newactivity-box .maxui-button').removeClass("maxui-disabled");
-                        jq('#maxui-newactivity-box .maxui-button').removeAttr("disabled");
                         jq('#maxui-newactivity-box .fa-times').on('click', function(event) {
                             jq("#preview").empty();
                             jq("#maxui-img").val("");
