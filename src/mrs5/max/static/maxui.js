@@ -7851,7 +7851,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.1.11';
+        maxui.version = '5.1.12';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -8803,9 +8803,6 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
                     jq("#maxui-img").prop("disabled", false);
                     jq("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
                     jq("#maxui-file").prop("disabled", false);
-                    if (jq(this).parent().attr('id') === 'maxui-newactivity-box') {
-                        jq('#maxui-newactivity #maxui-subscriptions').val('');
-                    }
                 }
             }
         });
