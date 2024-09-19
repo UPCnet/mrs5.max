@@ -7851,7 +7851,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.1.10';
+        maxui.version = '5.1.11';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -8738,7 +8738,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var text = jq(this).val();
             var button = jq(this).parent().parent().find('.maxui-button');
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
-            if (((jq(this).attr('id') !== 'maxui-commentBox' && jq('#maxui-newactivity #maxui-subscriptions').val() === null) || normalized === '') && !options.ignore_button) {
+            if (((jq(this).attr('id') !== 'maxui-commentBox' && jq('#maxui-newactivity #maxui-subscriptions').val() === null) || (normalized === '' && !jq(delegate + " #maxui-file").val() && !jq(delegate + " #maxui-img").val())) && !options.ignore_button) {
                 jq(button).attr('disabled', 'disabled');
                 jq(button).attr('class', 'maxui-button maxui-disabled');
                 jq(this).attr('class', 'maxui-empty maxui-text-input');
@@ -8794,14 +8794,19 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var literal = $area.attr('data-literal');
             var text = $area.val();
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
-            if ((normalized !== literal & normalized !== '' & jq('#maxui-newactivity #maxui-subscriptions').val() !== null) || options.empty_click || media) {
-                clickFunction.apply(this, [text, media]);
-                jq('#maxui-file').value = "";
-                jq('#maxui-img').value = "";
-                jq("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
-                jq("#maxui-img").prop("disabled", false);
-                jq("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
-                jq("#maxui-file").prop("disabled", false);
+            if ((normalized !== literal && normalized !== '') || options.empty_click || media) {
+                if ((jq(this).parent().attr('id') === 'maxui-newactivity-box' && jq('#maxui-newactivity #maxui-subscriptions').val() !== null) || jq(this).parent().hasClass('maxui-newcommentbox')) {
+                    clickFunction.apply(this, [text, media]);
+                    jq('#maxui-file').value = "";
+                    jq('#maxui-img').value = "";
+                    jq("#maxui-newactivity-box > .upload-img").removeClass('label-disabled');
+                    jq("#maxui-img").prop("disabled", false);
+                    jq("#maxui-newactivity-box > .upload-file").removeClass('label-disabled');
+                    jq("#maxui-file").prop("disabled", false);
+                    if (jq(this).parent().attr('id') === 'maxui-newactivity-box') {
+                        jq('#maxui-newactivity #maxui-subscriptions').val('');
+                    }
+                }
             }
         });
         jq(delegate).on('change', '#maxui-subscriptions', function(event) {
