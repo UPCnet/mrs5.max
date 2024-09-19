@@ -7851,7 +7851,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
     jq.fn.maxUI = function(options) {
         // Keep a reference of the context object
         var maxui = this;
-        maxui.version = '5.1.9';
+        maxui.version = '5.1.10';
         maxui.templates = max.templates();
         maxui.utils = max.utils();
         var defaults = {
@@ -8738,7 +8738,7 @@ MaxClient.prototype.unflagActivity = function(activityid, callback) {
             var text = jq(this).val();
             var button = jq(this).parent().parent().find('.maxui-button');
             var normalized = maxui.utils.normalizeWhiteSpace(text, false);
-            if ((jq('#maxui-newactivity #maxui-subscriptions').val() === null || normalized === '') && !options.ignore_button) {
+            if (((jq(this).attr('id') !== 'maxui-commentBox' && jq('#maxui-newactivity #maxui-subscriptions').val() === null) || normalized === '') && !options.ignore_button) {
                 jq(button).attr('disabled', 'disabled');
                 jq(button).attr('class', 'maxui-button maxui-disabled');
                 jq(this).attr('class', 'maxui-empty maxui-text-input');
