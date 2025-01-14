@@ -8,7 +8,7 @@ from plone.registry.interfaces import IRegistry
 from mrs5.max.browser.controlpanel import IMAXUISettings
 from ulearn5.core.controlpanel import IUlearnControlPanelSettings
 
-# WARNING: If any other parameter should be added to the instantation you must
+# WARNING: If any other parameter should be added to the instantiation you must
 # add it too to the maxui.loader.js file.
 
 TEMPLATE = """\
@@ -18,7 +18,7 @@ window._MAXUI.oauth_token = '%(oauth_token)s';
 window._MAXUI.max_server = '%(max_server)s';
 window._MAXUI.max_server_alias = '%(max_server_alias)s';
 window._MAXUI.avatar_url = '%(avatar_url)s';
-window._MAXUI.profile_url = '%(profile_url)s'
+window._MAXUI.profile_url = '%(profile_url)s';
 window._MAXUI.contexts = '%(contexts)s';
 window._MAXUI.activitySource = '%(activitySource)s';
 window._MAXUI.activitySortView = '%(activitySortView)s';
@@ -37,7 +37,7 @@ window._MAXUI.oauth_token = '%(oauth_token)s';
 window._MAXUI.max_server = '%(max_server)s';
 window._MAXUI.max_server_alias = '%(max_server_alias)s';
 window._MAXUI.avatar_url = '%(avatar_url)s';
-window._MAXUI.profile_url = '%(profile_url)s'
+window._MAXUI.profile_url = '%(profile_url)s';
 window._MAXUI.contexts = '%(contexts)s';
 window._MAXUI.activitySource = '%(activitySource)s';
 window._MAXUI.activitySortView = '%(activitySortView)s';
@@ -49,14 +49,16 @@ window._MAXUI.showSubscriptionList = false;
 window._MAXUI.showLikes = true;
 """
 
+
 class MAXJSVariables(BrowserView):
 
     def __call__(self, *args, **kwargs):
         context = self.context
         response = self.request.response
         portal_url = getSite().absolute_url()
-        response.addHeader('content-type', 'text/javascript;;charset=utf-8')
-        response.addHeader('Cache-Control', 'must-revalidate, max-age=0, no-cache, no-store')
+        response.addHeader('content-type', 'text/javascript; charset=utf-8')
+        response.addHeader(
+            'Cache-Control', 'must-revalidate, max-age=0, no-cache, no-store')
 
         registry = queryUtility(IRegistry)
         settings = registry.forInterface(IMAXUISettings, check=False)
@@ -91,15 +93,15 @@ class MAXJSVariables(BrowserView):
         try:
             ulearn_settings = registry.forInterface(IUlearnControlPanelSettings)
             activity_view = ulearn_settings.activity_view
-        except:
+        except Exception:
             activity_view = 'darreres_activitats'
         return TEMPLATE % dict(
             username=username,
             oauth_token=oauth_token,
             max_server=settings.max_server,
             max_server_alias=settings.max_server_alias,
-            avatar_url='%s/people/{0}/avatar/mini' % (settings.max_server),
-            profile_url='%s/profile/{0}' % (portal_url),
+            avatar_url='%s/people/{0}/avatar/mini' % settings.max_server,
+            profile_url='%s/profile/{0}' % portal_url,
             contexts=self.context.absolute_url(),
             activitySource='timeline',
             activitySortView=activity_views_map.get(activity_view, 'recent'),
@@ -108,14 +110,16 @@ class MAXJSVariables(BrowserView):
             literals=maxui,
         )
 
+
 class MAXJSVariablesChat(BrowserView):
 
     def __call__(self, *args, **kwargs):
         context = self.context
         response = self.request.response
         portal_url = getSite().absolute_url()
-        response.addHeader('content-type', 'text/javascript;;charset=utf-8')
-        response.addHeader('Cache-Control', 'must-revalidate, max-age=0, no-cache, no-store')
+        response.addHeader('content-type', 'text/javascript; charset=utf-8')
+        response.addHeader(
+            'Cache-Control', 'must-revalidate, max-age=0, no-cache, no-store')
 
         registry = queryUtility(IRegistry)
         settings = registry.forInterface(IMAXUISettings, check=False)
@@ -150,15 +154,15 @@ class MAXJSVariablesChat(BrowserView):
         try:
             ulearn_settings = registry.forInterface(IUlearnControlPanelSettings)
             activity_view = ulearn_settings.activity_view
-        except:
+        except Exception:
             activity_view = 'darreres_activitats'
         return TEMPLATE_CHAT % dict(
             username=username,
             oauth_token=oauth_token,
             max_server=settings.max_server,
             max_server_alias=settings.max_server_alias,
-            avatar_url='%s/people/{0}/avatar/mini' % (settings.max_server),
-            profile_url='%s/profile/{0}' % (portal_url),
+            avatar_url='%s/people/{0}/avatar/mini' % settings.max_server,
+            profile_url='%s/profile/{0}' % portal_url,
             contexts=self.context.absolute_url(),
             activitySource='activities',
             activitySortView=activity_views_map.get(activity_view, 'recent'),
