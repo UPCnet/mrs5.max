@@ -20,13 +20,17 @@ def getToken(user, password, grant_type=None):
     try:
         token = maxclient.getToken(user, password)
         return token
-    except BadUsernameOrPasswordError as error:
-        logger.error('Invalid credentials for user "{}" on "{}"'.format(user, maxclient.oauth_server))
+    except BadUsernameOrPasswordError:
+        logger.error(
+            'Invalid credentials for user "{}" on "{}"'.format(
+                user, maxclient.oauth_server))
         return 'BadUsernameOrPasswordError'
     except Exception as error:
-        logger.error('Exception raised while getting token for user "{}" from "{}"'.format(user, maxclient.oauth_server))
-        logger.error('{}: {}'.format(error.__class__.__name__, error.message))
-    # An empty token is returned in an exception is raised
+        logger.error(
+            'Exception raised while getting token for user "{}" from "{}"'.format(
+                user, maxclient.oauth_server))
+        logger.error('{}: {}'.format(error.__class__.__name__, str(error)))
+    # An empty token is returned if an exception is raised
     return ''
 
 
@@ -90,9 +94,9 @@ class maxUserCreator(object):
         member = api.user.get(username=user)
 
         try:
-            #Mayo2018: Si el usuario existe, lo creamos en el max.
-            #Esto lo hacemos porque si han dado de alta un usuario en el ldap
-            #y entra en comunidades lo hemos de dar de alta en el max
+            # Mayo2018: Si el usuario existe, lo creamos en el max.
+            # Esto lo hacemos porque si han dado de alta un usuario en el ldap
+            # y entra en comunidades lo hemos de dar de alta en el max
             if member != None:
                 maxclient.people[user].post()
 
@@ -113,8 +117,6 @@ class maxUserCreator(object):
             else:
                 logger.info('Invalid credentials for user: {}'.format(user))
 
-
         except:
             logger.error('Could not contact with MAX server.')
             logger.error(prettyResponse(maxclient.last_response))
-
