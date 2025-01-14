@@ -26,14 +26,14 @@ class IEnhancedUserDataSchema(IRegisterSchema):
     #     required=False)
 
     pdelete = schema.Bool(
-        title=PLMF(u'label_delete_portrait', default=u'Delete Portrait'),
-        description=u'',
+        title=PLMF('label_delete_portrait', default='Delete Portrait'),
+        description='',
         required=False)
 
     twitter_username = schema.TextLine(
-        title=_(u'label_twitter', default=u'Twitter username'),
-        description=_(u'help_twitter',
-                      default=u"Fill in your Twitter username."),
+        title=_('label_twitter', default='Twitter username'),
+        description=_('help_twitter',
+                      default="Fill in your Twitter username."),
         required=False,
     )
 
@@ -47,7 +47,7 @@ class UserDataSchemaProvider(UserDataPanel):
         if schema is None:
             portal._v_userdata_schema = schema = getFromBaseSchema(
                 IEnhancedUserDataSchema,
-                form_name=u'In User Profile'
+                form_name='In User Profile'
             )
             # as schema is a generated supermodel,
             # needed adapters can only be registered at run time

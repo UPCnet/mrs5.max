@@ -19,12 +19,12 @@ grok.templatedir('views_templates')
 class ICredentials(form.Schema):
 
     username = schema.TextLine(
-        title=_(u'The username.'),
+        title=_('The username.'),
     )
 
     password = schema.Password(
-        title=_(u'Password'),
-        description=_(u'The provided username account password.'),
+        title=_('Password'),
+        description=_('The provided username account password.'),
     )
 
 
@@ -37,8 +37,8 @@ class getRestrictedTokenForm(form.SchemaForm):
     schema = ICredentials
     ignoreContext = True
 
-    label = _(u'Get a valid token')
-    description = _(u'Give the credentials of a valid account.')
+    label = _('Get a valid token')
+    description = _('Give the credentials of a valid account.')
 
     def update(self):
         # call the base class version - this is very important!
@@ -48,7 +48,7 @@ class getRestrictedTokenForm(form.SchemaForm):
         self.request.set('disable_border', True)
         self.actions['get_token'].addClass('context')
 
-    @button.buttonAndHandler(_(u'Get token'), name='get_token')
+    @button.buttonAndHandler(_('Get token'), name='get_token')
     def handleApply(self, action):
         data, errors = self.extractData()
         if errors:
@@ -67,7 +67,7 @@ class getRestrictedTokenForm(form.SchemaForm):
             IStatusMessage(self.request).addStatusMessage(
                 'Restricted token issued for user: {}'.format(username),
                 'info')
-        except AttributeError, error:
+        except AttributeError as error:
             IStatusMessage(self.request).addStatusMessage(
                 error,
                 'Username or password invalid.')
