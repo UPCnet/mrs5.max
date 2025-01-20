@@ -2,7 +2,6 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:five="http://namespaces.zope.org/five"
     xmlns:i18n="http://namespaces.zope.org/i18n"
-    xmlns:grok="http://namespaces.zope.org/grok"
     xmlns:plone="http://namespaces.plone.org/plone"
     xmlns:monkey="http://namespaces.plone.org/monkey"
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
@@ -15,7 +14,6 @@
   <include package=".portlets" />
 
   <include package="plone.resource" file="meta.zcml"/>
-  <grok:grok package="." />
 
   <!-- Resource traversers -->
   <adapter
@@ -70,5 +68,31 @@
   <utility
       factory=".setuphandlers.HiddenProfiles"
       name="mrs5.max-hiddenprofiles" />
+
+  <utility
+      provides=".utilities.IMAXClient"
+      factory=".utilities.MAXClient"
+      name="MAXClient" />
+
+  <utility
+      provides=".utilities.IHubClient"
+      factory=".utilities.HUBClient"
+      name="HUBClient" />
+
+    <subscriber
+        for="Products.PluggableAuthService.interfaces.authservice.IPropertiedUser
+             Products.PluggableAuthService.interfaces.events.IPrincipalCreatedEvent"
+        handler=".subscribers.createMAXUser"
+    />
+
+    <subscriber
+        for="Products.CMFPlone.interfaces.IConfigurationChangedEvent"
+        handler=".subscribers.updateMAXUserInfo"
+    />
+
+    <subscriber
+        for="Products.CMFPlone.interfaces.IConfigurationChangedEvent"
+        handler=".subscribers.updateOauthServerOnOsirisPASPlugin"
+    />
 
 </configure>

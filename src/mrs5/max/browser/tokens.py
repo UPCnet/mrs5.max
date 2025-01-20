@@ -1,4 +1,3 @@
-from five import grok
 from plone import api
 from plone.directives import form
 
@@ -7,13 +6,13 @@ from z3c.form import button
 from zope.component import getUtility
 from zope.component.hooks import getSite
 
-from Products.CMFCore.interfaces import ISiteRoot
 from Products.statusmessages.interfaces import IStatusMessage
+
+from Products.Five.browser import BrowserView
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
 from mrs5.max import _
 from mrs5.max.utilities import set_user_oauth_token, IMAXClient
-
-grok.templatedir('views_templates')
 
 
 class ICredentials(form.Schema):
@@ -29,16 +28,18 @@ class ICredentials(form.Schema):
 
 
 class getRestrictedTokenForm(form.SchemaForm):
-    grok.name('getRestrictedToken')
-    grok.require('cmf.ManagePortal')
-    grok.template('gettokenform')
-    grok.context(ISiteRoot)
+
+    index = ViewPageTemplateFile("views_templates/gettokenform.pt")
 
     schema = ICredentials
     ignoreContext = True
 
     label = _('Get a valid token')
     description = _('Give the credentials of a valid account.')
+
+    def __call__(self):
+        self.update()
+        return self.index()
 
     def update(self):
         # call the base class version - this is very important!
@@ -65,8 +66,8 @@ class getRestrictedTokenForm(form.SchemaForm):
         try:
             settings.max_restricted_token = maxclient.getToken(username, password)
             IStatusMessage(self.request).addStatusMessage(
-                'Restricted token issued for user: {}'.format(username),
-                'info')
+                f'Restricted token issued for user: {username}', 'info'
+            )
         except AttributeError as error:
             IStatusMessage(self.request).addStatusMessage(
                 error,
@@ -74,7 +75,8 @@ class getRestrictedTokenForm(form.SchemaForm):
 
         # Add context for this site MAX server with the restricted token
         portal = getSite()
-        portal_permissions = dict(read='subscribed', write='subscribed', subscribe='restricted')
+        portal_permissions = dict(
+            read='subscribed', write='subscribed', subscribe='restricted')
         # maxclient.setActor(self.maxui_settings.max_restricted_username)
         # maxclient.setToken(self.maxui_settings.max_restricted_token)
         # maxclient.addContext(portal.absolute_url(),
@@ -94,22 +96,22 @@ class getRestrictedTokenForm(form.SchemaForm):
         try:
             maxclient.contexts.post(**context_params)
         except:
-            IStatusMessage(self.request).addStatusMessage(
-                'There was an error trying to create the default (portal root) URL into MAX server.', 'error')
+            IStatusMessage(
+                self.request).addStatusMessage(
+                'There was an error trying to create the default (portal root) URL into MAX server.',
+                'error')
 
         # Add the restricted token to the Plone admin user
         set_user_oauth_token('admin', settings.max_restricted_token)
 
         # Redirect back with a status message
-        self.request.response.redirect('{}/{}'.format(self.context.absolute_url(), '@@maxui-settings'))
+        self.request.response.redirect(
+            f'{self.context.absolute_url()}/@@maxui-settings')
 
 
-class resetMyOauthToken(grok.View):
-    grok.name('resetToken')
-    grok.require('base.authenticated')
-    grok.context(ISiteRoot)
+class resetMyOauthToken(BrowserView):
 
-    def render(self):
+    def __call__(self):
         pm = api.portal.get_tool(name='portal_membership')
         member = pm.getAuthenticatedMember()
         member.setMemberProperties({'oauth_token': ''})

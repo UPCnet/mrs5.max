@@ -1,14 +1,10 @@
 # -*- encoding: utf-8 -*-
-from five import grok
 from max5.client.rest import MaxClient
 from mrs5.max.browser.controlpanel import IMAXUISettings
 from mrs5.max.utilities import IMAXClient
 from mrs5.max.utilities import prettyResponse
 from plone import api
 from plone.registry.interfaces import IRegistry
-from Products.CMFPlone.interfaces import IConfigurationChangedEvent
-from Products.PluggableAuthService.interfaces.authservice import IPropertiedUser
-from Products.PluggableAuthService.interfaces.events import IPrincipalCreatedEvent
 from zope.component import getUtility
 from zope.component import queryUtility
 from zope.component.hooks import getSite
@@ -22,7 +18,6 @@ import plone.api
 logger = logging.getLogger('mrs5.max')
 
 
-@grok.subscribe(IConfigurationChangedEvent)
 def updateMAXUserInfo(event):
     """This subscriber will trigger when a user change his/her profile data."""
 
@@ -33,7 +28,7 @@ def updateMAXUserInfo(event):
             username = ''
             return
         else:
-	    username = api.user.get_current().id
+            username = api.user.get_current().id
         memberdata = pm.getMemberById(username)
         properties = dict(displayName=memberdata.getProperty('fullname', ''),
                           twitterUsername=memberdata.getProperty('twitter_username', '')
@@ -43,14 +38,14 @@ def updateMAXUserInfo(event):
         settings = registry.forInterface(IMAXUISettings, check=False)
         oauth_token = memberdata.getProperty('oauth_token', '')
 
-        maxclient = MaxClient(url=settings.max_server, oauth_server=settings.oauth_server)
+        maxclient = MaxClient(url=settings.max_server,
+                              oauth_server=settings.oauth_server)
         maxclient.setActor(username)
         maxclient.setToken(oauth_token)
 
         maxclient.people[username].put(**properties)
 
 
-@grok.subscribe(IConfigurationChangedEvent)
 def updateOauthServerOnOsirisPASPlugin(event):
     """This subscriber will trigger when an admin updates the MAX settings.
 
@@ -72,7 +67,6 @@ def updateOauthServerOnOsirisPASPlugin(event):
         portal.acl_users.pasosiris5.oauth_server = event.data['oauth_server']
 
 
-@grok.subscribe(IPropertiedUser, IPrincipalCreatedEvent)
 def createMAXUser(principal, event):
     """This subscriber will trigger when a user is created."""
 
