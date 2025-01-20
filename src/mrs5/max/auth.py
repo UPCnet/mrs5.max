@@ -22,14 +22,12 @@ def getToken(user, password, grant_type=None):
         return token
     except BadUsernameOrPasswordError:
         logger.error(
-            'Invalid credentials for user "{}" on "{}"'.format(
-                user, maxclient.oauth_server))
+            f'Invalid credentials for user "{user}" on "{maxclient.oauth_server}"')
         return 'BadUsernameOrPasswordError'
     except Exception as error:
-        logger.error(
-            'Exception raised while getting token for user "{}" from "{}"'.format(
-                user, maxclient.oauth_server))
-        logger.error('{}: {}'.format(error.__class__.__name__, str(error)))
+        logger.error(f'Exception raised while getting token for user "{
+            user}" from "{maxclient.oauth_server}"')
+        logger.error(f'{error.__class__.__name__}: {str(error)}')
     # An empty token is returned if an exception is raised
     return ''
 
@@ -58,9 +56,9 @@ class oauthTokenRetriever(object):
             return 'BadUsernameOrPasswordError'
         elif oauth_token:
             member.setMemberProperties({'oauth_token': oauth_token})
-            logger.info('oAuth token set for user: %s ' % user)
+            logger.info(f'oAuth token set for user: {user}')
         else:
-            logger.warning('oAuth token NOT set for user: %s ' % user)
+            logger.warning(f'oAuth token NOT set for user: {user}')
 
         return
 
@@ -101,11 +99,11 @@ class maxUserCreator(object):
                 maxclient.people[user].post()
 
                 if maxclient.last_response_code == 201:
-                    logger.info('MAX user created:  %s' % user)
+                    logger.info(f'MAX user created:  {user}')
                 elif maxclient.last_response_code == 200:
-                    logger.info('MAX user already created: {}'.format(user))
+                    logger.info(f'MAX user already created: {user}')
                 else:
-                    logger.error('Error creating MAX user: {}. '.format(user))
+                    logger.error(f'Error creating MAX user: {user}.')
                     logger.error(prettyResponse(maxclient.last_response))
 
                 # Temporarily subscribe always the user to the default context
@@ -115,7 +113,7 @@ class maxUserCreator(object):
                 # portal_url = api.portal.get().absolute_url()
                 # maxclient.people[user].subscriptions.post(object_url=portal_url)
             else:
-                logger.info('Invalid credentials for user: {}'.format(user))
+                logger.info(f'Invalid credentials for user: {user}')
 
         except:
             logger.error('Could not contact with MAX server.')

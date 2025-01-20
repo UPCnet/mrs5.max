@@ -48,4 +48,25 @@
         class=".tokens.resetMyOauthToken"
         />
 
+    <browser:viewlet
+        name="ulearn.oauthngdirective"
+        class=".viewlets.OauthNGDirective"
+        manager="plone.app.layout.viewlets.interfaces.IPortalHeader"
+        permission="zope2.View"
+    />
+
+    <browser:page
+        for="*"
+        name="max.ajaxusersearch"
+        class=".views.MAXUserSearch"
+        permission="base.authenticated"
+    />
+
+    <browser:page
+        for="*"
+        name="max.hash"
+        class=".views.GetMaxHash"
+        permission="base.authenticated"
+    />
+
 </configure>
