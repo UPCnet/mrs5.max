@@ -1,4 +1,4 @@
-from five import grok
+from zope.interface import implementer
 from zope.interface import Interface
 from plone.registry.interfaces import IRegistry
 from zope.component import queryUtility
@@ -24,11 +24,11 @@ class IHubClient(Interface):
     """ Marker for HubClient global utility """
 
 
+@implementer(IMAXClient)
 class MAXClient(object):
     """ The utility will return a tuple with the settings and an instance of a
         MaxClient (REST-ish) object.
     """
-    grok.implements(IMAXClient)
 
     def __init__(self):
         self._conn = None
@@ -39,22 +39,24 @@ class MAXClient(object):
     def create_new_connection(self):
         registry = queryUtility(IRegistry)
         settings = registry.forInterface(IMAXUISettings, check=False)
-        logger.info('Created new MAX connection from domain: {}'.format(settings.domain))
-        self._conn = (MaxClient(url=settings.max_server, oauth_server=settings.oauth_server), settings)
+        logger.info(f'Created new MAX connection from domain: {settings.domain}')
+
+        self._conn = (
+            MaxClient(
+                url=settings.max_server, oauth_server=settings.oauth_server),
+            settings)
 
     @property
     def connection(self):
         self.create_new_connection()
         return self._conn
 
-grok.global_utility(MAXClient)
 
-
+@implementer(IHubClient)
 class HUBClient(object):
     """ The utility will return a tuple with the settings and an instance of a
         HubClient (REST-ish) object.
     """
-    grok.implements(IHubClient)
 
     def __init__(self):
         self._conn = None
@@ -65,15 +67,18 @@ class HUBClient(object):
     def create_new_connection(self):
         registry = queryUtility(IRegistry)
         settings = registry.forInterface(IMAXUISettings, check=False)
-        logger.info('Created new HUB connection from domain: {}'.format(settings.domain))
-        self._conn = (HubClient(settings.domain, settings.hub_server, expand_underscores=False), settings)
+        logger.info(f'Created new HUB connection from domain: {settings.domain}')
+
+        self._conn = (
+            HubClient(
+                settings.domain, settings.hub_server,
+                expand_underscores=False),
+            settings)
 
     @property
     def connection(self):
         self.create_new_connection()
         return self._conn
-
-grok.global_utility(HUBClient)
 
 
 def set_user_oauth_token(user, token):
