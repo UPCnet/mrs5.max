@@ -38,17 +38,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'plone.api',
-        'Products.GenericSetup>=1.8.2',
         'setuptools',
-        'z3c.jbot',
-        'requests',
-        'pas.plugins.preauth',
-        'plone.app.z3cform',
-        'plone.directives.form',
-        'max5.client',
-        'hub5.client',
-        'base5.core'
     ],
     extras_require={
         'test': [
