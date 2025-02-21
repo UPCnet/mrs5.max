@@ -1,21 +1,18 @@
+from mrs5.max import _
+from mrs5.max.utilities import IMAXClient, set_user_oauth_token
 from plone import api
-from plone.directives import form
-
+from plone.autoform.form import AutoExtensibleForm
+from plone.supermodel import model
+from Products.Five.browser import BrowserView
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from Products.statusmessages.interfaces import IStatusMessage
+from z3c.form import button, form
 from zope import schema
-from z3c.form import button
 from zope.component import getUtility
 from zope.component.hooks import getSite
 
-from Products.statusmessages.interfaces import IStatusMessage
 
-from Products.Five.browser import BrowserView
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-
-from mrs5.max import _
-from mrs5.max.utilities import set_user_oauth_token, IMAXClient
-
-
-class ICredentials(form.Schema):
+class ICredentials(model.Schema):
 
     username = schema.TextLine(
         title=_('The username.'),
@@ -27,7 +24,7 @@ class ICredentials(form.Schema):
     )
 
 
-class getRestrictedTokenForm(form.SchemaForm):
+class getRestrictedTokenForm(AutoExtensibleForm, form.Form):
 
     index = ViewPageTemplateFile("views_templates/gettokenform.pt")
 

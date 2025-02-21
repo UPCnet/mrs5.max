@@ -1,16 +1,11 @@
-from plone import api
-from pas.plugins.preauth.interfaces import IPreauthTask
-from pas.plugins.preauth.interfaces import IPreauthHelper
-
-from zope.component import getUtility
-from zope.interface import implementer
-from zope.component import adapter
-
-from mrs5.max.utilities import prettyResponse
-from mrs5.max.utilities import IMAXClient
-from max5.client.client import BadUsernameOrPasswordError
-
 import logging
+
+from max5.client.client import BadUsernameOrPasswordError
+from mrs5.max.utilities import IMAXClient, prettyResponse
+from pas.plugins.preauth.interfaces import IPreauthHelper, IPreauthTask
+from plone import api
+from zope.component import adapter, getUtility
+from zope.interface import implementer
 
 logger = logging.getLogger('mrs5.max')
 
@@ -25,8 +20,7 @@ def getToken(user, password, grant_type=None):
             f'Invalid credentials for user "{user}" on "{maxclient.oauth_server}"')
         return 'BadUsernameOrPasswordError'
     except Exception as error:
-        logger.error(f'Exception raised while getting token for user "{
-            user}" from "{maxclient.oauth_server}"')
+        logger.error(f'Exception raised while getting token for user {user} from {maxclient.oauth_server}')
         logger.error(f'{error.__class__.__name__}: {str(error)}')
     # An empty token is returned if an exception is raised
     return ''
