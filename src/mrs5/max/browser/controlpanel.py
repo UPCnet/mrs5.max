@@ -1,23 +1,17 @@
 # -*- coding: utf-8 -*-
-from zope import schema
-from z3c.form import button
-from zope.event import notify
-from zope.component import queryUtility
-from zope.component import getUtility
-
-from Products.CMFPlone.controlpanel.events import ConfigurationChangedEvent
-
-from Products.statusmessages.interfaces import IStatusMessage
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-
-from plone.app.registry.browser import controlpanel
-from plone.registry.interfaces import IRegistry
-
 from max5.client.rest import MaxClient
 from mrs5.max import _
-
-from plone.directives import form
-
+from plone.app.registry.browser import controlpanel
+from plone.autoform import directives
+from plone.registry.interfaces import IRegistry
+from plone.supermodel import model
+from Products.CMFPlone.controlpanel.events import ConfigurationChangedEvent
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from Products.statusmessages.interfaces import IStatusMessage
+from z3c.form import button
+from zope import schema
+from zope.component import getUtility, queryUtility
+from zope.event import notify
 
 DEFAULT_OAUTH_TOKEN_ENDPOINT = 'https://oauth.beta.upc.edu'
 DEFAULT_MAX_SERVER = 'https://max.beta.upc.edu/betaupc'
@@ -26,71 +20,59 @@ DEFAULT_HUB_SERVER = 'https://hub.beta.upc.edu'
 DEFAULT_DOMAIN = 'betaupc'
 DEFAULT_MAX_RESTRICTED_USERNAME = 'restricted'
 
+class IMAXUISettings(model.Schema):
+    """Global oAuth settings stored in the configuration registry via plone.registry."""
 
-class IMAXUISettings(form.Schema):
-    """Global oAuth settings. This describes records stored in the
-    configuration registry and obtainable via plone.registry.
-    """
-
-    form.mode(oauth_server='hidden')
+    directives.mode(oauth_server='hidden')
     oauth_server = schema.TextLine(
         title=_('label_oauth_server', default='OAuth token endpoint'),
-        description=_('help_oauth_server',
-                      default="Please, specify the URI for the oAuth server."),
+        description=_('help_oauth_server', default="Please, specify the URI for the OAuth server."),
         required=True,
         default=DEFAULT_OAUTH_TOKEN_ENDPOINT
     )
 
     max_server = schema.TextLine(
         title=_('label_max_server', default='MAX Server URL'),
-        description=_('help_max_server',
-                      default="Please, specify the MAX Server URL."),
+        description=_('help_max_server', default="Please, specify the MAX Server URL."),
         required=True,
         default=DEFAULT_MAX_SERVER
     )
 
     max_server_alias = schema.TextLine(
         title=_('label_max_server_alias', default='MAX Server URL Alias (Fallback when no CORS available)'),
-        description=_('help_max_server_alias',
-                      default="Please, specify the MAX Server URL Alias."),
+        description=_('help_max_server_alias', default="Please, specify the MAX Server URL Alias."),
         required=False,
         default=DEFAULT_MAX_SERVER
     )
 
-    form.mode(max_restricted_username='hidden')
+    directives.mode(max_restricted_username='hidden')
     max_restricted_username = schema.TextLine(
         title=_('label_max_restricted_username', default='MAX restricted username'),
-        description=_('help_max_restricted_username',
-                      default="Please, specify the MAX restricted username."),
+        description=_('help_max_restricted_username', default="Please, specify the MAX restricted username."),
         required=False,
         default=DEFAULT_MAX_RESTRICTED_USERNAME
     )
 
-    form.mode(max_restricted_token='hidden')
+    directives.mode(max_restricted_token='hidden')
     max_restricted_token = schema.Password(
         title=_('label_max_restricted_token', default='MAX restricted user token'),
-        description=_('help_max_restricted_token',
-                      default="Please, specify the MAX restricted user token."),
+        description=_('help_max_restricted_token', default="Please, specify the MAX restricted user token."),
         required=False,
     )
 
     hub_server = schema.TextLine(
         title=_('label_hub_server', default='uLearnHub server'),
-        description=_('help_hub_server',
-                      default="Please, specify the uLearnHub server for this site."),
+        description=_('help_hub_server', default="Please, specify the uLearnHub server for this site."),
         required=False,
         default=DEFAULT_HUB_SERVER
     )
 
     domain = schema.TextLine(
         title=_('label_domain', default='MAX domain'),
-        description=_('help_domain',
-                      default="Please, specify the HUB domain for this site."),
+        description=_('help_domain', default="Please, specify the HUB domain for this site."),
         required=False,
         default=DEFAULT_DOMAIN
     )
-
-
 class MAXUISettingsEditForm(controlpanel.RegistryEditForm):
     """MAXUI settings form.
     """
@@ -122,8 +104,8 @@ class MAXUISettingsEditForm(controlpanel.RegistryEditForm):
         self.applyChanges(data)
 
         # Imports required to be here because of circular dependencies
-        from mrs5.max.utilities import IMAXClient
-        from mrs5.max.utilities import IHubClient
+        from mrs5.max.utilities import IHubClient, IMAXClient
+
         # Update the connection to the (singleton) clients utilities
         maxclient = getUtility(IMAXClient)
         maxclient.create_new_connection()
