@@ -1,13 +1,10 @@
-from zope.interface import implements
-from zope.component.hooks import getSite
-
+from mrs5.max import _
 from plone.app.portlets.portlets import base
 from plone.memoize.view import memoize_contextless
 from plone.portlets.interfaces import IPortletDataProvider
-
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-
-from mrs5.max import _
+from zope.component.hooks import getSite
+from zope.interface import implementer
 
 
 class IMaxUIChatPortlet(IPortletDataProvider):
@@ -18,13 +15,13 @@ class IMaxUIChatPortlet(IPortletDataProvider):
     """
 
 
+@implementer(IMaxUIChatPortlet)
 class Assignment(base.Assignment):
     """Portlet assignment.
     This is what is actually managed through the portlets UI and associated
     with columns.
     """
 
-    implements(IMaxUIChatPortlet)
 
     def __init__(self):
         pass

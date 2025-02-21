@@ -1,18 +1,15 @@
 from OFS.Image import Image
-
-from zope.interface import implements
-from zope.publisher.interfaces import IPublishTraverse, NotFound
-
 from plone import api
 from plone.namedfile.utils import set_headers, stream_data
-
 from Products.Five import BrowserView
+from zope.interface import implementer
+from zope.publisher.interfaces import IPublishTraverse, NotFound
 
 
+@implementer(IPublishTraverse)
 class getAvatar(BrowserView):
     """ Return the raw portrait of the given user ../@@avatar/{username} """
 
-    implements(IPublishTraverse)
 
     def __init__(self, context, request):
         super(getAvatar, self).__init__(context, request)

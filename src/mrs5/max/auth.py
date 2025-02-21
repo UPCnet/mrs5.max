@@ -3,8 +3,8 @@ from pas.plugins.preauth.interfaces import IPreauthTask
 from pas.plugins.preauth.interfaces import IPreauthHelper
 
 from zope.component import getUtility
-from zope.interface import implements
-from zope.component import adapts
+from zope.interface import implementer
+from zope.component import adapter
 
 from mrs5.max.utilities import prettyResponse
 from mrs5.max.utilities import IMAXClient
@@ -32,9 +32,9 @@ def getToken(user, password, grant_type=None):
     return ''
 
 
+@implementer(IPreauthTask)
+@adapter(IPreauthHelper)
 class oauthTokenRetriever(object):
-    implements(IPreauthTask)
-    adapts(IPreauthHelper)
 
     def __init__(self, context):
         self.context = context
@@ -63,9 +63,9 @@ class oauthTokenRetriever(object):
         return
 
 
+@implementer(IPreauthTask)
+@adapter(IPreauthHelper)
 class maxUserCreator(object):
-    implements(IPreauthTask)
-    adapts(IPreauthHelper)
 
     def __init__(self, context):
         self.context = context

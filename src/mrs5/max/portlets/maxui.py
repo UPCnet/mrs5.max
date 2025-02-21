@@ -1,19 +1,14 @@
-from zope import schema
-from zope.component import getMultiAdapter
-from zope.component import getUtility
-from zope.component.hooks import getSite
-
-from zope.formlib import form
-from zope.interface import implements
-
+from mrs5.max import _
 from plone.app.portlets.portlets import base
 from plone.memoize.view import memoize_contextless
-from plone.portlets.interfaces import IPortletDataProvider
-from plone.portlets.interfaces import IPortletManager
-from plone.portlets.interfaces import IPortletRetriever
+from plone.portlets.interfaces import (IPortletDataProvider, IPortletManager,
+                                       IPortletRetriever)
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-
-from mrs5.max import _
+from zope import schema
+from zope.component import getMultiAdapter, getUtility
+from zope.component.hooks import getSite
+from zope.formlib import form
+from zope.interface import implementer
 
 
 class IMaxUIPortlet(IPortletDataProvider):
@@ -25,6 +20,7 @@ class IMaxUIPortlet(IPortletDataProvider):
     """
 
 
+@implementer(IMaxUIPortlet)
 class Assignment(base.Assignment):
     """Portlet assignment.
 
@@ -32,7 +28,6 @@ class Assignment(base.Assignment):
     with columns.
     """
 
-    implements(IMaxUIPortlet)
 
     def __init__(self):
         pass

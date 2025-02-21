@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
-from zope import schema
-from zope.interface import implements
-from plone.app.users.schema import IUserDataSchema, ICombinedRegisterSchema, IRegisterSchema
-from plone.app.users.schema import IUserSchemaProvider
-from plone.app.users.browser.userdatapanel import UserDataPanelAdapter
-from plone.app.users.browser.userdatapanel import UserDataPanel
-
-from ZPublisher.HTTPRequest import FileUpload
-from Products.CMFPlone import PloneMessageFactory as PLMF
-from zope.component.hooks import getSite
-from plone.app.users.browser.schemaeditor import getFromBaseSchema
-from Products.CMFPlone.interfaces import IPloneSiteRoot
-
 from mrs5.max import _
+from plone.app.users.browser.schemaeditor import getFromBaseSchema
+from plone.app.users.browser.userdatapanel import (UserDataPanel,
+                                                   UserDataPanelAdapter)
+from plone.app.users.schema import (ICombinedRegisterSchema, IRegisterSchema,
+                                    IUserDataSchema, IUserSchemaProvider)
+from Products.CMFPlone import PloneMessageFactory as PLMF
+from Products.CMFPlone.interfaces import IPloneSiteRoot
+from zope import schema
+from zope.component.hooks import getSite
+from ZPublisher.HTTPRequest import FileUpload
 
 
 class IEnhancedUserDataSchema(IRegisterSchema):
