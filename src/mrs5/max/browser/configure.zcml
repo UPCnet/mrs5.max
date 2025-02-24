@@ -5,11 +5,13 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="mrs5.max">
 
+    
+    <!-- BASE.AUTHENTICATED CAMBIO -->
     <browser:page
       name="avatar"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"
       class=".avatar.getAvatar"
-      permission="base.authenticated"
+      permission="zope2.View"
       />
 
     <browser:page
@@ -41,10 +43,11 @@
         class=".tokens.getRestrictedTokenForm"
         />
 
+    <!-- BASE.AUTHENTICATED CAMBIO -->
     <browser:page
         for="Products.CMFCore.interfaces.ISiteRoot"
         name="resetToken"
-        permission="base.authenticated"
+        permission="zope2.View"
         class=".tokens.resetMyOauthToken"
         />
 
@@ -55,18 +58,20 @@
         permission="zope2.View"
     />
 
+    <!-- BASE.AUTHENTICATED CAMBIO -->
     <browser:page
         for="*"
         name="max.ajaxusersearch"
         class=".views.MAXUserSearch"
-        permission="base.authenticated"
+        permission="zope2.View"
     />
 
+    <!-- BASE.AUTHENTICATED CAMBIO -->
     <browser:page
         for="*"
         name="max.hash"
         class=".views.GetMaxHash"
-        permission="base.authenticated"
+        permission="zope2.View"
     />
 
 </configure>
