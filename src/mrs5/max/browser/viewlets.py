@@ -1,16 +1,16 @@
+from mrs5.max.browser.controlpanel import IMAXUISettings
 from plone import api
-from zope.interface import Interface
-from zope.component import queryUtility
 from plone.app.layout.viewlets.interfaces import IPortalHeader
 from plone.registry.interfaces import IRegistry
-from mrs5.max.browser.controlpanel import IMAXUISettings
 from Products.Five.browser import BrowserView
-from zope.interface import implementer
+from ulearn5.core.browser.viewlets import viewletBase
+from zope.component import queryUtility
+from zope.interface import Interface, implementer
 from zope.viewlet.interfaces import IViewlet
 
 
 @implementer(IViewlet)
-class OauthNGDirective(BrowserView):
+class OauthNGDirective(viewletBase):
 
     def update(self):
         registry = queryUtility(IRegistry)

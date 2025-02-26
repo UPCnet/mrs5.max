@@ -1,3 +1,3 @@
-<oauthinfo tal:attributes="max_server viewlet/max_server;
-    username viewlet/username;
-    oauth_token viewlet/oauth_token"></oauthinfo>
+<oauthinfo tal:attributes="max_server view/max_server;
+    username view/username;
+    oauth_token view/oauth_token"></oauthinfo>
