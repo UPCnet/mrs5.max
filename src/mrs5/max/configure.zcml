@@ -71,13 +71,11 @@
 
   <utility
       provides=".utilities.IMAXClient"
-      factory=".utilities.MAXClient"
-      name="MAXClient" />
+      factory=".utilities.MAXClient" />
 
   <utility
       provides=".utilities.IHubClient"
-      factory=".utilities.HUBClient"
-      name="HUBClient" />
+      factory=".utilities.HUBClient" />
 
     <subscriber
         for="Products.PluggableAuthService.interfaces.authservice.IPropertiedUser
