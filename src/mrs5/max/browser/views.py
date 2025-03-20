@@ -44,4 +44,4 @@ class GetMaxHash(BrowserView):
 
     def __call__(self):
         url = self.context.absolute_url()
-        return sha1(url).hexdigest()
+        return sha1(url.encode('utf-8')).hexdigest()
