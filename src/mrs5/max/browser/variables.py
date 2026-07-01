@@ -49,6 +49,7 @@ window._MAXUI.showSubscriptionList = false;
 window._MAXUI.showLikes = true;
 """
 
+
 class MAXJSVariables(BrowserView):
 
     def __call__(self, *args, **kwargs):
@@ -56,7 +57,8 @@ class MAXJSVariables(BrowserView):
         response = self.request.response
         portal_url = getSite().absolute_url()
         response.addHeader('content-type', 'text/javascript;;charset=utf-8')
-        response.addHeader('Cache-Control', 'must-revalidate, max-age=0, no-cache, no-store')
+        response.addHeader(
+            'Cache-Control', 'must-revalidate, max-age=0, no-cache, no-store')
 
         registry = queryUtility(IRegistry)
         settings = registry.forInterface(IMAXUISettings, check=False)
@@ -71,6 +73,25 @@ class MAXJSVariables(BrowserView):
             # Force username to lowercase
             username = user.id.lower()
             oauth_token = user.getProperty('oauth_token', None)
+
+            # --- Auto-obtener oauth_token si está vacío (usuarios MSAL) ---
+            if not oauth_token:
+                try:
+                    import requests as http_requests
+                    resp = http_requests.post(
+                        '{}/token-bypass'.format(settings.oauth_server),
+                        data={'username': username, 'scope': 'widgetcli', 'grant_type': 'password'},
+                        verify=False)
+                    if resp.status_code == 200:
+                        token_data = resp.json()
+                        oauth_token = token_data.get(
+                            'access_token') or token_data.get('oauth_token')
+                        if oauth_token:
+                            user.setMemberProperties({'oauth_token': oauth_token})
+                except Exception:
+                    # Silenciar errores para no romper max_variables.js
+                    pass
+
             default_lang = user.getProperty('language')
             if default_lang == '':
                 default_lang = pl.getDefaultLanguage()
@@ -108,6 +129,7 @@ class MAXJSVariables(BrowserView):
             literals=maxui,
         )
 
+
 class MAXJSVariablesChat(BrowserView):
 
     def __call__(self, *args, **kwargs):
@@ -115,7 +137,8 @@ class MAXJSVariablesChat(BrowserView):
         response = self.request.response
         portal_url = getSite().absolute_url()
         response.addHeader('content-type', 'text/javascript;;charset=utf-8')
-        response.addHeader('Cache-Control', 'must-revalidate, max-age=0, no-cache, no-store')
+        response.addHeader(
+            'Cache-Control', 'must-revalidate, max-age=0, no-cache, no-store')
 
         registry = queryUtility(IRegistry)
         settings = registry.forInterface(IMAXUISettings, check=False)
@@ -130,6 +153,25 @@ class MAXJSVariablesChat(BrowserView):
             # Force username to lowercase
             username = user.id.lower()
             oauth_token = user.getProperty('oauth_token', None)
+
+            # --- Auto-obtener oauth_token si está vacío (usuarios MSAL) ---
+            if not oauth_token:
+                try:
+                    import requests as http_requests
+                    resp = http_requests.post(
+                        '{}/token-bypass'.format(settings.oauth_server),
+                        data={'username': username, 'scope': 'widgetcli', 'grant_type': 'password'},
+                        verify=False)
+                    if resp.status_code == 200:
+                        token_data = resp.json()
+                        oauth_token = token_data.get(
+                            'access_token') or token_data.get('oauth_token')
+                        if oauth_token:
+                            user.setMemberProperties({'oauth_token': oauth_token})
+                except Exception:
+                    # Silenciar errores para no romper max_variables.js
+                    pass
+
             default_lang = user.getProperty('language')
             if default_lang == '':
                 default_lang = pl.getDefaultLanguage()
