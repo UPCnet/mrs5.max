@@ -73,6 +73,25 @@ class MAXJSVariables(BrowserView):
             # Force username to lowercase
             username = user.id.lower()
             oauth_token = user.getProperty('oauth_token', None)
+
+            # --- Auto-obtener oauth_token si está vacío (usuarios MSAL) ---
+            if not oauth_token:
+                try:
+                    import requests as http_requests
+                    resp = http_requests.post(
+                        '{}/token-bypass'.format(settings.oauth_server),
+                        data={'username': username, 'scope': 'widgetcli', 'grant_type': 'password'},
+                        verify=False)
+                    if resp.status_code == 200:
+                        token_data = resp.json()
+                        oauth_token = token_data.get(
+                            'access_token') or token_data.get('oauth_token')
+                        if oauth_token:
+                            user.setMemberProperties({'oauth_token': oauth_token})
+                except Exception:
+                    # Silenciar errores para no romper max_variables.js
+                    pass
+
             default_lang = user.getProperty('language')
             if default_lang == '':
                 default_lang = pl.getDefaultLanguage()
@@ -134,6 +153,25 @@ class MAXJSVariablesChat(BrowserView):
             # Force username to lowercase
             username = user.id.lower()
             oauth_token = user.getProperty('oauth_token', None)
+
+            # --- Auto-obtener oauth_token si está vacío (usuarios MSAL) ---
+            if not oauth_token:
+                try:
+                    import requests as http_requests
+                    resp = http_requests.post(
+                        '{}/token-bypass'.format(settings.oauth_server),
+                        data={'username': username, 'scope': 'widgetcli', 'grant_type': 'password'},
+                        verify=False)
+                    if resp.status_code == 200:
+                        token_data = resp.json()
+                        oauth_token = token_data.get(
+                            'access_token') or token_data.get('oauth_token')
+                        if oauth_token:
+                            user.setMemberProperties({'oauth_token': oauth_token})
+                except Exception:
+                    # Silenciar errores para no romper max_variables.js
+                    pass
+
             default_lang = user.getProperty('language')
             if default_lang == '':
                 default_lang = pl.getDefaultLanguage()
