@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from plone import api
 from zope.component import queryUtility
 from zope.component.hooks import getSite
