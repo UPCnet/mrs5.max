@@ -2,11 +2,13 @@ Changelog
 =========
 
 
-1.9 (unreleased)
+1.9 (2026-07-02)
 ----------------
 
-- Nothing changed yet.
-
+* [FIX] para error usuarios azure que no tenian oaouth_token en max_variables.js utf-8 [pmarinas]
+* [FIX] para error usuarios azure que no tenian oaouth_token en max_variables.js [pmarinas]
+* Set dependencies older version [ruben.padilla.mateu]
+* UPD dependencies [ruben.padilla.mateu]
 
 1.8 (2024-09-19)
 ----------------
